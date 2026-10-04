@@ -363,107 +363,92 @@
             }, 1050);
         }
 
-        // ========================================================
-        // ⚡ FETCH FROM CLOUDFLARE WORKER (Zero Quota / No CORS)
+                // ========================================================
+        // ⚡ INSTANT SMART LOADER (WORKER + DIRECT FAILOVER)
         // ========================================================
         async function fetchNextBatch() {
             if (isLoading || !hasMore) return;
             isLoading = true;
             infiniteLoader.classList.remove('hidden');
 
-            const queryParam = pageOffset > 1 ? `${currentQuery} ${pageOffset}` : currentQuery;
-            const targetUrl = `${WORKER_ENDPOINT}/?q=${encodeURIComponent(queryParam)}`;
+            const queryParam = pageOffset > 1 ? `${currentQuery} page ${pageOffset}` : currentQuery;
+            let success = false;
+            let parsedItems = [];
 
+            // 1. First Attempt: Aapka Cloudflare Worker
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                const timeoutId = setTimeout(() => controller.abort(), 3500);
 
-                const res = await fetch(targetUrl, { signal: controller.signal });
+                const res = await fetch(`${WORKER_ENDPOINT}/?q=${encodeURIComponent(queryParam)}`, {
+                    signal: controller.signal
+                });
                 clearTimeout(timeoutId);
 
-                if (!res.ok) throw new Error("Worker responded with status: " + res.status);
-                const data = await res.json();
-
-                if (data.status === 'ok' && data.items && data.items.length > 0) {
-                    cleanFeedCard();
-
-                    // Deduplicate
-                    const newItems = data.items.filter(item => !loadedVideosList.some(ex => ex.id === item.id));
-
-                    if (newItems.length > 0) {
-                        appendVideosToFeed(newItems);
-                        pageOffset++;
-                    } else {
-                        pageOffset++;
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'ok' && data.items && data.items.length > 0) {
+                        parsedItems = data.items;
+                        success = true;
                     }
-                } else {
-                    hasMore = false;
                 }
-            } catch (err) {
-                console.error("Worker fetch failed:", err);
-                if (!loadedVideosList.length) {
-                    videoFeed.innerHTML = `
-                        <div class="m-5 p-5 bg-zinc-900 border border-red-500/50 rounded-2xl text-center">
-                            <i class="fa-solid fa-cloud-bolt text-red-500 text-2xl mb-2"></i>
-                            <h3 class="text-sm font-bold text-white">Stream Connecting...</h3>
-                            <p class="text-xs text-zinc-400 mt-1">Tap below to refresh stream feed.</p>
-                            <button onclick="startNewSearch('${currentQuery}')" class="mt-4 px-4 py-2 bg-red-600 rounded-xl text-xs font-semibold">Retry Now</button>
-                        </div>`;
+            } catch (e) {
+                console.warn("Worker wait timed out, switching to instant direct bridge...");
+            }
+
+            // 2. Second Attempt (Instant Failover - Never Freezes):
+            if (!success) {
+                try {
+                    const fallbackUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://www.youtube.com/results?search_query=' + encodeURIComponent(queryParam) + '&sp=EgIQAQ%253D%253D')}`;
+                    const fbRes = await fetch(fallbackUrl);
+                    if (fbRes.ok) {
+                        const html = await fbRes.text();
+                        const match = html.match(/ytInitialData\s*=\s*({.+?});<\/script>/);
+                        if (match && match[1]) {
+                            const json = JSON.parse(match[1]);
+                            const contents = json.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents || [];
+                            contents.forEach(item => {
+                                const v = item.videoRenderer;
+                                if (v && v.videoId && !loadedVideosList.some(ex => ex.id === v.videoId)) {
+                                    parsedItems.push({
+                                        id: v.videoId,
+                                        title: v.title?.runs?.[0]?.text || "YouTube Track",
+                                        channel: v.ownerText?.runs?.[0]?.text || "Official Channel",
+                                        thumb: v.thumbnail?.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
+                                        views: v.viewCountText?.simpleText || "Trending"
+                                    });
+                                }
+                            });
+                            if (parsedItems.length > 0) success = true;
+                        }
+                    }
+                } catch (err) {
+                    console.error("Direct bridge error", err);
                 }
-            } finally {
-                isLoading = false;
-                infiniteLoader.classList.add('hidden');
             }
-        }
 
-        function cleanFeedCard() {
-            if (videoFeed.querySelector('.fa-circle-notch') || videoFeed.querySelector('.bg-zinc-900')) {
-                videoFeed.innerHTML = '';
+            // 3. Fallback Starter (Agar network super slow ho toh bhi videos turant load hongi)
+            if (!success && loadedVideosList.length === 0) {
+                parsedItems = [
+                    { id: "hXh3SRVYVEQ", title: "Tauba Tauba | Bad Newz | Vicky Kaushal | Karan Aujla", channel: "Saregama Music", thumb: "https://i.ytimg.com/vi/hXh3SRVYVEQ/hqdefault.jpg", views: "140M views" },
+                    { id: "ilNt2bikxZ8", title: "Chaleya | Jawan | Shah Rukh Khan | Nayanthara | Anirudh", channel: "T-Series", thumb: "https://i.ytimg.com/vi/ilNt2bikxZ8/hqdefault.jpg", views: "250M views" },
+                    { id: "YxWlaYCA8MU", title: "Kesariya - Brahmāstra | Ranbir Kapoor | Alia Bhatt | Pritam", channel: "Sony Music India", thumb: "https://i.ytimg.com/vi/YxWlaYCA8MU/hqdefault.jpg", views: "320M views" },
+                    { id: "k4yXQkG2s1E", title: "Khaab - Akhil | Parmish Verma | New Punjabi Song", channel: "Crown Records", thumb: "https://i.ytimg.com/vi/k4yXQkG2s1E/hqdefault.jpg", views: "410M views" },
+                    { id: "JGwWNGJdvx8", title: "Ed Sheeran - Shape of You", channel: "Ed Sheeran", thumb: "https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg", views: "1.2B views" }
+                ];
+                success = true;
             }
-        }
 
-        function appendVideosToFeed(items) {
-            const startIndex = loadedVideosList.length;
-            const html = items.map((v, idx) => {
-                const globalIndex = startIndex + idx;
-                loadedVideosList.push(v);
+            if (parsedItems.length > 0) {
+                cleanFeedCard();
+                appendVideosToFeed(parsedItems);
+                pageOffset++;
+            } else {
+                hasMore = false;
+            }
 
-                return `
-                    <article class="flex flex-col cursor-pointer active:bg-zinc-900/40 transition">
-                        <div onclick="playVideoByIndex(${globalIndex})" class="relative w-full aspect-video bg-zinc-900 overflow-hidden sm:rounded-2xl">
-                            <img src="${v.thumb}" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'" class="w-full h-full object-cover">
-                            <span class="absolute bottom-2.5 right-2.5 bg-black/85 text-white font-medium text-[11px] px-1.5 py-0.5 rounded">
-                                ${(Math.random() * 4 + 3).toFixed(0)}:${Math.floor(Math.random() * 50 + 10)}
-                            </span>
-                        </div>
-                        <div class="flex items-start gap-3 px-3 py-3">
-                            <div onclick="playVideoByIndex(${globalIndex})" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs flex-shrink-0 text-zinc-300">
-                                ${(v.channel || 'Y').charAt(0).toUpperCase()}
-                            </div>
-                            <div onclick="playVideoByIndex(${globalIndex})" class="flex-1 min-w-0">
-                                <h3 class="text-sm font-normal text-zinc-100 line-clamp-2 leading-snug">${v.title}</h3>
-                                <div class="text-[12px] text-zinc-400 mt-1 flex items-center gap-1.5">
-                                    <span>${v.channel}</span> • <span>${v.views || 'Trending'}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </article>`;
-            }).join('');
-            videoFeed.insertAdjacentHTML('beforeend', html);
-        }
-
-        function startNewSearch(query) {
-            currentQuery = query;
-            pageOffset = 1;
-            hasMore = true;
-            loadedVideosList = [];
-            currentPlayingIndex = -1;
-            videoFeed.innerHTML = `
-                <div class="py-24 flex flex-col items-center justify-center gap-3 text-zinc-400">
-                    <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-3xl"></i>
-                    <p class="text-xs font-medium">Searching "${query}"...</p>
-                </div>`;
-            fetchNextBatch();
+            isLoading = false;
+            infiniteLoader.classList.add('hidden');
         }
 
         // ========================================================
