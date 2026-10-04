@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SKPlayer Ultra</title>
 
-    <!-- App Favicons & Icons from Archive.zip -->
+    <!-- App Favicons & Icons -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -41,7 +41,6 @@
 
     <!-- 1. TOP NAVBAR -->
     <header class="sticky top-0 z-50 bg-[#0f0f0f]/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between border-b border-zinc-800/60">
-        <!-- Logo with your official brand icon -->
         <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('home')">
             <img src="android-chrome-192x192.png" alt="SKPlayer" class="w-8 h-8 rounded-lg object-contain shadow-md shadow-red-600/20">
             <div class="flex items-center">
@@ -88,19 +87,19 @@
     <!-- 2. STICKY DEDICATED PLAYER WITH GESTURE SENSORS -->
     <div id="playerSection" class="hidden sticky top-[48px] z-40 bg-[#0f0f0f] shadow-2xl transition-all">
         <div id="playerContainer" class="relative w-full aspect-video bg-black overflow-hidden">
-            <div id="ytplayer" class="w-full h-full pointer-events-none"></div>
+            <div id="ytplayer" class="w-full h-full"></div>
 
             <!-- Audio-Only Blackout Screen -->
-            <div id="audioOnlyCover" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-2">
+            <div id="audioOnlyCover" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-2 pointer-events-none z-10">
                 <i class="fa-solid fa-headphones text-red-500 text-4xl animate-bounce"></i>
                 <p class="text-xs font-semibold text-zinc-300">Audio-Only Data Saver Active</p>
             </div>
 
             <!-- Gesture Indicators -->
-            <div id="gestureNotice" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-black/80 px-3 py-1.5 rounded-full text-xs font-semibold text-white border border-zinc-700 pointer-events-none z-20"></div>
+            <div id="gestureNotice" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-black/80 px-3.5 py-1.5 rounded-full text-xs font-semibold text-white border border-zinc-700 pointer-events-none z-30 shadow-lg"></div>
             
             <!-- Gesture Touch Zones Overlay -->
-            <div id="touchSurface" class="absolute inset-0 z-10 flex">
+            <div id="touchSurface" class="absolute inset-0 z-20 flex">
                 <div id="leftTouchZone" class="w-1/2 h-full"></div>
                 <div id="rightTouchZone" class="w-1/2 h-full"></div>
             </div>
@@ -132,7 +131,13 @@
 
             <!-- Pro Control Actions Scrollbar -->
             <div class="flex items-center gap-2 mt-3.5 overflow-x-auto no-scrollbar text-xs">
-                <button onclick="playNextVideo()" class="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-1.5 rounded-full whitespace-nowrap">
+                <!-- Play/Pause Button -->
+                <button onclick="togglePlayPause()" id="playPauseBtn" class="flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold px-3 py-1.5 rounded-full whitespace-nowrap border border-zinc-700">
+                    <i id="playPauseIcon" class="fa-solid fa-pause"></i> <span id="playPauseText">Pause</span>
+                </button>
+
+                <!-- Next Video Button -->
+                <button onclick="playNextVideo()" class="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold px-3.5 py-1.5 rounded-full whitespace-nowrap">
                     <i class="fa-solid fa-forward-step"></i> Next
                 </button>
                 <button onclick="togglePiP()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
@@ -158,7 +163,7 @@
             </div>
         </div>
 
-        <!-- Working Comments Collapsible Section -->
+        <!-- Comments Section -->
         <div id="commentsSection" class="hidden max-h-72 overflow-y-auto p-4 bg-[#141414] border-b border-zinc-800 text-xs">
             <h3 class="font-bold mb-3 flex items-center justify-between">
                 <span>Top Comments</span>
@@ -297,7 +302,7 @@
         let loopPointA = null;
         let loopPointB = null;
         let loopInterval = null;
-        let currentBrightness = 0; // 0 to 0.7 opacity of black overlay
+        let currentBrightness = 0;
 
         let savedVideos = JSON.parse(localStorage.getItem('sk_saved') || '[]');
         let likedVideos = JSON.parse(localStorage.getItem('sk_liked') || '[]');
@@ -311,7 +316,7 @@
         }
 
         // ========================================================
-        // 1. LIVE SEARCH SUGGESTIONS (Auto-complete engine)
+        // 1. LIVE SEARCH SUGGESTIONS
         // ========================================================
         let debounceTimer;
         function handleSearchSuggestions(val) {
@@ -343,37 +348,79 @@
         }
 
         // ========================================================
-        // 2. GESTURE SENSORS (Double Tap & Swipe Brightness/Volume)
+        // 2. GESTURE SENSORS & PLAY/PAUSE ENGINE (FIXED)
         // ========================================================
         let lastLeftTap = 0, lastRightTap = 0;
+        let leftTapTimeout = null, rightTapTimeout = null;
         let startY = 0;
 
         const leftZone = document.getElementById('leftTouchZone');
         const rightZone = document.getElementById('rightTouchZone');
 
-        // Double tap 10s backward
+        function togglePlayPause() {
+            if (!ytPlayer || !ytPlayer.getPlayerState) return;
+            const state = ytPlayer.getPlayerState();
+            // 1 = Playing, 2 = Paused
+            if (state === 1) {
+                ytPlayer.pauseVideo();
+                updatePlayPauseUI(false);
+                flashGesture('⏸ Paused');
+            } else {
+                ytPlayer.playVideo();
+                updatePlayPauseUI(true);
+                flashGesture('▶ Playing');
+            }
+        }
+
+        function updatePlayPauseUI(isPlaying) {
+            const icon = document.getElementById('playPauseIcon');
+            const text = document.getElementById('playPauseText');
+            if (isPlaying) {
+                icon.className = "fa-solid fa-pause";
+                text.innerText = "Pause";
+            } else {
+                icon.className = "fa-solid fa-play";
+                text.innerText = "Play";
+            }
+        }
+
+        // Left Touch: Single tap Play/Pause, Double tap -10s
         leftZone.addEventListener('click', () => {
             const now = Date.now();
-            if (now - lastLeftTap < 300 && ytPlayer) {
-                const cur = ytPlayer.getCurrentTime();
-                ytPlayer.seekTo(Math.max(cur - 10, 0), true);
-                flashGesture('⏪ 10s Rewind');
+            if (now - lastLeftTap < 300) {
+                clearTimeout(leftTapTimeout);
+                if (ytPlayer && ytPlayer.getCurrentTime) {
+                    const cur = ytPlayer.getCurrentTime();
+                    ytPlayer.seekTo(Math.max(cur - 10, 0), true);
+                    flashGesture('⏪ 10s Rewind');
+                }
+            } else {
+                leftTapTimeout = setTimeout(() => {
+                    togglePlayPause();
+                }, 300);
             }
             lastLeftTap = now;
         });
 
-        // Double tap 10s forward
+        // Right Touch: Single tap Play/Pause, Double tap +10s
         rightZone.addEventListener('click', () => {
             const now = Date.now();
-            if (now - lastRightTap < 300 && ytPlayer) {
-                const cur = ytPlayer.getCurrentTime();
-                ytPlayer.seekTo(cur + 10, true);
-                flashGesture('⏩ 10s Forward');
+            if (now - lastRightTap < 300) {
+                clearTimeout(rightTapTimeout);
+                if (ytPlayer && ytPlayer.getCurrentTime) {
+                    const cur = ytPlayer.getCurrentTime();
+                    ytPlayer.seekTo(cur + 10, true);
+                    flashGesture('⏩ 10s Forward');
+                }
+            } else {
+                rightTapTimeout = setTimeout(() => {
+                    togglePlayPause();
+                }, 300);
             }
             lastRightTap = now;
         });
 
-        // Left Swipe: Brightness Control
+        // Left Swipe: Brightness
         leftZone.addEventListener('touchstart', e => { startY = e.touches[0].clientY; });
         leftZone.addEventListener('touchmove', e => {
             const diff = startY - e.touches[0].clientY;
@@ -385,7 +432,7 @@
             }
         });
 
-        // Right Swipe: Volume Control
+        // Right Swipe: Volume
         rightZone.addEventListener('touchstart', e => { startY = e.touches[0].clientY; });
         rightZone.addEventListener('touchmove', e => {
             const diff = startY - e.touches[0].clientY;
@@ -436,7 +483,10 @@
             if (minutes === 0) { showToast("Sleep timer cancelled"); return; }
             showToast(`Player will stop in ${minutes} minutes`);
             sleepTimerTimeout = setTimeout(() => {
-                if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+                if (ytPlayer && ytPlayer.pauseVideo) {
+                    ytPlayer.pauseVideo();
+                    updatePlayPauseUI(false);
+                }
                 showToast("Bedtime sleep timer paused player");
             }, minutes * 60 * 1000);
         }
@@ -467,7 +517,7 @@
         }
 
         // ========================================================
-        // 4. SPONSORBLOCK (Auto-skip in-video sponsor talks)
+        // 4. SPONSORBLOCK
         // ========================================================
         let sponsorInterval = null;
         function checkSponsorSegments(videoId) {
@@ -685,13 +735,25 @@
                     videoId: video.id,
                     playerVars: { 'autoplay': 1, 'playsinline': 1, 'rel': 0, 'modestbranding': 1, 'controls': 1 },
                     events: {
-                        'onReady': e => e.target.playVideo(),
-                        'onStateChange': e => { if (e.data === YT.PlayerState.ENDED) playNextVideo(); }
+                        'onReady': e => {
+                            e.target.playVideo();
+                            updatePlayPauseUI(true);
+                        },
+                        'onStateChange': e => {
+                            if (e.data === YT.PlayerState.PLAYING) {
+                                updatePlayPauseUI(true);
+                            } else if (e.data === YT.PlayerState.PAUSED) {
+                                updatePlayPauseUI(false);
+                            } else if (e.data === YT.PlayerState.ENDED) {
+                                playNextVideo();
+                            }
+                        }
                     }
                 });
             } else {
                 ytPlayer.loadVideoById(video.id);
                 ytPlayer.playVideo();
+                updatePlayPauseUI(true);
             }
         }
 
@@ -735,6 +797,7 @@
                 subscribedChannels.splice(idx, 1);
                 btn.innerText = "Subscribe";
                 btn.className = "bg-white text-black hover:bg-zinc-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition";
+                showToast(`Unsubscribed from ${channel}`);
             } else {
                 subscribedChannels.push(channel);
                 btn.innerText = "Subscribed";
