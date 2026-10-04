@@ -62,7 +62,7 @@ jobs:
           # Foreground Service + Permissions Config
           cat << 'EOF' > config.xml
           <?xml version='1.0' encoding='utf-8'?>
-          <widget id="com.skplayer.app" version="1.0.4" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
+          <widget id="com.skplayer.app" version="1.0.5" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
               <name>SKPlayer</name>
               <description>SKPlayer Ad-Free Video App with True Background Play</description>
               <author email="dev@skplayer.app">Sameer</author>
@@ -123,8 +123,8 @@ jobs:
       - name: Create Automatic GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v1.0.4"
-          name: "SKPlayer v1.0.4"
+          tag_name: "v1.0.5"
+          name: "SKPlayer v1.0.5"
           body: "Release with full background audio engine, wake lock permissions, and microphone runtime fix."
           files: skplayer_app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
         env:
