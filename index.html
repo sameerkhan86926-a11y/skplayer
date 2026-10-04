@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SKPlayer</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f0f0f">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -15,7 +13,7 @@
 </head>
 <body class="bg-[#0f0f0f] text-white font-sans antialiased pb-12 select-none">
 
-    <!-- Header -->
+    <!-- Top Header -->
     <header class="sticky top-0 z-50 bg-[#0f0f0f]/95 backdrop-blur-md px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center font-black text-sm shadow-lg shadow-red-600/30">SK</div>
@@ -25,7 +23,7 @@
     </header>
 
     <main class="max-w-3xl mx-auto px-4 pt-4">
-        <!-- Search Box -->
+        <!-- Search Field -->
         <div class="relative flex items-center mb-5">
             <input id="searchInput" type="text" placeholder="Search videos..." 
                    class="w-full bg-[#1e1e1e] text-sm text-zinc-100 placeholder-zinc-500 pl-4 pr-12 py-3 rounded-full border border-zinc-800 focus:outline-none focus:border-red-500 transition">
@@ -34,7 +32,7 @@
             </button>
         </div>
 
-        <!-- Video Player Frame -->
+        <!-- Video Player Section -->
         <div id="playerSection" class="hidden mb-6">
             <div class="w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-zinc-800">
                 <video id="mainVideo" controls autoplay playsinline class="w-full h-full object-contain"></video>
@@ -42,7 +40,7 @@
             <h1 id="playingTitle" class="text-base font-semibold mt-3 line-clamp-2"></h1>
         </div>
 
-        <!-- Video Feed -->
+        <!-- Video Grid -->
         <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
     </main>
 
@@ -60,7 +58,7 @@
                 const data = await res.json();
                 renderList(data);
             } catch (err) {
-                console.error(err);
+                console.error("API Error", err);
             }
         }
 
@@ -106,10 +104,10 @@
                     video.src = stream.url;
                     video.play();
                 } else {
-                    alert("Stream not playable.");
+                    alert("Stream not available");
                 }
             } catch (e) {
-                alert("Stream load failed.");
+                alert("Failed to load stream");
             }
         }
 
