@@ -4,10 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SKPlayer</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f0f0f">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { display: none; }
+    </style>
 </head>
-<body class="bg-[#0f0f0f] text-white font-sans antialiased pb-12">
+<body class="bg-[#0f0f0f] text-white font-sans antialiased pb-12 select-none">
 
     <!-- Header -->
     <header class="sticky top-0 z-50 bg-[#0f0f0f]/95 backdrop-blur-md px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
@@ -19,16 +25,16 @@
     </header>
 
     <main class="max-w-3xl mx-auto px-4 pt-4">
-        <!-- Search -->
+        <!-- Search Box -->
         <div class="relative flex items-center mb-5">
             <input id="searchInput" type="text" placeholder="Search videos..." 
-                   class="w-full bg-[#1e1e1e] text-sm text-zinc-100 placeholder-zinc-500 pl-4 pr-12 py-3 rounded-full border border-zinc-800 focus:outline-none focus:border-red-500">
+                   class="w-full bg-[#1e1e1e] text-sm text-zinc-100 placeholder-zinc-500 pl-4 pr-12 py-3 rounded-full border border-zinc-800 focus:outline-none focus:border-red-500 transition">
             <button onclick="handleSearch()" class="absolute right-1.5 w-9 h-9 bg-red-600 rounded-full flex items-center justify-center text-white">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
             </button>
         </div>
 
-        <!-- Video Player -->
+        <!-- Video Player Frame -->
         <div id="playerSection" class="hidden mb-6">
             <div class="w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-zinc-800">
                 <video id="mainVideo" controls autoplay playsinline class="w-full h-full object-contain"></video>
@@ -42,19 +48,32 @@
 
     <script>
         const API_BASE = "https://pipedapi.kavin.rocks";
+        const searchInput = document.getElementById('searchInput');
+
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSearch();
+        });
 
         async function loadTrending() {
-            const res = await fetch(`${API_BASE}/trending?region=IN`);
-            const data = await res.json();
-            renderList(data);
+            try {
+                const res = await fetch(`${API_BASE}/trending?region=IN`);
+                const data = await res.json();
+                renderList(data);
+            } catch (err) {
+                console.error(err);
+            }
         }
 
         async function handleSearch() {
-            const q = document.getElementById('searchInput').value.trim();
+            const q = searchInput.value.trim();
             if (!q) return;
-            const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}&filter=videos`);
-            const data = await res.json();
-            renderList(data.items);
+            try {
+                const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}&filter=videos`);
+                const data = await res.json();
+                renderList(data.items);
+            } catch (err) {
+                alert("Search error");
+            }
         }
 
         function renderList(items) {
@@ -79,16 +98,18 @@
             playerSec.classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            const res = await fetch(`${API_BASE}/streams/${id}`);
-            const data = await res.json();
-            
-            // Sabse best video stream select karna
-            const stream = data.videoStreams.find(s => s.quality === "720p" && !s.videoOnly) || data.videoStreams[0];
-            if (stream && stream.url) {
-                video.src = stream.url;
-                video.play();
-            } else {
-                alert("Stream format unavailable.");
+            try {
+                const res = await fetch(`${API_BASE}/streams/${id}`);
+                const data = await res.json();
+                const stream = data.videoStreams.find(s => s.quality === "720p" && !s.videoOnly) || data.videoStreams[0];
+                if (stream && stream.url) {
+                    video.src = stream.url;
+                    video.play();
+                } else {
+                    alert("Stream not playable.");
+                }
+            } catch (e) {
+                alert("Stream load failed.");
             }
         }
 
