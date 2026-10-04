@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SKPlayer Ultra</title>
 
+    <!-- App Favicons & Icons -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -45,6 +46,9 @@
 </head>
 <body class="bg-[#0f0f0f] text-white selection:bg-red-600 pb-20 select-none">
 
+    <!-- Audio keepalive element for screen-off playback -->
+    <audio id="keepAliveAudio" loop style="display:none;"></audio>
+
     <div id="brightnessOverlay" class="fixed inset-0 bg-black pointer-events-none z-[999] opacity-0 transition-opacity"></div>
 
     <!-- 1. TOP NAVBAR -->
@@ -61,7 +65,6 @@
             <button onclick="toggleAudioOnly()" id="audioOnlyBtn" class="text-xs px-2 py-1 bg-zinc-800 rounded-full border border-zinc-700 flex items-center gap-1">
                 <i class="fa-solid fa-headphones"></i> <span id="audioOnlyText">AV</span>
             </button>
-            <!-- Header Voice Mic Button -->
             <button onclick="startVoiceSearch()" class="hover:text-white p-1">
                 <i class="fa-solid fa-microphone text-base text-zinc-300 hover:text-red-500"></i>
             </button>
@@ -72,7 +75,7 @@
         </div>
     </header>
 
-    <!-- Search Overlay with Voice Mic & Live Suggestions -->
+    <!-- Search Overlay with Voice Mic -->
     <div id="searchBarOverlay" class="hidden fixed top-0 left-0 right-0 z-50 bg-[#121212] border-b border-zinc-800 p-3">
         <div class="flex items-center gap-2 max-w-xl mx-auto">
             <button onclick="toggleSearchBar()" class="text-zinc-400 p-1"><i class="fa-solid fa-arrow-left"></i></button>
@@ -80,8 +83,6 @@
                 <input id="searchInput" type="text" placeholder="Search or tap mic to speak..." 
                        oninput="handleSearchSuggestions(this.value)"
                        class="w-full bg-[#202020] text-sm text-white placeholder-zinc-500 pl-4 pr-20 py-2.5 rounded-full border border-zinc-700 focus:outline-none focus:border-red-500">
-                
-                <!-- Overlay Internal Mic -->
                 <button id="inputMicBtn" onclick="startVoiceSearch()" class="absolute right-9 text-zinc-400 hover:text-white p-1.5 transition">
                     <i class="fa-solid fa-microphone text-sm"></i>
                 </button>
@@ -105,7 +106,7 @@
         <button onclick="closeVoiceSearch()" class="mt-6 px-5 py-2 bg-zinc-800 rounded-full text-xs font-semibold hover:bg-zinc-700">Cancel</button>
     </div>
 
-    <!-- In-App Auto-Update Notification Banner/Modal -->
+    <!-- In-App Auto-Update Notification Banner -->
     <div id="updateBanner" class="hidden fixed top-14 left-4 right-4 max-w-md mx-auto z-50 bg-gradient-to-r from-zinc-900 to-zinc-800 border border-red-500/40 rounded-2xl p-4 shadow-2xl">
         <div class="flex items-start gap-3">
             <div class="w-9 h-9 rounded-xl bg-red-600 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
@@ -120,9 +121,7 @@
                     <button id="updateDownloadBtn" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5">
                         <i class="fa-solid fa-download"></i> Update Now
                     </button>
-                    <button onclick="dismissUpdate()" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-lg">
-                        Later
-                    </button>
+                    <button onclick="dismissUpdate()" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-lg">Later</button>
                 </div>
             </div>
         </div>
@@ -145,6 +144,7 @@
             <div id="audioOnlyCover" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-2 pointer-events-none z-10">
                 <i class="fa-solid fa-headphones text-red-500 text-4xl animate-bounce"></i>
                 <p class="text-xs font-semibold text-zinc-300">Audio-Only Data Saver Active</p>
+                <p class="text-[10px] text-zinc-500">Screen lock & background audio enabled</p>
             </div>
 
             <div id="gestureNotice" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-black/80 px-3.5 py-1.5 rounded-full text-xs font-semibold text-white border border-zinc-700 pointer-events-none z-30 shadow-lg"></div>
@@ -162,8 +162,10 @@
             </div>
 
             <div class="flex items-center justify-between text-[11px] text-zinc-400 mt-1">
-                <span id="playingMeta">HD • Ad-Free Engine</span>
-                <span id="sponsorBlockStatus" class="text-emerald-400 font-medium"><i class="fa-solid fa-shield-halved"></i> SponsorBlock Active</span>
+                <span id="playingMeta">HD • Ad-Free Playback</span>
+                <span class="text-emerald-400 font-medium flex items-center gap-1">
+                    <i class="fa-solid fa-circle-check text-[10px]"></i> Background Mode: Active
+                </span>
             </div>
 
             <div class="flex items-center justify-between mt-3 pt-2 border-t border-zinc-800/60">
@@ -181,7 +183,7 @@
                 <button onclick="togglePlayPause()" id="playPauseBtn" class="flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold px-3 py-1.5 rounded-full whitespace-nowrap border border-zinc-700">
                     <i id="playPauseIcon" class="fa-solid fa-pause"></i> <span id="playPauseText">Pause</span>
                 </button>
-                <button onclick="playNextVideo()" class="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold px-3.5 py-1.5 rounded-full whitespace-nowrap">
+                <button onclick="playNextVideo()" class="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-1.5 rounded-full whitespace-nowrap">
                     <i class="fa-solid fa-forward-step"></i> Next
                 </button>
                 <button onclick="togglePiP()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
@@ -320,11 +322,10 @@
     <!-- ENGINE LOGIC                                             -->
     <!-- ======================================================== -->
     <script>
-                // 🔑 CONFIGURATION
+        // 🔑 CONFIGURATION:
         const YOUTUBE_API_KEY = "AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY";
         const CURRENT_APP_VERSION = "v1.0.1";
-        const GITHUB_REPO = "sameerkhan86926-a11y/skplayer"; // Aapka exact GitHub repo path
-
+        const GITHUB_REPO = "sameerkhan86926-a11y/skplayer";
 
         const videoFeed = document.getElementById('videoFeed');
         const playerSec = document.getElementById('playerSection');
@@ -333,6 +334,7 @@
         const suggestionsBox = document.getElementById('suggestionsBox');
         const infiniteLoader = document.getElementById('infiniteLoader');
         const gestureNotice = document.getElementById('gestureNotice');
+        const keepAliveAudio = document.getElementById('keepAliveAudio');
 
         let currentQuery = 'Trending Songs India';
         let nextPageToken = '';
@@ -361,7 +363,67 @@
         }
 
         // ========================================================
-        // 🎙️ VOICE SEARCH ENGINE (Web Speech Recognition)
+        // 🎵 TRUE BACKGROUND PLAY & LOCK SCREEN MEDIA SESSION
+        // ========================================================
+        function activateBackgroundAudioEngine(video) {
+            // 1. Silent HTML5 audio track triggers persistent background thread in Android WebView
+            if (keepAliveAudio) {
+                // 1-second silent WAV base64 string
+                keepAliveAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+                keepAliveAudio.play().catch(() => {});
+            }
+
+            // 2. Cordova Background Mode Plugin activation
+            if (window.cordova && window.cordova.plugins && window.cordova.plugins.backgroundMode) {
+                cordova.plugins.backgroundMode.enable();
+                cordova.plugins.backgroundMode.setDefaults({
+                    title: video.title,
+                    text: `Playing on SKPlayer • ${video.channel}`,
+                    icon: 'icon',
+                    color: 'E50914',
+                    resume: true,
+                    hidden: false,
+                    silent: false
+                });
+            }
+
+            // 3. Native Android Notification Drawer & Lock Screen Controls
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: video.title,
+                    artist: video.channel,
+                    album: 'SKPlayer Ad-Free Stream',
+                    artwork: [
+                        { src: video.thumb || 'android-chrome-512x512.png', sizes: '512x512', type: 'image/png' }
+                    ]
+                });
+
+                navigator.mediaSession.setActionHandler('play', () => {
+                    if (ytPlayer && ytPlayer.playVideo) {
+                        ytPlayer.playVideo();
+                        updatePlayPauseUI(true);
+                    }
+                });
+
+                navigator.mediaSession.setActionHandler('pause', () => {
+                    if (ytPlayer && ytPlayer.pauseVideo) {
+                        ytPlayer.pauseVideo();
+                        updatePlayPauseUI(false);
+                    }
+                });
+
+                navigator.mediaSession.setActionHandler('nexttrack', () => {
+                    playNextVideo();
+                });
+
+                navigator.mediaSession.setActionHandler('previoustrack', () => {
+                    if (currentPlayingIndex > 0) playVideoByIndex(currentPlayingIndex - 1);
+                });
+            }
+        }
+
+        // ========================================================
+        // 🎙️️ VOICE SEARCH ENGINE
         // ========================================================
         let recognition = null;
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -369,7 +431,7 @@
             recognition = new SpeechRec();
             recognition.continuous = false;
             recognition.interimResults = true;
-            recognition.lang = 'hi-IN'; // Hindi + English Auto-detect
+            recognition.lang = 'hi-IN';
 
             recognition.onstart = () => {
                 document.getElementById('voiceModal').classList.remove('hidden');
@@ -389,7 +451,7 @@
                 }
             };
 
-            recognition.onerror = (e) => {
+            recognition.onerror = () => {
                 document.getElementById('voiceStatusTitle').innerText = "Try Again";
                 document.getElementById('voiceRecognizedText').innerText = "Could not hear audio clearly";
             };
@@ -403,7 +465,7 @@
             if (recognition) {
                 try { recognition.start(); } catch(e) { recognition.stop(); }
             } else {
-                alert("Voice search is not supported on this browser/webview.");
+                alert("Voice search is not supported on this browser.");
             }
         }
 
@@ -415,10 +477,10 @@
         }
 
         // ========================================================
-        // 🚀 AUTO VERSION UPDATE CHECKER (GitHub Releases API)
+        // 🚀 AUTO UPDATE CHECKER
         // ========================================================
         async function checkForAppUpdates() {
-            if (!GITHUB_REPO || GITHUB_REPO.includes("sameer/")) return;
+            if (!GITHUB_REPO) return;
             try {
                 const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
                 if (!res.ok) return;
@@ -444,7 +506,7 @@
             document.getElementById('updateBanner').classList.add('hidden');
         }
 
-        // Search Autocomplete
+        // Live Suggestions
         let debounceTimer;
         function handleSearchSuggestions(val) {
             clearTimeout(debounceTimer);
@@ -474,7 +536,7 @@
             handleSearch();
         }
 
-        // Tap & Gestures
+        // Touch & Gesture Sensors
         let lastLeftTap = 0, lastRightTap = 0;
         let leftTapTimeout = null, rightTapTimeout = null;
         let startY = 0;
@@ -824,6 +886,9 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
             checkSponsorSegments(video.id);
 
+            // Trigger background audio & lock screen control hooks
+            activateBackgroundAudioEngine(video);
+
             if (!ytPlayer) {
                 ytPlayer = new YT.Player('ytplayer', {
                     height: '100%',
@@ -860,6 +925,7 @@
         function closePlayer() {
             playerSec.classList.add('hidden');
             if (ytPlayer?.stopVideo) ytPlayer.stopVideo();
+            if (keepAliveAudio) keepAliveAudio.pause();
             clearInterval(sponsorInterval);
             clearInterval(loopInterval);
         }
