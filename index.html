@@ -47,16 +47,16 @@
             </div>
             <div class="flex items-center gap-1.5 mt-2">
                 <span class="text-3xl font-black tracking-tight text-white">SK<span class="text-red-500">Player</span></span>
-                <span class="text-[10px] font-bold tracking-widest uppercase bg-red-600/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full ml-1">DIRECT</span>
+                <span class="text-[10px] font-bold tracking-widest uppercase bg-red-600/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full ml-1">UNLIMITED</span>
             </div>
-            <p class="text-[12px] font-medium text-zinc-400 mt-2 tracking-wide">Stream without limits. Pure ad-free sound.</p>
+            <p class="text-[12px] font-medium text-zinc-400 mt-2 tracking-wide">Official Search Experience • No API Key Needed</p>
             <div class="w-44 h-1 bg-zinc-800 rounded-full mt-7 overflow-hidden relative">
                 <div id="splashProgressBar" class="h-full bg-gradient-to-r from-red-600 to-amber-500 w-0 transition-all duration-300 ease-out rounded-full shadow-[0_0_12px_rgba(239,68,68,0.8)]"></div>
             </div>
         </div>
         <div class="flex flex-col items-center text-center">
             <span class="text-[10px] font-semibold text-zinc-500 tracking-widest uppercase">Engineered by Sameer</span>
-            <span class="text-[9px] text-zinc-600 mt-0.5">Version 1.0.8 • High Fidelity Audio</span>
+            <span class="text-[9px] text-zinc-600 mt-0.5">Version 1.0.9 • High Fidelity Audio</span>
         </div>
     </div>
 
@@ -92,7 +92,7 @@
         <div class="flex items-center gap-2 max-w-xl mx-auto">
             <button onclick="toggleSearchBar()" class="text-zinc-400 p-1"><i class="fa-solid fa-arrow-left"></i></button>
             <div class="relative flex-1 flex items-center">
-                <input id="searchInput" type="text" placeholder="Search any song, artist, video..." 
+                <input id="searchInput" type="text" placeholder="Search any song, singer, album..." 
                        oninput="handleSearchSuggestions(this.value)"
                        class="w-full bg-[#202020] text-sm text-white placeholder-zinc-500 pl-4 pr-20 py-2.5 rounded-full border border-zinc-700 focus:outline-none focus:border-red-500">
                 <button id="inputMicBtn" onclick="startVoiceSearch()" class="absolute right-9 text-zinc-400 hover:text-white p-1.5 transition">
@@ -120,11 +120,12 @@
 
     <!-- Category Chips -->
     <nav id="categoryChipsNav" class="sticky top-[49px] z-30 bg-[#0f0f0f] py-2 px-3 flex gap-2 overflow-x-auto no-scrollbar border-b border-zinc-900">
-        <button onclick="quickFilter('Trending Hits')" class="chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap">Trending Hits</button>
-        <button onclick="quickFilter('Bollywood')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Bollywood</button>
-        <button onclick="quickFilter('Punjabi')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Punjabi</button>
-        <button onclick="quickFilter('Romantic Hits')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Romantic</button>
-        <button onclick="quickFilter('Party Mashup')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Party</button>
+        <button onclick="quickFilter('Trending Songs India')" class="chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap">All</button>
+        <button onclick="quickFilter('Latest Bollywood Songs')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Bollywood</button>
+        <button onclick="quickFilter('Latest Punjabi Hits')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Punjabi</button>
+        <button onclick="quickFilter('Arijit Singh Hits')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Arijit Singh</button>
+        <button onclick="quickFilter('Trending Gaming India')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Gaming</button>
+        <button onclick="quickFilter('Hindi Podcasts')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Podcasts</button>
     </nav>
 
     <!-- STICKY DEDICATED PLAYER -->
@@ -155,7 +156,7 @@
             <div class="flex items-center justify-between text-[11px] text-zinc-400 mt-1">
                 <span id="playingMeta">HD • Ad-Free Playback</span>
                 <span class="text-emerald-400 font-medium flex items-center gap-1">
-                    <i class="fa-solid fa-bolt text-[10px]"></i> Ultra Direct Stream
+                    <i class="fa-solid fa-bolt text-[10px]"></i> Live YT Proxy
                 </span>
             </div>
 
@@ -202,7 +203,7 @@
         <section id="homeView">
             <div id="videoFeed" class="flex flex-col gap-5 pt-2"></div>
             <div id="infiniteLoader" class="hidden py-8 flex items-center justify-center gap-2 text-zinc-400 text-xs font-medium">
-                <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-lg"></i> Loading more fresh videos...
+                <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-lg"></i> Loading YouTube results...
             </div>
         </section>
 
@@ -278,26 +279,20 @@
     </nav>
 
     <!-- ======================================================== -->
-    <!-- ⚡ PARALLEL MULTI-CHANNEL AGGREGATOR (30+ VIDEOS INSTANT) -->
+    <!-- 🔥 ZERO-API PROXIFIED INNERTUBE ENGINE                   -->
     <!-- ======================================================== -->
     <script>
-        const MUSIC_FEEDS = [
-            { name: "T-Series Official", channelId: "UCq-Fj5jknLsUf-MWSy4_brA" },
-            { name: "Zee Music Company", channelId: "UCFFbwnve3yF62-tVXkTyHqg" },
-            { name: "Sony Music India", channelId: "UC56gTxKCjm4505U7zk43x6w" },
-            { name: "YRF Official", channelId: "UCbTLwN10NoCU4WDzLf1JMOA" },
-            { name: "Tips Official", channelId: "UCU_u3q6j5pS_B5kC-v_4bCw" },
-            { name: "Speed Records Punjabi", channelId: "UCrhxX5XMGQPlH4LWFsUQnEQ" },
-            { name: "Saregama Music", channelId: "UCn4rEMqK_hDb8bcTrWv5Lqg" },
-            { name: "White Hill Music", channelId: "UCOhz48jshTz3eT_r8d21cDw" },
-            { name: "Desi Music Factory", channelId: "UCpzgTfh_y_fXf4K3F0A52Lw" },
-            { name: "Aditya Music", channelId: "UCn_4_5Z3lIq1w2Hq1W23EGA" }
+        // High-speed CORS-free proxies that fetch direct YouTube data
+        const CORS_PROXIES = [
+            url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+            url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
         ];
 
-        let currentFeedIdx = 0;
         let loadedVideosList = [];
         let currentPlayingIndex = -1;
-        let currentQuery = "Trending Hits";
+        let currentQuery = "Trending Songs India";
+        let pageOffset = 1;
         let isLoading = false;
         let hasMore = true;
         let ytPlayer = null;
@@ -343,82 +338,81 @@
             }, 850);
         }
 
-        // Parallel Multi-Channel Batch Fetcher
+        // ========================================================
+        // ⚡ REAL YOUTUBE SCRAPING VIA CORS PROXY (API-LIKE EXACT)
+        // ========================================================
         async function fetchNextBatch() {
-            if (isLoading) return;
+            if (isLoading || !hasMore) return;
             isLoading = true;
             infiniteLoader.classList.remove('hidden');
 
-            const batchSize = 4;
-            const targetFeeds = [];
-            for (let i = 0; i < batchSize; i++) {
-                targetFeeds.push(MUSIC_FEEDS[(currentFeedIdx + i) % MUSIC_FEEDS.length]);
-            }
-            currentFeedIdx = (currentFeedIdx + batchSize) % MUSIC_FEEDS.length;
+            const queryParam = pageOffset > 1 ? `${currentQuery} page ${pageOffset}` : currentQuery;
+            const targetUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(queryParam)}&sp=EgIQAQ%253D%253D`; // sp = filter videos only
 
-            try {
-                const fetchPromises = targetFeeds.map(async feed => {
-                    const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${feed.channelId}`;
-                    const apiEndpoint = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`;
-                    try {
-                        const res = await fetch(apiEndpoint);
-                        if (!res.ok) return [];
-                        const data = await res.json();
-                        if (data.status === 'ok' && data.items) {
-                            return data.items.map(item => {
-                                const urlParams = new URLSearchParams(new URL(item.link).search);
-                                const vId = urlParams.get('v');
-                                return {
-                                    id: vId,
-                                    title: item.title,
-                                    channel: item.author || feed.name,
-                                    thumb: `https://i.ytimg.com/vi/${vId}/hqdefault.jpg`
-                                };
-                            }).filter(v => v.id);
-                        }
-                    } catch (e) {
-                        return [];
+            let parsedVideos = [];
+
+            for (let proxy of CORS_PROXIES) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 7000);
+                    const res = await fetch(proxy(targetUrl), { signal: controller.signal });
+                    clearTimeout(timeoutId);
+
+                    if (!res.ok) continue;
+                    const html = await res.text();
+
+                    // Extract YouTube initial data JSON block
+                    const match = html.match(/ytInitialData\s*=\s*({.+?});<\/script>/);
+                    if (match && match[1]) {
+                        const json = JSON.parse(match[1]);
+                        const contents = json.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents || [];
+
+                        contents.forEach(item => {
+                            const v = item.videoRenderer;
+                            if (v && v.videoId && !loadedVideosList.some(ex => ex.id === v.videoId)) {
+                                parsedVideos.push({
+                                    id: v.videoId,
+                                    title: v.title?.runs?.[0]?.text || "YouTube Video",
+                                    channel: v.ownerText?.runs?.[0]?.text || "Official Channel",
+                                    thumb: v.thumbnail?.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
+                                    views: v.viewCountText?.simpleText || `${(Math.random() * 500 + 50).toFixed(0)}K views`
+                                });
+                            }
+                        });
+
+                        if (parsedVideos.length > 0) break;
                     }
-                    return [];
-                });
-
-                const results = await Promise.all(fetchPromises);
-                
-                let combinedItems = [];
-                results.forEach(channelItems => {
-                    combinedItems = combinedItems.concat(channelItems);
-                });
-
-                const uniqueVideos = combinedItems.filter(v => !loadedVideosList.some(ex => ex.id === v.id));
-                uniqueVideos.sort(() => Math.random() - 0.5);
-
-                if (uniqueVideos.length > 0) {
-                    cleanFeedCard();
-                    appendVideosToFeed(uniqueVideos);
-                } else if (!loadedVideosList.length) {
-                    loadEmergencyTrendingPack();
+                } catch (e) {
+                    console.warn("Proxy attempt failed, trying next...", e);
                 }
-            } catch (err) {
-                if (!loadedVideosList.length) {
-                    loadEmergencyTrendingPack();
-                }
-            } finally {
-                isLoading = false;
-                infiniteLoader.classList.add('hidden');
             }
+
+            // Fallback backup if HTML format temporarily changed
+            if (parsedVideos.length === 0 && pageOffset === 1) {
+                parsedVideos = getPopularBackup(currentQuery);
+            }
+
+            if (parsedVideos.length > 0) {
+                cleanFeedCard();
+                appendVideosToFeed(parsedVideos);
+                pageOffset++;
+            } else {
+                hasMore = false;
+            }
+
+            isLoading = false;
+            infiniteLoader.classList.add('hidden');
         }
 
-        function loadEmergencyTrendingPack() {
-            cleanFeedCard();
-            const emergencyHits = [
-                { id: "hXh3SRVYVEQ", title: "Tauba Tauba | Bad Newz | Vicky Kaushal | Karan Aujla", channel: "Saregama Music", thumb: "https://i.ytimg.com/vi/hXh3SRVYVEQ/hqdefault.jpg" },
-                { id: "ilNt2bikxZ8", title: "Chaleya | Jawan | Shah Rukh Khan | Nayanthara | Anirudh", channel: "T-Series", thumb: "https://i.ytimg.com/vi/ilNt2bikxZ8/hqdefault.jpg" },
-                { id: "YxWlaYCA8MU", title: "Kesariya - Brahmāstra | Ranbir Kapoor | Alia Bhatt | Pritam", channel: "Sony Music India", thumb: "https://i.ytimg.com/vi/YxWlaYCA8MU/hqdefault.jpg" },
-                { id: "k4yXQkG2s1E", title: "Khaab - Akhil | Parmish Verma | New Punjabi Song", channel: "Crown Records", thumb: "https://i.ytimg.com/vi/k4yXQkG2s1E/hqdefault.jpg" },
-                { id: "JGwWNGJdvx8", title: "Ed Sheeran - Shape of You", channel: "Ed Sheeran", thumb: "https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg" },
-                { id: "kJQP7kiw5Fk", title: "Luis Fonsi - Despacito ft. Daddy Yankee", channel: "Luis Fonsi", thumb: "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg" }
+        function getPopularBackup(q) {
+            return [
+                { id: "hXh3SRVYVEQ", title: "Tauba Tauba | Bad Newz | Vicky Kaushal | Karan Aujla", channel: "Saregama Music", thumb: "https://i.ytimg.com/vi/hXh3SRVYVEQ/hqdefault.jpg", views: "140M views" },
+                { id: "ilNt2bikxZ8", title: "Chaleya | Jawan | Shah Rukh Khan | Nayanthara | Anirudh", channel: "T-Series", thumb: "https://i.ytimg.com/vi/ilNt2bikxZ8/hqdefault.jpg", views: "250M views" },
+                { id: "YxWlaYCA8MU", title: "Kesariya - Brahmāstra | Ranbir Kapoor | Alia Bhatt | Pritam", channel: "Sony Music India", thumb: "https://i.ytimg.com/vi/YxWlaYCA8MU/hqdefault.jpg", views: "320M views" },
+                { id: "k4yXQkG2s1E", title: "Khaab - Akhil | Parmish Verma | New Punjabi Song", channel: "Crown Records", thumb: "https://i.ytimg.com/vi/k4yXQkG2s1E/hqdefault.jpg", views: "410M views" },
+                { id: "JGwWNGJdvx8", title: "Ed Sheeran - Shape of You", channel: "Ed Sheeran", thumb: "https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg", views: "1.2B views" },
+                { id: "kJQP7kiw5Fk", title: "Luis Fonsi - Despacito ft. Daddy Yankee", channel: "Luis Fonsi", thumb: "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg", views: "2.1B views" }
             ];
-            appendVideosToFeed(emergencyHits);
         }
 
         function cleanFeedCard() {
@@ -438,7 +432,7 @@
                         <div onclick="playVideoByIndex(${globalIndex})" class="relative w-full aspect-video bg-zinc-900 overflow-hidden sm:rounded-2xl">
                             <img src="${v.thumb}" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'" class="w-full h-full object-cover">
                             <span class="absolute bottom-2.5 right-2.5 bg-black/85 text-white font-medium text-[11px] px-1.5 py-0.5 rounded">
-                                ${(Math.random() * 5 + 3).toFixed(0)}:${Math.floor(Math.random() * 50 + 10)}
+                                ${(Math.random() * 4 + 3).toFixed(0)}:${Math.floor(Math.random() * 50 + 10)}
                             </span>
                         </div>
                         <div class="flex items-start gap-3 px-3 py-3">
@@ -448,7 +442,7 @@
                             <div onclick="playVideoByIndex(${globalIndex})" class="flex-1 min-w-0">
                                 <h3 class="text-sm font-normal text-zinc-100 line-clamp-2 leading-snug">${v.title}</h3>
                                 <div class="text-[12px] text-zinc-400 mt-1 flex items-center gap-1.5">
-                                    <span>${v.channel}</span> • <span>Top Trending</span>
+                                    <span>${v.channel}</span> • <span>${v.views || 'Trending'}</span>
                                 </div>
                             </div>
                         </div>
@@ -681,34 +675,29 @@
             const query = searchInput.value.trim();
             if (!query) return;
             searchBarOverlay.classList.add('hidden');
-            
-            if (!ytPlayer) {
-                loadedVideosList.unshift({
-                    id: query,
-                    title: query,
-                    channel: "YouTube Direct Search",
-                    thumb: "android-chrome-512x512.png"
-                });
-                playVideoByIndex(0);
-            } else {
-                playerSec.classList.remove('hidden');
-                document.getElementById('playingTitle').innerText = `Playing Search: ${query}`;
-                document.getElementById('playingChannel').innerText = "SKPlayer Ultra Direct";
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                ytPlayer.loadPlaylist({ list: query, listType: 'search' });
-            }
+            startNewSearch(query);
         }
 
         function quickFilter(category) {
-            currentQuery = category;
             document.querySelectorAll('.chip-btn').forEach(btn => {
                 btn.className = btn.innerText.toLowerCase().includes(category.toLowerCase().split(' ')[0])
                     ? "chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap"
                     : "chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]";
             });
+            startNewSearch(category);
+        }
+
+        function startNewSearch(query) {
+            currentQuery = query;
+            pageOffset = 1;
+            hasMore = true;
             loadedVideosList = [];
-            currentFeedIdx = Math.floor(Math.random() * MUSIC_FEEDS.length);
-            cleanFeedCard();
+            currentPlayingIndex = -1;
+            videoFeed.innerHTML = `
+                <div class="py-24 flex flex-col items-center justify-center gap-3 text-zinc-400">
+                    <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-3xl"></i>
+                    <p class="text-xs font-medium">Searching "${query}" on YouTube...</p>
+                </div>`;
             fetchNextBatch();
         }
 
