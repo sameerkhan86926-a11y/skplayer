@@ -62,7 +62,7 @@ jobs:
           # Foreground Service + Permissions Config
           cat << 'EOF' > config.xml
           <?xml version='1.0' encoding='utf-8'?>
-          <widget id="com.skplayer.app" version="1.0.3" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
+          <widget id="com.skplayer.app" version="1.0.4" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
               <name>SKPlayer</name>
               <description>SKPlayer Ad-Free Video App with True Background Play</description>
               <author email="dev@skplayer.app">Sameer</author>
