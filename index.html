@@ -120,12 +120,11 @@
 
     <!-- Category Chips -->
     <nav id="categoryChipsNav" class="sticky top-[49px] z-30 bg-[#0f0f0f] py-2 px-3 flex gap-2 overflow-x-auto no-scrollbar border-b border-zinc-900">
-        <button onclick="quickFilter('Trending Hindi')" class="chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap">Trending Hits</button>
-        <button onclick="quickFilter('Bollywood Songs')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Bollywood</button>
-        <button onclick="quickFilter('Punjabi Songs')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Punjabi</button>
-        <button onclick="quickFilter('Arijit Singh Hits')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Arijit Singh</button>
-        <button onclick="quickFilter('Sidhu Moose Wala')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Moose Wala</button>
-        <button onclick="quickFilter('Haryanvi Songs')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Haryanvi</button>
+        <button onclick="quickFilter('Trending Hits')" class="chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap">Trending Hits</button>
+        <button onclick="quickFilter('Bollywood')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Bollywood</button>
+        <button onclick="quickFilter('Punjabi')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Punjabi</button>
+        <button onclick="quickFilter('Romantic Hits')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Romantic</button>
+        <button onclick="quickFilter('Party Mashup')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Party</button>
     </nav>
 
     <!-- STICKY DEDICATED PLAYER -->
@@ -203,7 +202,7 @@
         <section id="homeView">
             <div id="videoFeed" class="flex flex-col gap-5 pt-2"></div>
             <div id="infiniteLoader" class="hidden py-8 flex items-center justify-center gap-2 text-zinc-400 text-xs font-medium">
-                <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-lg"></i> Loading fresh videos...
+                <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-lg"></i> Loading more fresh videos...
             </div>
         </section>
 
@@ -279,24 +278,26 @@
     </nav>
 
     <!-- ======================================================== -->
-    <!-- ⚡ GUARANTEED NO-KEY ENGINE (Direct RSS & Query Parser)  -->
+    <!-- ⚡ PARALLEL MULTI-CHANNEL AGGREGATOR (30+ VIDEOS INSTANT) -->
     <!-- ======================================================== -->
     <script>
-        // Curated Top Music Channel Feeds (Always 100% Active without API Keys)
         const MUSIC_FEEDS = [
             { name: "T-Series Official", channelId: "UCq-Fj5jknLsUf-MWSy4_brA" },
             { name: "Zee Music Company", channelId: "UCFFbwnve3yF62-tVXkTyHqg" },
             { name: "Sony Music India", channelId: "UC56gTxKCjm4505U7zk43x6w" },
-            { name: "Speed Records Punjabi", channelId: "UCrhxX5XMGQPlH4LWFsUQnEQ" },
-            { name: "White Hill Music", channelId: "UCOhz48jshTz3eT_r8d21cDw" },
             { name: "YRF Official", channelId: "UCbTLwN10NoCU4WDzLf1JMOA" },
-            { name: "Tips Official", channelId: "UCU_u3q6j5pS_B5kC-v_4bCw" }
+            { name: "Tips Official", channelId: "UCU_u3q6j5pS_B5kC-v_4bCw" },
+            { name: "Speed Records Punjabi", channelId: "UCrhxX5XMGQPlH4LWFsUQnEQ" },
+            { name: "Saregama Music", channelId: "UCn4rEMqK_hDb8bcTrWv5Lqg" },
+            { name: "White Hill Music", channelId: "UCOhz48jshTz3eT_r8d21cDw" },
+            { name: "Desi Music Factory", channelId: "UCpzgTfh_y_fXf4K3F0A52Lw" },
+            { name: "Aditya Music", channelId: "UCn_4_5Z3lIq1w2Hq1W23EGA" }
         ];
 
         let currentFeedIdx = 0;
         let loadedVideosList = [];
         let currentPlayingIndex = -1;
-        let currentQuery = "Trending Hindi";
+        let currentQuery = "Trending Hits";
         let isLoading = false;
         let hasMore = true;
         let ytPlayer = null;
@@ -342,81 +343,80 @@
             }, 850);
         }
 
-        // ========================================================
-        // 🚀 BULLETPROOF FETCH ENGINE (Guaranteed 0% CORS Block)
-        // ========================================================
+        // Parallel Multi-Channel Batch Fetcher
         async function fetchNextBatch() {
-            if (isLoading || !hasMore) return;
+            if (isLoading) return;
             isLoading = true;
             infiniteLoader.classList.remove('hidden');
 
-            let success = false;
-            let attempts = 0;
+            const batchSize = 4;
+            const targetFeeds = [];
+            for (let i = 0; i < batchSize; i++) {
+                targetFeeds.push(MUSIC_FEEDS[(currentFeedIdx + i) % MUSIC_FEEDS.length]);
+            }
+            currentFeedIdx = (currentFeedIdx + batchSize) % MUSIC_FEEDS.length;
 
-            while (!success && attempts < MUSIC_FEEDS.length) {
-                const targetChannel = MUSIC_FEEDS[currentFeedIdx];
-                const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${targetChannel.channelId}`;
-                const apiEndpoint = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`;
-
-                try {
-                    const res = await fetch(apiEndpoint);
-                    if (!res.ok) throw new Error("HTTP " + res.status);
-                    const data = await res.json();
-
-                    if (data.status === 'ok' && data.items && data.items.length > 0) {
-                        cleanFeedCard();
-
-                        const uniqueVideos = [];
-                        data.items.forEach(item => {
-                            // Link me se video ID extract karein (watch?v=...)
-                            const urlParams = new URLSearchParams(new URL(item.link).search);
-                            const vId = urlParams.get('v');
-
-                            if (vId && !loadedVideosList.some(ex => ex.id === vId)) {
-                                uniqueVideos.push({
+            try {
+                const fetchPromises = targetFeeds.map(async feed => {
+                    const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${feed.channelId}`;
+                    const apiEndpoint = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`;
+                    try {
+                        const res = await fetch(apiEndpoint);
+                        if (!res.ok) return [];
+                        const data = await res.json();
+                        if (data.status === 'ok' && data.items) {
+                            return data.items.map(item => {
+                                const urlParams = new URLSearchParams(new URL(item.link).search);
+                                const vId = urlParams.get('v');
+                                return {
                                     id: vId,
                                     title: item.title,
-                                    channel: item.author || targetChannel.name,
+                                    channel: item.author || feed.name,
                                     thumb: `https://i.ytimg.com/vi/${vId}/hqdefault.jpg`
-                                });
-                            }
-                        });
-
-                        if (uniqueVideos.length > 0) {
-                            appendVideosToFeed(uniqueVideos);
-                            success = true;
+                                };
+                            }).filter(v => v.id);
                         }
-
-                        currentFeedIdx = (currentFeedIdx + 1) % MUSIC_FEEDS.length;
-                    } else {
-                        throw new Error("No feed items");
+                    } catch (e) {
+                        return [];
                     }
-                } catch (err) {
-                    currentFeedIdx = (currentFeedIdx + 1) % MUSIC_FEEDS.length;
-                    attempts++;
+                    return [];
+                });
+
+                const results = await Promise.all(fetchPromises);
+                
+                let combinedItems = [];
+                results.forEach(channelItems => {
+                    combinedItems = combinedItems.concat(channelItems);
+                });
+
+                const uniqueVideos = combinedItems.filter(v => !loadedVideosList.some(ex => ex.id === v.id));
+                uniqueVideos.sort(() => Math.random() - 0.5);
+
+                if (uniqueVideos.length > 0) {
+                    cleanFeedCard();
+                    appendVideosToFeed(uniqueVideos);
+                } else if (!loadedVideosList.length) {
+                    loadEmergencyTrendingPack();
                 }
-            }
-
-            isLoading = false;
-            infiniteLoader.classList.add('hidden');
-
-            if (!success && !videoFeed.children.length) {
-                // Guaranteed Offline Fallback Starter Pack
-                loadEmergencyTrendingPack();
+            } catch (err) {
+                if (!loadedVideosList.length) {
+                    loadEmergencyTrendingPack();
+                }
+            } finally {
+                isLoading = false;
+                infiniteLoader.classList.add('hidden');
             }
         }
 
-        // Emergency Curated Top Hits (Agar internet super slow ho toh bhi ye instant chalega)
         function loadEmergencyTrendingPack() {
             cleanFeedCard();
             const emergencyHits = [
-                { id: "kJQP7kiw5Fk", title: "Luis Fonsi - Despacito ft. Daddy Yankee", channel: "Luis Fonsi", thumb: "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg" },
-                { id: "JGwWNGJdvx8", title: "Ed Sheeran - Shape of You", channel: "Ed Sheeran", thumb: "https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg" },
-                { id: "k4yXQkG2s1E", title: "Khaab - Akhil | Parmish Verma | New Punjabi Song", channel: "Crown Records", thumb: "https://i.ytimg.com/vi/k4yXQkG2s1E/hqdefault.jpg" },
                 { id: "hXh3SRVYVEQ", title: "Tauba Tauba | Bad Newz | Vicky Kaushal | Karan Aujla", channel: "Saregama Music", thumb: "https://i.ytimg.com/vi/hXh3SRVYVEQ/hqdefault.jpg" },
                 { id: "ilNt2bikxZ8", title: "Chaleya | Jawan | Shah Rukh Khan | Nayanthara | Anirudh", channel: "T-Series", thumb: "https://i.ytimg.com/vi/ilNt2bikxZ8/hqdefault.jpg" },
                 { id: "YxWlaYCA8MU", title: "Kesariya - Brahmāstra | Ranbir Kapoor | Alia Bhatt | Pritam", channel: "Sony Music India", thumb: "https://i.ytimg.com/vi/YxWlaYCA8MU/hqdefault.jpg" },
-                { id: "jfKfPfyJRdk", title: "Lofi Beats to Relax / Study to", channel: "Lofi Girl", thumb: "https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg" }
+                { id: "k4yXQkG2s1E", title: "Khaab - Akhil | Parmish Verma | New Punjabi Song", channel: "Crown Records", thumb: "https://i.ytimg.com/vi/k4yXQkG2s1E/hqdefault.jpg" },
+                { id: "JGwWNGJdvx8", title: "Ed Sheeran - Shape of You", channel: "Ed Sheeran", thumb: "https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg" },
+                { id: "kJQP7kiw5Fk", title: "Luis Fonsi - Despacito ft. Daddy Yankee", channel: "Luis Fonsi", thumb: "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg" }
             ];
             appendVideosToFeed(emergencyHits);
         }
@@ -682,7 +682,6 @@
             if (!query) return;
             searchBarOverlay.classList.add('hidden');
             
-            // Search query ko instant video player bridge me load karein
             if (!ytPlayer) {
                 loadedVideosList.unshift({
                     id: query,
@@ -693,10 +692,9 @@
                 playVideoByIndex(0);
             } else {
                 playerSec.classList.remove('hidden');
-                document.getElementById('playingTitle').innerText = `Searching: ${query}`;
+                document.getElementById('playingTitle').innerText = `Playing Search: ${query}`;
                 document.getElementById('playingChannel').innerText = "SKPlayer Ultra Direct";
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-                // YouTube IFrame Player direct list loader
                 ytPlayer.loadPlaylist({ list: query, listType: 'search' });
             }
         }
