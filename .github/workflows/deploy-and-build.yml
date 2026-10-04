@@ -40,7 +40,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   # ---------------------------------------------
-  # JOB 2: Build Android APK with Custom Icon
+  # JOB 2: Build Android APK with Background Play
   # ---------------------------------------------
   build-apk:
     runs-on: ubuntu-latest
@@ -69,18 +69,21 @@ jobs:
           rm -rf www/*
           cp -r ../* www/ 2>/dev/null || true
           
-          # Cordova config with app icons
+          # Inject Background Play & App Icon configuration in config.xml
           cat << 'EOF' > config.xml
           <?xml version='1.0' encoding='utf-8'?>
           <widget id="com.skplayer.app" version="1.0.1" xmlns="http://www.w3.org/ns/widgets">
               <name>SKPlayer</name>
-              <description>SKPlayer Ad-Free Video App</description>
+              <description>SKPlayer Ad-Free Video App with Background Audio</description>
               <author email="dev@skplayer.app">Sameer</author>
               <content src="index.html" />
               <access origin="*" />
               <allow-intent href="http://*/*" />
               <allow-intent href="https://*/*" />
               <preference name="ScrollEnabled" value="false" />
+              <preference name="KeepRunning" value="true" />
+              <preference name="AllowInlineMediaPlayback" value="true" />
+              <preference name="MediaPlaybackRequiresUserAction" value="false" />
               
               <platform name="android">
                   <icon src="www/android-chrome-512x512.png" />
@@ -96,16 +99,19 @@ jobs:
           
           cordova platform add android
           
-          # Force overwrite mipmap icons
+          # Install Cordova Background Mode Plugin
+          cordova plugin add cordova-plugin-background-mode || true
+          
+          # Force overwrite default launcher icons with custom logo
           mkdir -p platforms/android/app/src/main/res/mipmap-hdpi
           mkdir -p platforms/android/app/src/main/res/mipmap-xhdpi
           mkdir -p platforms/android/app/src/main/res/mipmap-xxhdpi
           mkdir -p platforms/android/app/src/main/res/mipmap-xxxhdpi
           
-          cp ../android-chrome-192x192.png platforms/android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-          cp ../android-chrome-192x192.png platforms/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-          cp ../android-chrome-512x512.png platforms/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-          cp ../android-chrome-512x512.png platforms/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          cp ../android-chrome-192x192.png platforms/android/app/src/main/res/mipmap-hdpi/ic_launcher.png 2>/dev/null || true
+          cp ../android-chrome-192x192.png platforms/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png 2>/dev/null || true
+          cp ../android-chrome-512x512.png platforms/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png 2>/dev/null || true
+          cp ../android-chrome-512x512.png platforms/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png 2>/dev/null || true
           
           cordova build android --debug
 
@@ -120,7 +126,7 @@ jobs:
         with:
           tag_name: "v1.0.1"
           name: "SKPlayer v1.0.1"
-          body: "Official release for sameerkhan86926-a11y/skplayer with custom icon, mic voice search, and in-app updates."
+          body: "Official release for sameerkhan86926-a11y/skplayer with custom icon, mic voice search, background audio play, and in-app updates."
           files: skplayer_app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
