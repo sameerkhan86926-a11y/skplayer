@@ -19,28 +19,30 @@
             <div class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center font-black text-sm shadow-lg shadow-red-600/30">SK</div>
             <span class="text-lg font-bold tracking-tight">SK<span class="text-red-500">Player</span></span>
         </div>
-        <span class="text-xs font-semibold px-2.5 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full">Active</span>
+        <span class="text-xs font-semibold px-2.5 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full">
+            API Active
+        </span>
     </header>
 
     <main class="max-w-3xl mx-auto px-4 pt-4">
         <!-- Search Field -->
-        <div class="relative flex items-center mb-5">
-            <input id="searchInput" type="text" placeholder="Search any song, video, artist..." 
+        <div class="relative flex items-center mb-4">
+            <input id="searchInput" type="text" placeholder="Search YouTube..." 
                    class="w-full bg-[#1e1e1e] text-sm text-zinc-100 placeholder-zinc-500 pl-4 pr-12 py-3 rounded-full border border-zinc-800 focus:outline-none focus:border-red-500 transition shadow-inner">
             <button onclick="handleSearch()" class="absolute right-1.5 w-9 h-9 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center text-white transition">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
             </button>
         </div>
 
-        <!-- Direct Video / URL Input Helper -->
+        <!-- Quick Filters -->
         <div class="flex gap-2 mb-4 overflow-x-auto pb-1 text-xs">
-            <button onclick="quickSearch('Trending Songs India')" class="px-3 py-1.5 bg-[#222] rounded-full whitespace-nowrap hover:bg-[#333]">🔥 Trending Songs</button>
-            <button onclick="quickSearch('Sidhu Moose Wala')" class="px-3 py-1.5 bg-[#222] rounded-full whitespace-nowrap hover:bg-[#333]">🎵 Punjabi Hits</button>
-            <button onclick="quickSearch('Arijit Singh Best Songs')" class="px-3 py-1.5 bg-[#222] rounded-full whitespace-nowrap hover:bg-[#333]">🎧 Bollywood</button>
-            <button onclick="quickSearch('Lofi Chill Beats')" class="px-3 py-1.5 bg-[#222] rounded-full whitespace-nowrap hover:bg-[#333]">☕ Lofi Beats</button>
+            <button onclick="quickFilter('Trending Songs India')" class="px-3 py-1.5 bg-[#222] rounded-full whitespace-nowrap hover:bg-[#333]">🔥 Trending</button>
+            <button onclick="quickFilter('Latest Bollywood Hits')" class="px-3 py-1.5 bg-[#222] rounded-full whitespace-nowrap hover:bg-[#333]">🎵 Bollywood</button>
+            <button onclick="quickFilter('Punjabi Songs')" class="px-3 py-1.5 bg-[#222] rounded-full whitespace-nowrap hover:bg-[#333]">🎧 Punjabi</button>
+            <button onclick="quickFilter('Gaming Videos')" class="px-3 py-1.5 bg-[#222] rounded-full whitespace-nowrap hover:bg-[#333]">🎮 Gaming</button>
         </div>
 
-        <!-- Video Player Section (Ad-Free Secure Engine) -->
+        <!-- Video Player Section -->
         <div id="playerSection" class="hidden mb-6">
             <div class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-zinc-800">
                 <iframe id="mainFrame" class="w-full h-full border-0" 
@@ -49,126 +51,127 @@
                 </iframe>
             </div>
             <h1 id="playingTitle" class="text-base font-semibold mt-3 line-clamp-2"></h1>
+            <p id="playingAuthor" class="text-xs text-zinc-400 mt-1 font-medium"></p>
         </div>
 
         <!-- Feed Status / Heading -->
-        <h2 id="feedHeading" class="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Videos</h2>
+        <h2 id="feedHeading" class="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Recommended</h2>
 
         <!-- Video Grid -->
         <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
     </main>
 
     <script>
+        // ==========================================
+        // 🔑 YAHAN APNI YOUTUBE DATA API KEY DAALEIN:
+        // ==========================================
+        const YOUTUBE_API_KEY = "AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY";
+
         const searchInput = document.getElementById('searchInput');
         const videoGrid = document.getElementById('videoGrid');
         const playerSec = document.getElementById('playerSection');
         const mainFrame = document.getElementById('mainFrame');
         const playingTitle = document.getElementById('playingTitle');
+        const playingAuthor = document.getElementById('playingAuthor');
 
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleSearch();
         });
 
-        function quickSearch(query) {
+        function quickFilter(query) {
             searchInput.value = query;
             handleSearch();
         }
 
-        // Direct CORS-Free Search Relay
+        // Official YouTube Data API Search
         async function handleSearch() {
-            const q = searchInput.value.trim();
-            if (!q) return;
+            const query = searchInput.value.trim();
+            if (!query) return;
 
-            document.getElementById('feedHeading').innerText = `Results for "${q}"`;
+            document.getElementById('feedHeading').innerText = `Results for "${query}"`;
             videoGrid.innerHTML = `
                 <div class="col-span-full py-12 flex justify-center items-center text-zinc-400 gap-2">
-                    <i class="fa-solid fa-circle-notch fa-spin text-red-500"></i> Fetching video feed...
+                    <i class="fa-solid fa-circle-notch fa-spin text-red-500"></i> Fetching from YouTube...
                 </div>`;
 
             try {
-                // Direct DuckDuckGo Video API (Never blocks, 0 CORS issues)
-                const ddgRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://duckduckgo.com/v.js?q=${encodeURIComponent(q)}+site:youtube.com&p=1`)}`);
-                const ddgJson = await ddgRes.json();
-                const raw = JSON.parse(ddgJson.contents);
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`;
+                const res = await fetch(url);
+                const data = await res.json();
 
-                if (raw && raw.results && raw.results.length > 0) {
-                    renderDDGResults(raw.results);
-                } else {
-                    fallbackSearch(q);
+                if (data.error) {
+                    throw new Error(data.error.message);
                 }
+
+                renderVideos(data.items || []);
             } catch (err) {
-                fallbackSearch(q);
-            }
-        }
-
-        // Fallback using direct YouTube query scraper
-        async function fallbackSearch(q) {
-            try {
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`)}`;
-                const res = await fetch(proxyUrl);
-                const html = (await res.json()).contents;
-
-                const videoIds = [...html.matchAll(/\/watch\?v=([a-zA-Z0-9_-]{11})/g)].map(m => m[1]);
-                const uniqueIds = [...new Set(videoIds)].slice(0, 14);
-
-                if (uniqueIds.length > 0) {
-                    videoGrid.innerHTML = uniqueIds.map(id => `
-                        <div onclick="playVideo('${id}', 'YouTube Video')" class="bg-[#181818] rounded-xl overflow-hidden cursor-pointer hover:bg-zinc-800 transition active:scale-[0.98]">
-                            <div class="relative aspect-video">
-                                <img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" class="w-full h-full object-cover" loading="lazy">
-                            </div>
-                            <div class="p-3">
-                                <h3 class="text-sm font-medium line-clamp-1 text-zinc-200">Play Video: ${id}</h3>
-                                <p class="text-xs text-red-400 mt-1">Tap to Stream Ad-Free</p>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    videoGrid.innerHTML = `<p class="col-span-full text-center text-zinc-500 py-8 text-sm">No results found. Try another search.</p>`;
-                }
-            } catch (e) {
                 videoGrid.innerHTML = `
                     <div class="col-span-full text-center py-8">
-                        <p class="text-red-400 text-sm mb-2">Network error. Please try again.</p>
-                        <button onclick="handleSearch()" class="px-5 py-2 bg-red-600 rounded-xl text-xs font-semibold">Retry</button>
+                        <p class="text-red-400 text-sm mb-2">API Error: ${err.message}</p>
+                        <p class="text-xs text-zinc-500">Check if your API key has YouTube Data API v3 enabled in Google Cloud Console.</p>
                     </div>`;
             }
         }
 
-        function renderDDGResults(results) {
-            videoGrid.innerHTML = results.map(item => {
-                // Extract 11 digit video ID from YouTube URL
-                const match = item.content.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-                const id = match ? match[1] : null;
-                if (!id) return '';
+        // Initial Trending Feed (via YouTube mostPopular endpoint)
+        async function loadTrending() {
+            videoGrid.innerHTML = `
+                <div class="col-span-full py-12 flex justify-center items-center text-zinc-400 gap-2">
+                    <i class="fa-solid fa-circle-notch fa-spin text-red-500"></i> Loading Feed...
+                </div>`;
+
+            try {
+                const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&chart=mostPopular&regionCode=IN&maxResults=20&key=${YOUTUBE_API_KEY}`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.error) throw new Error(data.error.message);
+                renderVideos(data.items || [], true);
+            } catch (err) {
+                // If trending fails, trigger keyword search
+                quickFilter('Trending Songs');
+            }
+        }
+
+        function renderVideos(items, isVideosEndpoint = false) {
+            if (!items.length) {
+                videoGrid.innerHTML = `<p class="col-span-full text-center text-zinc-400 py-6 text-sm">No videos found.</p>`;
+                return;
+            }
+
+            videoGrid.innerHTML = items.map(item => {
+                const videoId = isVideosEndpoint ? item.id : item.id.videoId;
+                if (!videoId) return '';
+
+                const snippet = item.snippet;
+                const thumb = snippet.thumbnails?.high?.url || snippet.thumbnails?.medium?.url;
 
                 return `
-                    <div onclick="playVideo('${id}', '${encodeURIComponent(item.title)}')" class="bg-[#181818] rounded-xl overflow-hidden cursor-pointer hover:bg-zinc-800 transition active:scale-[0.98]">
+                    <div onclick="playVideo('${videoId}', '${encodeURIComponent(snippet.title)}', '${encodeURIComponent(snippet.channelTitle)}')" 
+                         class="bg-[#181818] rounded-xl overflow-hidden cursor-pointer hover:bg-zinc-800 transition active:scale-[0.98]">
                         <div class="relative aspect-video">
-                            <img src="${item.images?.medium || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`}" class="w-full h-full object-cover" loading="lazy">
-                            <span class="absolute bottom-2 right-2 bg-black/80 text-[10px] font-semibold px-1.5 py-0.5 rounded text-white">
-                                ${item.duration || 'HD'}
-                            </span>
+                            <img src="${thumb}" class="w-full h-full object-cover" loading="lazy">
                         </div>
                         <div class="p-3">
-                            <h3 class="text-sm font-medium line-clamp-2 text-zinc-100">${item.title}</h3>
-                            <p class="text-xs text-zinc-400 mt-1">${item.uploader || 'YouTube'}</p>
+                            <h3 class="text-sm font-medium line-clamp-2 text-zinc-100">${snippet.title}</h3>
+                            <p class="text-xs text-zinc-400 mt-1">${snippet.channelTitle}</p>
                         </div>
                     </div>`;
             }).join('');
         }
 
-        function playVideo(id, title) {
+        function playVideo(id, title, channel) {
             playerSec.classList.remove('hidden');
             playingTitle.innerText = decodeURIComponent(title);
+            playingAuthor.innerText = decodeURIComponent(channel);
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            // Ad-Free Privacy-Enhanced Player Endpoint
+            // Ad-Free Privacy-Sandboxed Player
             mainFrame.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3`;
         }
 
-        // Default initial feed
-        quickSearch('New Hindi Songs 2026');
+        // Start loading when page is ready
+        loadTrending();
     </script>
 </body>
 </html>
