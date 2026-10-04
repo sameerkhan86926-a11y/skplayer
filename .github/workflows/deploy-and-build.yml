@@ -40,8 +40,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-     # ==============================
+  # ==============================
   # JOB 2: Build Android APK
   # ==============================
   build-apk:
@@ -65,6 +64,8 @@ jobs:
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
+          mkdir -p www
+          cp index.html manifest.json www/ 2>/dev/null || cp index.html www/
           npx cap add android
           npx cap sync android
 
@@ -79,3 +80,5 @@ jobs:
         with:
           name: SKPlayer-Debug-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      
