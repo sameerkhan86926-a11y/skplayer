@@ -323,8 +323,8 @@
     <!-- ======================================================== -->
     <script>
         // 🔑 CONFIGURATION:
-        const YOUTUBE_API_KEY = "AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY";
-        const CURRENT_APP_VERSION = "v1.0.1";
+        const YOUTUBE_API_KEY = "";
+        const CURRENT_APP_VERSION = "v1.0.3";
         const GITHUB_REPO = "sameerkhan86926-a11y/skplayer";
 
         const videoFeed = document.getElementById('videoFeed');
@@ -363,22 +363,46 @@
         }
 
         // ========================================================
-        // 🎵 TRUE BACKGROUND PLAY & LOCK SCREEN MEDIA SESSION
+        // 🎵 REAL BACKGROUND AUDIO ENGINE (WakeLock + AudioContext)
         // ========================================================
-        function activateBackgroundAudioEngine(video) {
-            // 1. Silent HTML5 audio track triggers persistent background thread in Android WebView
-            if (keepAliveAudio) {
-                // 1-second silent WAV base64 string
-                keepAliveAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
-                keepAliveAudio.play().catch(() => {});
-            }
+        let audioCtx = null;
+        let wakeLock = null;
 
-            // 2. Cordova Background Mode Plugin activation
+        async function requestScreenWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {}
+        }
+
+        function activateBackgroundAudioEngine(video) {
+            requestScreenWakeLock();
+
+            // 1. Silent Web Audio Oscillator (Keeps Android/Chrome media pipeline active in background)
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.001; // Inaudible gain
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+            } catch (e) {}
+
+            // 2. Cordova Native Background Service
             if (window.cordova && window.cordova.plugins && window.cordova.plugins.backgroundMode) {
-                cordova.plugins.backgroundMode.enable();
-                cordova.plugins.backgroundMode.setDefaults({
+                const bg = cordova.plugins.backgroundMode;
+                bg.enable();
+                bg.overrideBackButton();
+                bg.setDefaults({
                     title: video.title,
-                    text: `Playing on SKPlayer • ${video.channel}`,
+                    text: `SKPlayer • ${video.channel}`,
                     icon: 'icon',
                     color: 'E50914',
                     resume: true,
@@ -387,12 +411,12 @@
                 });
             }
 
-            // 3. Native Android Notification Drawer & Lock Screen Controls
+            // 3. Native MediaSession Lock Screen Controls
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: video.title,
                     artist: video.channel,
-                    album: 'SKPlayer Ad-Free Stream',
+                    album: 'SKPlayer Ultra Ad-Free',
                     artwork: [
                         { src: video.thumb || 'android-chrome-512x512.png', sizes: '512x512', type: 'image/png' }
                     ]
@@ -422,8 +446,19 @@
             }
         }
 
+        // 4. Prevent Android system from auto-pausing video on screen minimize
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                setTimeout(() => {
+                    if (ytPlayer && ytPlayer.getPlayerState && ytPlayer.getPlayerState() === 2) {
+                        ytPlayer.playVideo();
+                    }
+                }, 150);
+            }
+        });
+
         // ========================================================
-        // 🎙️️ VOICE SEARCH ENGINE
+        // 🎙 VOICE SEARCH ENGINE (With Native Permission Request)
         // ========================================================
         let recognition = null;
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -462,10 +497,46 @@
         }
 
         function startVoiceSearch() {
-            if (recognition) {
-                try { recognition.start(); } catch(e) { recognition.stop(); }
+            // Android Native Permission check via Cordova Plugin
+            if (window.cordova && window.plugins && window.plugins.permissions) {
+                const permissions = window.plugins.permissions;
+                permissions.checkPermission(permissions.RECORD_AUDIO, function(status) {
+                    if (!status.hasPermission) {
+                        permissions.requestPermission(permissions.RECORD_AUDIO, function(status) {
+                            if (status.hasPermission) {
+                                executeSpeech();
+                            } else {
+                                alert("Please allow Microphone permission in App Settings.");
+                            }
+                        }, () => alert("Permission request failed"));
+                    } else {
+                        executeSpeech();
+                    }
+                });
+            } else if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        stream.getTracks().forEach(track => track.stop());
+                        executeSpeech();
+                    })
+                    .catch(() => {
+                        alert("Microphone permission denied. Enable it in phone settings.");
+                    });
             } else {
-                alert("Voice search is not supported on this browser.");
+                executeSpeech();
+            }
+        }
+
+        function executeSpeech() {
+            if (recognition) {
+                try {
+                    recognition.abort();
+                    recognition.start();
+                } catch(e) {
+                    console.log("Recognition restart", e);
+                }
+            } else {
+                alert("Voice search is not supported on this device.");
             }
         }
 
@@ -506,7 +577,7 @@
             document.getElementById('updateBanner').classList.add('hidden');
         }
 
-        // Live Suggestions
+        // Live Search Suggestions
         let debounceTimer;
         function handleSearchSuggestions(val) {
             clearTimeout(debounceTimer);
@@ -925,7 +996,7 @@
         function closePlayer() {
             playerSec.classList.add('hidden');
             if (ytPlayer?.stopVideo) ytPlayer.stopVideo();
-            if (keepAliveAudio) keepAliveAudio.pause();
+            if (audioCtx && audioCtx.state !== 'closed') audioCtx.suspend();
             clearInterval(sponsorInterval);
             clearInterval(loopInterval);
         }
