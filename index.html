@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SKPlayer Ultra</title>
 
-    <!-- App Favicons & Icons -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -32,11 +31,20 @@
             border-radius: 12px !important;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
         }
+        @keyframes pulse-mic {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.15); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .mic-listening {
+            background-color: #ef4444 !important;
+            color: #ffffff !important;
+            animation: pulse-mic 1.2s infinite ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-[#0f0f0f] text-white selection:bg-red-600 pb-20 select-none">
 
-    <!-- Brightness Overlay for Gesture -->
     <div id="brightnessOverlay" class="fixed inset-0 bg-black pointer-events-none z-[999] opacity-0 transition-opacity"></div>
 
     <!-- 1. TOP NAVBAR -->
@@ -49,30 +57,75 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-3.5 text-zinc-200">
+        <div class="flex items-center gap-3 text-zinc-200">
             <button onclick="toggleAudioOnly()" id="audioOnlyBtn" class="text-xs px-2 py-1 bg-zinc-800 rounded-full border border-zinc-700 flex items-center gap-1">
                 <i class="fa-solid fa-headphones"></i> <span id="audioOnlyText">AV</span>
             </button>
-            <button onclick="toggleSearchBar()" class="hover:text-white"><i class="fa-solid fa-magnifying-glass text-lg"></i></button>
+            <!-- Header Voice Mic Button -->
+            <button onclick="startVoiceSearch()" class="hover:text-white p-1">
+                <i class="fa-solid fa-microphone text-base text-zinc-300 hover:text-red-500"></i>
+            </button>
+            <button onclick="toggleSearchBar()" class="hover:text-white p-1"><i class="fa-solid fa-magnifying-glass text-lg"></i></button>
             <div onclick="switchTab('library')" class="cursor-pointer w-7 h-7 rounded-full overflow-hidden border border-zinc-700 flex items-center justify-center">
                 <img src="apple-touch-icon.png" alt="Profile" class="w-full h-full object-cover">
             </div>
         </div>
     </header>
 
-    <!-- Search Overlay with Live Suggestions -->
+    <!-- Search Overlay with Voice Mic & Live Suggestions -->
     <div id="searchBarOverlay" class="hidden fixed top-0 left-0 right-0 z-50 bg-[#121212] border-b border-zinc-800 p-3">
         <div class="flex items-center gap-2 max-w-xl mx-auto">
             <button onclick="toggleSearchBar()" class="text-zinc-400 p-1"><i class="fa-solid fa-arrow-left"></i></button>
-            <div class="relative flex-1">
-                <input id="searchInput" type="text" placeholder="Search YouTube with auto-complete..." 
+            <div class="relative flex-1 flex items-center">
+                <input id="searchInput" type="text" placeholder="Search or tap mic to speak..." 
                        oninput="handleSearchSuggestions(this.value)"
-                       class="w-full bg-[#202020] text-sm text-white placeholder-zinc-500 pl-4 pr-10 py-2.5 rounded-full border border-zinc-700 focus:outline-none focus:border-red-500">
-                <button onclick="handleSearch()" class="absolute right-3 top-3 text-zinc-400"><i class="fa-solid fa-magnifying-glass text-xs"></i></button>
+                       class="w-full bg-[#202020] text-sm text-white placeholder-zinc-500 pl-4 pr-20 py-2.5 rounded-full border border-zinc-700 focus:outline-none focus:border-red-500">
+                
+                <!-- Overlay Internal Mic -->
+                <button id="inputMicBtn" onclick="startVoiceSearch()" class="absolute right-9 text-zinc-400 hover:text-white p-1.5 transition">
+                    <i class="fa-solid fa-microphone text-sm"></i>
+                </button>
+                <button onclick="handleSearch()" class="absolute right-3 text-zinc-400 hover:text-white p-1.5">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                </button>
             </div>
         </div>
-        <!-- Live Suggestions Container -->
         <div id="suggestionsBox" class="max-w-xl mx-auto mt-2 bg-[#1c1c1c] rounded-2xl overflow-hidden border border-zinc-800 hidden"></div>
+    </div>
+
+    <!-- Voice Listening Modal -->
+    <div id="voiceModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-20 h-20 rounded-full bg-red-600/20 border border-red-500/40 flex items-center justify-center mb-4">
+            <div id="micPulseCircle" class="w-14 h-14 rounded-full bg-red-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-red-600/40 animate-pulse">
+                <i class="fa-solid fa-microphone"></i>
+            </div>
+        </div>
+        <h3 id="voiceStatusTitle" class="text-base font-bold text-white mb-1">Listening...</h3>
+        <p id="voiceRecognizedText" class="text-xs text-zinc-400 max-w-xs h-6">Speak song name, artist or topic</p>
+        <button onclick="closeVoiceSearch()" class="mt-6 px-5 py-2 bg-zinc-800 rounded-full text-xs font-semibold hover:bg-zinc-700">Cancel</button>
+    </div>
+
+    <!-- In-App Auto-Update Notification Banner/Modal -->
+    <div id="updateBanner" class="hidden fixed top-14 left-4 right-4 max-w-md mx-auto z-50 bg-gradient-to-r from-zinc-900 to-zinc-800 border border-red-500/40 rounded-2xl p-4 shadow-2xl">
+        <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-red-600 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
+                <i class="fa-solid fa-cloud-arrow-down"></i>
+            </div>
+            <div class="flex-1">
+                <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                    Update Available! <span id="updateVersionBadge" class="bg-red-500/20 text-red-400 text-[10px] px-1.5 py-0.2 rounded font-mono">v1.0.2</span>
+                </h4>
+                <p class="text-[11px] text-zinc-300 mt-1">A newer version of SKPlayer with new features is ready.</p>
+                <div class="flex items-center gap-2 mt-3">
+                    <button id="updateDownloadBtn" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5">
+                        <i class="fa-solid fa-download"></i> Update Now
+                    </button>
+                    <button onclick="dismissUpdate()" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-lg">
+                        Later
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Category Chips -->
@@ -84,28 +137,24 @@
         <button onclick="quickFilter('Hindi Podcasts')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Podcasts</button>
     </nav>
 
-    <!-- 2. STICKY DEDICATED PLAYER WITH GESTURE SENSORS -->
+    <!-- 2. STICKY DEDICATED PLAYER -->
     <div id="playerSection" class="hidden sticky top-[48px] z-40 bg-[#0f0f0f] shadow-2xl transition-all">
         <div id="playerContainer" class="relative w-full aspect-video bg-black overflow-hidden">
             <div id="ytplayer" class="w-full h-full"></div>
 
-            <!-- Audio-Only Blackout Screen -->
             <div id="audioOnlyCover" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-2 pointer-events-none z-10">
                 <i class="fa-solid fa-headphones text-red-500 text-4xl animate-bounce"></i>
                 <p class="text-xs font-semibold text-zinc-300">Audio-Only Data Saver Active</p>
             </div>
 
-            <!-- Gesture Indicators -->
             <div id="gestureNotice" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-black/80 px-3.5 py-1.5 rounded-full text-xs font-semibold text-white border border-zinc-700 pointer-events-none z-30 shadow-lg"></div>
             
-            <!-- Gesture Touch Zones Overlay -->
             <div id="touchSurface" class="absolute inset-0 z-20 flex">
                 <div id="leftTouchZone" class="w-1/2 h-full"></div>
                 <div id="rightTouchZone" class="w-1/2 h-full"></div>
             </div>
         </div>
 
-        <!-- Video Metadata Area -->
         <div class="p-3 bg-[#0f0f0f] border-b border-zinc-800">
             <div class="flex items-start justify-between gap-3">
                 <h1 id="playingTitle" class="text-sm font-semibold leading-snug line-clamp-2 text-zinc-100"></h1>
@@ -117,7 +166,6 @@
                 <span id="sponsorBlockStatus" class="text-emerald-400 font-medium"><i class="fa-solid fa-shield-halved"></i> SponsorBlock Active</span>
             </div>
 
-            <!-- Channel Bar -->
             <div class="flex items-center justify-between mt-3 pt-2 border-t border-zinc-800/60">
                 <div class="flex items-center gap-2.5">
                     <div id="channelAvatar" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs uppercase text-white">YT</div>
@@ -129,14 +177,10 @@
                 <button id="subBtn" onclick="toggleSub()" class="bg-white text-black hover:bg-zinc-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Subscribe</button>
             </div>
 
-            <!-- Pro Control Actions Scrollbar -->
             <div class="flex items-center gap-2 mt-3.5 overflow-x-auto no-scrollbar text-xs">
-                <!-- Play/Pause Button -->
                 <button onclick="togglePlayPause()" id="playPauseBtn" class="flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold px-3 py-1.5 rounded-full whitespace-nowrap border border-zinc-700">
                     <i id="playPauseIcon" class="fa-solid fa-pause"></i> <span id="playPauseText">Pause</span>
                 </button>
-
-                <!-- Next Video Button -->
                 <button onclick="playNextVideo()" class="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold px-3.5 py-1.5 rounded-full whitespace-nowrap">
                     <i class="fa-solid fa-forward-step"></i> Next
                 </button>
@@ -163,7 +207,6 @@
             </div>
         </div>
 
-        <!-- Comments Section -->
         <div id="commentsSection" class="hidden max-h-72 overflow-y-auto p-4 bg-[#141414] border-b border-zinc-800 text-xs">
             <h3 class="font-bold mb-3 flex items-center justify-between">
                 <span>Top Comments</span>
@@ -182,7 +225,6 @@
             </div>
         </section>
 
-        <!-- Library (You) Section -->
         <section id="libraryView" class="hidden px-4 pt-4">
             <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-red-500"></i> My Library</h2>
             <div class="mb-6">
@@ -204,7 +246,7 @@
         </section>
     </main>
 
-    <!-- Speed Selector Modal -->
+    <!-- Modals -->
     <div id="speedModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-3">
         <div class="bg-[#1c1c1c] w-full max-w-sm rounded-3xl p-4 border border-zinc-800">
             <h3 class="font-bold text-sm mb-3">Playback Speed</h3>
@@ -221,7 +263,6 @@
         </div>
     </div>
 
-    <!-- Sleep Timer Modal -->
     <div id="sleepModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-3">
         <div class="bg-[#1c1c1c] w-full max-w-sm rounded-3xl p-4 border border-zinc-800">
             <h3 class="font-bold text-sm mb-3">Bedtime Sleep Timer</h3>
@@ -234,7 +275,6 @@
         </div>
     </div>
 
-    <!-- Download Modal -->
     <div id="downloadModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-3">
         <div class="bg-[#1c1c1c] w-full max-w-sm rounded-3xl p-5 border border-zinc-800">
             <div class="flex items-center justify-between pb-3 border-b border-zinc-800">
@@ -255,7 +295,6 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div id="toast" class="hidden fixed bottom-16 left-1/2 -translate-x-1/2 z-50 bg-zinc-800 text-white text-xs px-4 py-2.5 rounded-full border border-zinc-700 flex items-center gap-2">
         <i class="fa-solid fa-circle-check text-red-500"></i>
         <span id="toastMsg">Notification</span>
@@ -265,7 +304,11 @@
     <nav class="fixed bottom-0 left-0 right-0 z-50 bg-[#0f0f0f]/98 backdrop-blur-md border-t border-zinc-800/80 px-4 py-2 flex items-center justify-around text-zinc-400">
         <button onclick="switchTab('home')" class="nav-tab active flex flex-col items-center gap-1 text-white"><i class="fa-solid fa-house text-base"></i><span class="text-[10px]">Home</span></button>
         <button onclick="switchTab('shorts')" class="nav-tab flex flex-col items-center gap-1"><i class="fa-solid fa-bolt text-base"></i><span class="text-[10px]">Shorts</span></button>
-        <button onclick="toggleSearchBar()" class="flex flex-col items-center -mt-2"><div class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white"><i class="fa-solid fa-plus"></i></div></button>
+        <button onclick="startVoiceSearch()" class="flex flex-col items-center -mt-2">
+            <div class="w-9 h-9 rounded-full bg-red-600 shadow-md shadow-red-600/30 flex items-center justify-center text-white text-sm">
+                <i class="fa-solid fa-microphone"></i>
+            </div>
+        </button>
         <button onclick="switchTab('subscriptions')" class="nav-tab flex flex-col items-center gap-1"><i class="fa-solid fa-layer-group text-base"></i><span class="text-[10px]">Subscriptions</span></button>
         <button onclick="switchTab('library')" class="nav-tab flex flex-col items-center gap-1">
             <img src="favicon-32x32.png" alt="You" class="w-4 h-4 rounded-full object-cover">
@@ -274,11 +317,15 @@
     </nav>
 
     <!-- ======================================================== -->
-    <!-- ADVANCED CONTROLLER ENGINE                               -->
+    <!-- ENGINE LOGIC                                             -->
     <!-- ======================================================== -->
     <script>
-        // 🔑 APNI YOUTUBE API KEY YAHAN DAALEIN:
-        const YOUTUBE_API_KEY = "AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY";
+                // 🔑 CONFIGURATION
+        const YOUTUBE_API_KEY = "
+AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY";
+        const CURRENT_APP_VERSION = "v1.0.1";
+        const GITHUB_REPO = "sameerkhan86926-a11y/skplayer"; // Aapka exact GitHub repo path
+
 
         const videoFeed = document.getElementById('videoFeed');
         const playerSec = document.getElementById('playerSection');
@@ -296,7 +343,6 @@
         let currentPlayingIndex = -1;
         let ytPlayer = null;
 
-        // Pro Features State
         let isAudioOnly = false;
         let sleepTimerTimeout = null;
         let loopPointA = null;
@@ -316,8 +362,90 @@
         }
 
         // ========================================================
-        // 1. LIVE SEARCH SUGGESTIONS
+        // 🎙️ VOICE SEARCH ENGINE (Web Speech Recognition)
         // ========================================================
+        let recognition = null;
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRec();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'hi-IN'; // Hindi + English Auto-detect
+
+            recognition.onstart = () => {
+                document.getElementById('voiceModal').classList.remove('hidden');
+                document.getElementById('voiceStatusTitle').innerText = "Listening...";
+                document.getElementById('voiceRecognizedText').innerText = "Speak now...";
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('voiceRecognizedText').innerText = `"${transcript}"`;
+                if (event.results[0].isFinal) {
+                    setTimeout(() => {
+                        closeVoiceSearch();
+                        searchInput.value = transcript;
+                        handleSearch();
+                    }, 600);
+                }
+            };
+
+            recognition.onerror = (e) => {
+                document.getElementById('voiceStatusTitle').innerText = "Try Again";
+                document.getElementById('voiceRecognizedText').innerText = "Could not hear audio clearly";
+            };
+
+            recognition.onend = () => {
+                setTimeout(() => closeVoiceSearch(), 2000);
+            };
+        }
+
+        function startVoiceSearch() {
+            if (recognition) {
+                try { recognition.start(); } catch(e) { recognition.stop(); }
+            } else {
+                alert("Voice search is not supported on this browser/webview.");
+            }
+        }
+
+        function closeVoiceSearch() {
+            document.getElementById('voiceModal').classList.add('hidden');
+            if (recognition) {
+                try { recognition.stop(); } catch(e) {}
+            }
+        }
+
+        // ========================================================
+        // 🚀 AUTO VERSION UPDATE CHECKER (GitHub Releases API)
+        // ========================================================
+        async function checkForAppUpdates() {
+            if (!GITHUB_REPO || GITHUB_REPO.includes("sameer/")) return;
+            try {
+                const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
+                if (!res.ok) return;
+                const release = await res.json();
+                const latestVersion = release.tag_name;
+
+                if (latestVersion && latestVersion !== CURRENT_APP_VERSION) {
+                    const apkAsset = release.assets?.find(a => a.name.endsWith('.apk'));
+                    if (apkAsset) {
+                        document.getElementById('updateVersionBadge').innerText = latestVersion;
+                        document.getElementById('updateDownloadBtn').onclick = () => {
+                            window.location.href = apkAsset.browser_download_url;
+                        };
+                        document.getElementById('updateBanner').classList.remove('hidden');
+                    }
+                }
+            } catch (e) {
+                console.log("Update check skipped", e);
+            }
+        }
+
+        function dismissUpdate() {
+            document.getElementById('updateBanner').classList.add('hidden');
+        }
+
+        // Search Autocomplete
         let debounceTimer;
         function handleSearchSuggestions(val) {
             clearTimeout(debounceTimer);
@@ -347,9 +475,7 @@
             handleSearch();
         }
 
-        // ========================================================
-        // 2. GESTURE SENSORS & PLAY/PAUSE ENGINE (FIXED)
-        // ========================================================
+        // Tap & Gestures
         let lastLeftTap = 0, lastRightTap = 0;
         let leftTapTimeout = null, rightTapTimeout = null;
         let startY = 0;
@@ -360,7 +486,6 @@
         function togglePlayPause() {
             if (!ytPlayer || !ytPlayer.getPlayerState) return;
             const state = ytPlayer.getPlayerState();
-            // 1 = Playing, 2 = Paused
             if (state === 1) {
                 ytPlayer.pauseVideo();
                 updatePlayPauseUI(false);
@@ -384,43 +509,34 @@
             }
         }
 
-        // Left Touch: Single tap Play/Pause, Double tap -10s
         leftZone.addEventListener('click', () => {
             const now = Date.now();
             if (now - lastLeftTap < 300) {
                 clearTimeout(leftTapTimeout);
                 if (ytPlayer && ytPlayer.getCurrentTime) {
-                    const cur = ytPlayer.getCurrentTime();
-                    ytPlayer.seekTo(Math.max(cur - 10, 0), true);
+                    ytPlayer.seekTo(Math.max(ytPlayer.getCurrentTime() - 10, 0), true);
                     flashGesture('⏪ 10s Rewind');
                 }
             } else {
-                leftTapTimeout = setTimeout(() => {
-                    togglePlayPause();
-                }, 300);
+                leftTapTimeout = setTimeout(() => togglePlayPause(), 300);
             }
             lastLeftTap = now;
         });
 
-        // Right Touch: Single tap Play/Pause, Double tap +10s
         rightZone.addEventListener('click', () => {
             const now = Date.now();
             if (now - lastRightTap < 300) {
                 clearTimeout(rightTapTimeout);
                 if (ytPlayer && ytPlayer.getCurrentTime) {
-                    const cur = ytPlayer.getCurrentTime();
-                    ytPlayer.seekTo(cur + 10, true);
+                    ytPlayer.seekTo(ytPlayer.getCurrentTime() + 10, true);
                     flashGesture('⏩ 10s Forward');
                 }
             } else {
-                rightTapTimeout = setTimeout(() => {
-                    togglePlayPause();
-                }, 300);
+                rightTapTimeout = setTimeout(() => togglePlayPause(), 300);
             }
             lastRightTap = now;
         });
 
-        // Left Swipe: Brightness
         leftZone.addEventListener('touchstart', e => { startY = e.touches[0].clientY; });
         leftZone.addEventListener('touchmove', e => {
             const diff = startY - e.touches[0].clientY;
@@ -432,7 +548,6 @@
             }
         });
 
-        // Right Swipe: Volume
         rightZone.addEventListener('touchstart', e => { startY = e.touches[0].clientY; });
         rightZone.addEventListener('touchmove', e => {
             const diff = startY - e.touches[0].clientY;
@@ -451,9 +566,6 @@
             setTimeout(() => gestureNotice.classList.add('hidden'), 900);
         }
 
-        // ========================================================
-        // 3. PIP, AUDIO-ONLY, SPEED & SLEEP TIMER
-        // ========================================================
         function togglePiP() {
             playerSec.classList.toggle('floating-pip');
             showToast(playerSec.classList.contains('floating-pip') ? "Mini Player Mode" : "Expanded Player");
@@ -491,7 +603,6 @@
             }, minutes * 60 * 1000);
         }
 
-        // A-B Loop Logic
         function toggleABLoop() {
             if (!ytPlayer) return;
             const cur = ytPlayer.getCurrentTime();
@@ -501,24 +612,18 @@
                 showToast(`Point A set at ${Math.floor(cur)}s. Tap again for Point B`);
             } else if (loopPointB === null) {
                 loopPointB = cur;
-                showToast(`Looping between ${Math.floor(loopPointA)}s and ${Math.floor(loopPointB)}s`);
+                showToast(`Looping ${Math.floor(loopPointA)}s to ${Math.floor(loopPointB)}s`);
                 loopInterval = setInterval(() => {
-                    if (ytPlayer.getCurrentTime() >= loopPointB) {
-                        ytPlayer.seekTo(loopPointA, true);
-                    }
+                    if (ytPlayer.getCurrentTime() >= loopPointB) ytPlayer.seekTo(loopPointA, true);
                 }, 400);
             } else {
                 clearInterval(loopInterval);
-                loopPointA = null;
-                loopPointB = null;
+                loopPointA = null; loopPointB = null;
                 document.getElementById('abLoopBtn').classList.remove('bg-red-600');
                 showToast("A-B Loop Disabled");
             }
         }
 
-        // ========================================================
-        // 4. SPONSORBLOCK
-        // ========================================================
         let sponsorInterval = null;
         function checkSponsorSegments(videoId) {
             clearInterval(sponsorInterval);
@@ -541,9 +646,6 @@
                 }).catch(() => {});
         }
 
-        // ========================================================
-        // 5. COMMENTS VIEWER
-        // ========================================================
         function toggleComments() {
             const sec = document.getElementById('commentsSection');
             sec.classList.toggle('hidden');
@@ -574,8 +676,7 @@
                                         <i class="fa-regular fa-thumbs-up"></i> ${com.likeCount}
                                     </div>
                                 </div>
-                            </div>
-                        `;
+                            </div>`;
                     }).join('');
                 } else {
                     list.innerHTML = `<div class="py-3 text-center text-zinc-500">Comments disabled for this video</div>`;
@@ -585,9 +686,6 @@
             }
         }
 
-        // ========================================================
-        // 6. CORE FEED & PLAYER CONTROLLER
-        // ========================================================
         function toggleSearchBar() {
             searchBarOverlay.classList.toggle('hidden');
             if (!searchBarOverlay.classList.contains('hidden')) searchInput.focus();
@@ -725,7 +823,6 @@
             document.getElementById('channelAvatar').innerText = video.channel.charAt(0).toUpperCase();
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
-
             checkSponsorSegments(video.id);
 
             if (!ytPlayer) {
@@ -740,13 +837,9 @@
                             updatePlayPauseUI(true);
                         },
                         'onStateChange': e => {
-                            if (e.data === YT.PlayerState.PLAYING) {
-                                updatePlayPauseUI(true);
-                            } else if (e.data === YT.PlayerState.PAUSED) {
-                                updatePlayPauseUI(false);
-                            } else if (e.data === YT.PlayerState.ENDED) {
-                                playNextVideo();
-                            }
+                            if (e.data === YT.PlayerState.PLAYING) updatePlayPauseUI(true);
+                            else if (e.data === YT.PlayerState.PAUSED) updatePlayPauseUI(false);
+                            else if (e.data === YT.PlayerState.ENDED) playNextVideo();
                         }
                     }
                 });
@@ -865,7 +958,9 @@
             if (scrollTop + clientHeight >= scrollHeight - 600) fetchNextBatch();
         });
 
+        // Initialize App & Auto Update Check
         quickFilter('Trending Songs India');
+        checkForAppUpdates();
     </script>
 </body>
 </html>
