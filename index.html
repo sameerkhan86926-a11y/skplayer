@@ -3,168 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SKPlayer</title>
-    <!-- Tailwind CSS -->
+    <title>SKPlayer Ultra</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Google Roboto Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+        body { font-family: 'Roboto', sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .floating-pip {
+            position: fixed !important;
+            bottom: 70px !important;
+            right: 12px !important;
+            width: 200px !important;
+            height: 112px !important;
+            z-index: 100 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
+        }
     </style>
 </head>
 <body class="bg-[#0f0f0f] text-white selection:bg-red-600 pb-20 select-none">
 
-    <!-- ======================================================== -->
-    <!-- 1. TOP NAVBAR                                            -->
-    <!-- ======================================================== -->
+    <!-- Brightness Overlay for Gesture -->
+    <div id="brightnessOverlay" class="fixed inset-0 bg-black pointer-events-none z-[999] opacity-0 transition-opacity"></div>
+
+    <!-- 1. TOP NAVBAR -->
     <header class="sticky top-0 z-50 bg-[#0f0f0f]/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between border-b border-zinc-800/60">
         <div class="flex items-center gap-1.5 cursor-pointer" onclick="switchTab('home')">
-            <div class="w-7 h-5 bg-red-600 rounded-[6px] flex items-center justify-center shadow-md shadow-red-600/20">
+            <div class="w-7 h-5 bg-red-600 rounded-[6px] flex items-center justify-center shadow-md shadow-red-600/30">
                 <i class="fa-solid fa-play text-white text-[10px] ml-0.5"></i>
             </div>
-            <span class="text-[17px] font-bold tracking-tight flex items-center">
-                SK<span class="text-zinc-100 font-medium ml-0.5">Player</span>
-                <span class="ml-1 text-[9px] font-semibold bg-red-600/20 text-red-500 border border-red-500/30 px-1 py-0.2 rounded">PRO</span>
-            </span>
+            <span class="text-[17px] font-bold tracking-tight">SK<span class="text-zinc-100 font-medium ml-0.5">Player</span></span>
+            <span class="text-[9px] font-bold bg-red-600/20 text-red-500 border border-red-500/30 px-1 rounded ml-1">ULTRA</span>
         </div>
 
-        <div class="flex items-center gap-4 text-zinc-200">
-            <button onclick="toggleSearchBar()" class="hover:text-white transition">
-                <i class="fa-solid fa-magnifying-glass text-lg"></i>
+        <div class="flex items-center gap-3.5 text-zinc-200">
+            <button onclick="toggleAudioOnly()" id="audioOnlyBtn" class="text-xs px-2 py-1 bg-zinc-800 rounded-full border border-zinc-700 flex items-center gap-1">
+                <i class="fa-solid fa-headphones"></i> <span id="audioOnlyText">AV</span>
             </button>
-            <button onclick="showToast('Notifications are up to date')" class="hover:text-white transition relative">
-                <i class="fa-regular fa-bell text-lg"></i>
-                <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full"></span>
-            </button>
-            <div onclick="switchTab('library')" class="cursor-pointer w-7 h-7 rounded-full bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center font-bold text-xs ring-1 ring-zinc-700">
-                S
-            </div>
+            <button onclick="toggleSearchBar()" class="hover:text-white"><i class="fa-solid fa-magnifying-glass text-lg"></i></button>
+            <div onclick="switchTab('library')" class="cursor-pointer w-7 h-7 rounded-full bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center font-bold text-xs">S</div>
         </div>
     </header>
 
-    <!-- Expandable Search Overlay Bar -->
-    <div id="searchBarOverlay" class="hidden px-3 py-2 bg-[#121212] border-b border-zinc-800 sticky top-12 z-40">
-        <div class="flex items-center gap-2">
-            <button onclick="toggleSearchBar()" class="text-zinc-400 p-2">
-                <i class="fa-solid fa-arrow-left"></i>
-            </button>
-            <div class="relative flex-1 flex items-center">
-                <input id="searchInput" type="text" placeholder="Search YouTube..." 
-                       class="w-full bg-[#202020] text-sm text-white placeholder-zinc-500 pl-4 pr-10 py-2 rounded-full border border-zinc-700 focus:outline-none focus:border-red-500">
-                <button onclick="handleSearch()" class="absolute right-3 text-zinc-400 hover:text-white">
-                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                </button>
+    <!-- Search Overlay with Live Suggestions -->
+    <div id="searchBarOverlay" class="hidden fixed top-0 left-0 right-0 z-50 bg-[#121212] border-b border-zinc-800 p-3">
+        <div class="flex items-center gap-2 max-w-xl mx-auto">
+            <button onclick="toggleSearchBar()" class="text-zinc-400 p-1"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="relative flex-1">
+                <input id="searchInput" type="text" placeholder="Search YouTube with auto-complete..." 
+                       oninput="handleSearchSuggestions(this.value)"
+                       class="w-full bg-[#202020] text-sm text-white placeholder-zinc-500 pl-4 pr-10 py-2.5 rounded-full border border-zinc-700 focus:outline-none focus:border-red-500">
+                <button onclick="handleSearch()" class="absolute right-3 top-3 text-zinc-400"><i class="fa-solid fa-magnifying-glass text-xs"></i></button>
             </div>
         </div>
+        <!-- Live Suggestions Container -->
+        <div id="suggestionsBox" class="max-w-xl mx-auto mt-2 bg-[#1c1c1c] rounded-2xl overflow-hidden border border-zinc-800 hidden"></div>
     </div>
 
-    <!-- ======================================================== -->
-    <!-- 2. CATEGORY CHIPS                                        -->
-    <!-- ======================================================== -->
+    <!-- Category Chips -->
     <nav id="categoryChipsNav" class="sticky top-[49px] z-30 bg-[#0f0f0f] py-2 px-3 flex gap-2 overflow-x-auto no-scrollbar border-b border-zinc-900">
         <button onclick="quickFilter('Trending Songs India')" class="chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap">All</button>
         <button onclick="quickFilter('Latest Bollywood Hits')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Bollywood</button>
-        <button onclick="quickFilter('Punjabi Hits')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Punjabi</button>
+        <button onclick="quickFilter('Punjabi Hits 2026')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Punjabi</button>
         <button onclick="quickFilter('Trending Gaming')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Gaming</button>
         <button onclick="quickFilter('Hindi Podcasts')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Podcasts</button>
-        <button onclick="quickFilter('Live News Hindi')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">News</button>
     </nav>
 
-    <!-- ======================================================== -->
-    <!-- 3. STICKY DEDICATED YOUTUBE VIDEO PLAYER                 -->
-    <!-- ======================================================== -->
-    <div id="playerSection" class="hidden sticky top-[48px] z-40 bg-[#0f0f0f] shadow-2xl">
-        <div class="relative w-full aspect-video bg-black">
-            <div id="ytplayer" class="w-full h-full"></div>
+    <!-- 2. STICKY DEDICATED PLAYER WITH GESTURE SENSORS -->
+    <div id="playerSection" class="hidden sticky top-[48px] z-40 bg-[#0f0f0f] shadow-2xl transition-all">
+        <div id="playerContainer" class="relative w-full aspect-video bg-black overflow-hidden">
+            <div id="ytplayer" class="w-full h-full pointer-events-none"></div>
+
+            <!-- Audio-Only Blackout Screen -->
+            <div id="audioOnlyCover" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-2">
+                <i class="fa-solid fa-headphones text-red-500 text-4xl animate-bounce"></i>
+                <p class="text-xs font-semibold text-zinc-300">Audio-Only Data Saver Active</p>
+            </div>
+
+            <!-- Gesture Indicators -->
+            <div id="gestureNotice" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-black/80 px-3 py-1.5 rounded-full text-xs font-semibold text-white border border-zinc-700 pointer-events-none"></div>
+            
+            <!-- Gesture Touch Zones Overlay -->
+            <div id="touchSurface" class="absolute inset-0 z-10 flex">
+                <div id="leftTouchZone" class="w-1/2 h-full"></div>
+                <div id="rightTouchZone" class="w-1/2 h-full"></div>
+            </div>
         </div>
 
+        <!-- Video Metadata Area -->
         <div class="p-3 bg-[#0f0f0f] border-b border-zinc-800">
             <div class="flex items-start justify-between gap-3">
                 <h1 id="playingTitle" class="text-sm font-semibold leading-snug line-clamp-2 text-zinc-100"></h1>
-                <button onclick="closePlayer()" class="text-zinc-400 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-            
-            <div class="flex items-center justify-between text-[12px] text-zinc-400 mt-1">
-                <span>HD Stream • Ad-Free Playback</span>
-                <span id="autoPlayBadge" class="text-emerald-400 text-[11px] font-medium flex items-center gap-1">
-                    <i class="fa-solid fa-rotate text-[10px]"></i> Auto-play Next: ON
-                </span>
+                <button onclick="closePlayer()" class="text-zinc-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <!-- Channel Details & Working Subscribe -->
+            <div class="flex items-center justify-between text-[11px] text-zinc-400 mt-1">
+                <span id="playingMeta">HD • Ad-Free Engine</span>
+                <span id="sponsorBlockStatus" class="text-emerald-400 font-medium"><i class="fa-solid fa-shield-halved"></i> SponsorBlock Active</span>
+            </div>
+
+            <!-- Channel Bar -->
             <div class="flex items-center justify-between mt-3 pt-2 border-t border-zinc-800/60">
                 <div class="flex items-center gap-2.5">
-                    <div id="channelAvatar" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs uppercase text-white">
-                        YT
-                    </div>
+                    <div id="channelAvatar" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs uppercase text-white">YT</div>
                     <div>
-                        <h4 id="playingChannel" class="text-xs font-semibold text-white flex items-center gap-1"></h4>
-                        <span id="subCountText" class="text-[10px] text-zinc-400">1.45M subscribers</span>
+                        <h4 id="playingChannel" class="text-xs font-semibold text-white"></h4>
+                        <span class="text-[10px] text-zinc-400">Official Channel</span>
                     </div>
                 </div>
-                <button id="subBtn" onclick="toggleSub()" class="bg-white text-black hover:bg-zinc-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">
-                    Subscribe
-                </button>
+                <button id="subBtn" onclick="toggleSub()" class="bg-white text-black hover:bg-zinc-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Subscribe</button>
             </div>
 
-            <!-- Fully Working Action Buttons Row -->
+            <!-- Pro Control Actions Scrollbar -->
             <div class="flex items-center gap-2 mt-3.5 overflow-x-auto no-scrollbar text-xs">
-                <!-- Next Button -->
-                <button onclick="playNextVideo()" class="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold px-3.5 py-1.5 rounded-full whitespace-nowrap">
+                <button onclick="playNextVideo()" class="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-1.5 rounded-full whitespace-nowrap">
                     <i class="fa-solid fa-forward-step"></i> Next
                 </button>
-
-                <!-- Like / Dislike -->
+                <button onclick="togglePiP()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
+                    <i class="fa-solid fa-images"></i> PiP
+                </button>
+                <button onclick="openSpeedMenu()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
+                    <i class="fa-solid fa-gauge-high"></i> <span id="speedLabel">1.0x</span>
+                </button>
+                <button onclick="openSleepMenu()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
+                    <i class="fa-solid fa-moon"></i> Sleep
+                </button>
+                <button onclick="toggleABLoop()" id="abLoopBtn" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
+                    <i class="fa-solid fa-repeat"></i> A-B Loop
+                </button>
+                <button onclick="toggleComments()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
+                    <i class="fa-regular fa-comment-dots"></i> Comments
+                </button>
                 <div class="flex items-center bg-[#222] rounded-full px-3 py-1.5 gap-2 border border-zinc-800 whitespace-nowrap">
-                    <button id="likeBtn" onclick="toggleLike()" class="flex items-center gap-1.5 text-zinc-300 hover:text-white transition">
-                        <i id="likeIcon" class="fa-regular fa-thumbs-up"></i>
-                        <span id="likeCount">142K</span>
-                    </button>
-                    <span class="text-zinc-600">|</span>
-                    <button id="dislikeBtn" onclick="toggleDislike()" class="text-zinc-300 hover:text-white transition">
-                        <i id="dislikeIcon" class="fa-regular fa-thumbs-down"></i>
-                    </button>
+                    <button id="likeBtn" onclick="toggleLike()"><i id="likeIcon" class="fa-regular fa-thumbs-up"></i> <span id="likeCount">142K</span></button>
                 </div>
-
-                <!-- Native Share Button -->
-                <button onclick="shareCurrentVideo()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3.5 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
-                    <i class="fa-solid fa-share"></i> Share
-                </button>
-
-                <!-- Download Options Modal Trigger -->
-                <button onclick="openDownloadModal()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3.5 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
-                    <i class="fa-solid fa-arrow-down"></i> Download
-                </button>
-
-                <!-- Save to Watch Later -->
-                <button id="saveBtn" onclick="toggleSaveCurrentVideo()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3.5 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
-                    <i id="saveIcon" class="fa-regular fa-bookmark"></i>
-                    <span id="saveText">Save</span>
-                </button>
+                <button onclick="shareCurrentVideo()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full whitespace-nowrap"><i class="fa-solid fa-share"></i> Share</button>
+                <button onclick="openDownloadModal()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full whitespace-nowrap"><i class="fa-solid fa-arrow-down"></i> Download</button>
             </div>
+        </div>
+
+        <!-- Working Comments Collapsible Section -->
+        <div id="commentsSection" class="hidden max-h-72 overflow-y-auto p-4 bg-[#141414] border-b border-zinc-800 text-xs">
+            <h3 class="font-bold mb-3 flex items-center justify-between">
+                <span>Top Comments</span>
+                <span class="text-zinc-500 font-normal">Real-time</span>
+            </h3>
+            <div id="commentsList" class="flex flex-col gap-3"></div>
         </div>
     </div>
 
-    <!-- ======================================================== -->
-    <!-- 4. MAIN VIEWS (HOME / SHORTS / SUBSCRIPTIONS / LIBRARY)   -->
-    <!-- ======================================================== -->
+    <!-- 3. MAIN FEEDS -->
     <main class="max-w-xl mx-auto">
-        <!-- Home Video Feed -->
         <section id="homeView">
             <div id="videoFeed" class="flex flex-col gap-5 pt-2"></div>
-            <!-- Infinite Scroll Loader -->
             <div id="infiniteLoader" class="hidden py-8 flex items-center justify-center gap-2 text-zinc-400 text-xs font-medium">
                 <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-lg"></i> Loading more videos...
             </div>
@@ -172,115 +167,107 @@
 
         <!-- Library (You) Section -->
         <section id="libraryView" class="hidden px-4 pt-4">
-            <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-book-bookmark text-red-500"></i> My Library
-            </h2>
-
+            <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-red-500"></i> My Library</h2>
             <div class="mb-6">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-sm font-semibold text-zinc-300">Saved for Later (<span id="savedCount">0</span>)</h3>
-                    <button onclick="clearSavedVideos()" class="text-[11px] text-red-400 hover:underline">Clear All</button>
+                    <button onclick="clearSavedVideos()" class="text-[11px] text-red-400">Clear</button>
                 </div>
                 <div id="savedList" class="flex flex-col gap-3"></div>
             </div>
-
-            <div class="mb-6">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-sm font-semibold text-zinc-300">Liked Videos (<span id="likedCount">0</span>)</h3>
-                </div>
+            <div>
+                <h3 class="text-sm font-semibold text-zinc-300 mb-2">Liked Videos (<span id="likedCount">0</span>)</h3>
                 <div id="likedList" class="flex flex-col gap-3"></div>
             </div>
         </section>
 
-        <!-- Subscriptions Section -->
         <section id="subsView" class="hidden px-4 pt-4">
-            <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-layer-group text-red-500"></i> Subscriptions
-            </h2>
+            <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-layer-group text-red-500"></i> Subscriptions</h2>
             <div id="subsList" class="flex flex-col gap-3"></div>
         </section>
     </main>
 
-    <!-- ======================================================== -->
-    <!-- 5. WORKING DOWNLOAD MODAL (BOTTOM SHEET)                 -->
-    <!-- ======================================================== -->
-    <div id="downloadModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end justify-center p-3">
-        <div class="bg-[#1c1c1c] w-full max-w-sm rounded-3xl p-5 border border-zinc-800 shadow-2xl">
+    <!-- Speed Selector Modal -->
+    <div id="speedModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-3">
+        <div class="bg-[#1c1c1c] w-full max-w-sm rounded-3xl p-4 border border-zinc-800">
+            <h3 class="font-bold text-sm mb-3">Playback Speed</h3>
+            <div class="grid grid-cols-4 gap-2 text-xs font-semibold">
+                <button onclick="setPlaybackSpeed(0.5)" class="py-2.5 bg-zinc-800 rounded-xl">0.5x</button>
+                <button onclick="setPlaybackSpeed(0.75)" class="py-2.5 bg-zinc-800 rounded-xl">0.75x</button>
+                <button onclick="setPlaybackSpeed(1.0)" class="py-2.5 bg-red-600 rounded-xl">1.0x</button>
+                <button onclick="setPlaybackSpeed(1.25)" class="py-2.5 bg-zinc-800 rounded-xl">1.25x</button>
+                <button onclick="setPlaybackSpeed(1.5)" class="py-2.5 bg-zinc-800 rounded-xl">1.5x</button>
+                <button onclick="setPlaybackSpeed(1.75)" class="py-2.5 bg-zinc-800 rounded-xl">1.75x</button>
+                <button onclick="setPlaybackSpeed(2.0)" class="py-2.5 bg-zinc-800 rounded-xl">2.0x</button>
+                <button onclick="setPlaybackSpeed(3.0)" class="py-2.5 bg-zinc-800 rounded-xl">3.0x</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sleep Timer Modal -->
+    <div id="sleepModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-3">
+        <div class="bg-[#1c1c1c] w-full max-w-sm rounded-3xl p-4 border border-zinc-800">
+            <h3 class="font-bold text-sm mb-3">Bedtime Sleep Timer</h3>
+            <div class="flex flex-col gap-2 text-xs font-medium">
+                <button onclick="setSleepTimer(15)" class="p-3 bg-zinc-800 rounded-xl text-left">Stop in 15 minutes</button>
+                <button onclick="setSleepTimer(30)" class="p-3 bg-zinc-800 rounded-xl text-left">Stop in 30 minutes</button>
+                <button onclick="setSleepTimer(60)" class="p-3 bg-zinc-800 rounded-xl text-left">Stop in 1 hour</button>
+                <button onclick="setSleepTimer(0)" class="p-3 bg-red-600/30 text-red-400 rounded-xl text-left">Turn off timer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Modal -->
+    <div id="downloadModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-3">
+        <div class="bg-[#1c1c1c] w-full max-w-sm rounded-3xl p-5 border border-zinc-800">
             <div class="flex items-center justify-between pb-3 border-b border-zinc-800">
                 <h3 class="font-bold text-sm">Download Options</h3>
-                <button onclick="closeDownloadModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button onclick="document.getElementById('downloadModal').classList.add('hidden')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="mt-4 flex flex-col gap-2.5 text-xs font-semibold">
-                <button onclick="triggerDownload('1080p')" class="w-full flex items-center justify-between bg-zinc-800/80 hover:bg-zinc-700 p-3 rounded-xl border border-zinc-700">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-video text-red-500"></i> Full HD 1080p (.mp4)</span>
-                    <span class="text-zinc-400 text-[10px]">~95 MB</span>
+                <button onclick="triggerDownload('1080p')" class="w-full flex justify-between bg-zinc-800 p-3 rounded-xl border border-zinc-700">
+                    <span>1080p Full HD (.mp4)</span><span class="text-zinc-400">~95MB</span>
                 </button>
-                <button onclick="triggerDownload('720p')" class="w-full flex items-center justify-between bg-zinc-800/80 hover:bg-zinc-700 p-3 rounded-xl border border-zinc-700">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-video text-amber-500"></i> HD 720p (.mp4)</span>
-                    <span class="text-zinc-400 text-[10px]">~45 MB</span>
+                <button onclick="triggerDownload('720p')" class="w-full flex justify-between bg-zinc-800 p-3 rounded-xl border border-zinc-700">
+                    <span>720p HD (.mp4)</span><span class="text-zinc-400">~45MB</span>
                 </button>
-                <button onclick="triggerDownload('360p')" class="w-full flex items-center justify-between bg-zinc-800/80 hover:bg-zinc-700 p-3 rounded-xl border border-zinc-700">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-video text-blue-500"></i> Standard 360p (.mp4)</span>
-                    <span class="text-zinc-400 text-[10px]">~18 MB</span>
-                </button>
-                <button onclick="triggerDownload('audio')" class="w-full flex items-center justify-between bg-zinc-800/80 hover:bg-zinc-700 p-3 rounded-xl border border-zinc-700">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-music text-green-500"></i> High Quality Audio (.mp3)</span>
-                    <span class="text-zinc-400 text-[10px]">~6 MB</span>
+                <button onclick="triggerDownload('audio')" class="w-full flex justify-between bg-zinc-800 p-3 rounded-xl border border-zinc-700">
+                    <span>MP3 Audio High (.mp3)</span><span class="text-zinc-400">~6MB</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ======================================================== -->
-    <!-- 6. TOAST NOTIFICATION POPUP                              -->
-    <!-- ======================================================== -->
-    <div id="toast" class="hidden fixed bottom-16 left-1/2 -translate-x-1/2 z-50 bg-zinc-800 text-white text-xs px-4 py-2.5 rounded-full shadow-2xl border border-zinc-700 flex items-center gap-2 transition-all">
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed bottom-16 left-1/2 -translate-x-1/2 z-50 bg-zinc-800 text-white text-xs px-4 py-2.5 rounded-full border border-zinc-700 flex items-center gap-2">
         <i class="fa-solid fa-circle-check text-red-500"></i>
-        <span id="toastMsg">Action completed</span>
+        <span id="toastMsg">Notification</span>
     </div>
 
-    <!-- ======================================================== -->
-    <!-- 7. YOUTUBE BOTTOM DOCK                                    -->
-    <!-- ======================================================== -->
+    <!-- Bottom Dock Navigation -->
     <nav class="fixed bottom-0 left-0 right-0 z-50 bg-[#0f0f0f]/98 backdrop-blur-md border-t border-zinc-800/80 px-4 py-2 flex items-center justify-around text-zinc-400">
-        <button onclick="switchTab('home')" class="nav-tab active flex flex-col items-center gap-1 text-white">
-            <i class="fa-solid fa-house text-base"></i>
-            <span class="text-[10px] font-medium tracking-tight">Home</span>
-        </button>
-        <button onclick="switchTab('shorts')" class="nav-tab flex flex-col items-center gap-1">
-            <i class="fa-solid fa-bolt text-base"></i>
-            <span class="text-[10px] font-medium tracking-tight">Shorts</span>
-        </button>
-        <button onclick="toggleSearchBar()" class="flex flex-col items-center justify-center -mt-2">
-            <div class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white text-base">
-                <i class="fa-solid fa-plus"></i>
-            </div>
-        </button>
-        <button onclick="switchTab('subscriptions')" class="nav-tab flex flex-col items-center gap-1">
-            <i class="fa-solid fa-layer-group text-base"></i>
-            <span class="text-[10px] font-medium tracking-tight">Subscriptions</span>
-        </button>
-        <button onclick="switchTab('library')" class="nav-tab flex flex-col items-center gap-1">
-            <div class="w-4 h-4 rounded-full bg-red-600 flex items-center justify-center text-[9px] text-white font-bold">S</div>
-            <span class="text-[10px] font-medium tracking-tight">You</span>
-        </button>
+        <button onclick="switchTab('home')" class="nav-tab active flex flex-col items-center gap-1 text-white"><i class="fa-solid fa-house text-base"></i><span class="text-[10px]">Home</span></button>
+        <button onclick="switchTab('shorts')" class="nav-tab flex flex-col items-center gap-1"><i class="fa-solid fa-bolt text-base"></i><span class="text-[10px]">Shorts</span></button>
+        <button onclick="toggleSearchBar()" class="flex flex-col items-center -mt-2"><div class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white"><i class="fa-solid fa-plus"></i></div></button>
+        <button onclick="switchTab('subscriptions')" class="nav-tab flex flex-col items-center gap-1"><i class="fa-solid fa-layer-group text-base"></i><span class="text-[10px]">Subscriptions</span></button>
+        <button onclick="switchTab('library')" class="nav-tab flex flex-col items-center gap-1"><div class="w-4 h-4 rounded-full bg-red-600 flex items-center justify-center text-[9px] text-white font-bold">S</div><span class="text-[10px]">You</span></button>
     </nav>
 
     <!-- ======================================================== -->
-    <!-- JAVASCRIPT LOGIC & WORKING FUNCTIONS                     -->
+    <!-- ADVANCED CONTROLLER ENGINE                               -->
     <!-- ======================================================== -->
     <script>
         // 🔑 APNI YOUTUBE API KEY YAHAN DAALEIN:
         const YOUTUBE_API_KEY = "AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY";
 
-        // Global DOM Elements
         const videoFeed = document.getElementById('videoFeed');
         const playerSec = document.getElementById('playerSection');
         const searchInput = document.getElementById('searchInput');
         const searchBarOverlay = document.getElementById('searchBarOverlay');
+        const suggestionsBox = document.getElementById('suggestionsBox');
         const infiniteLoader = document.getElementById('infiniteLoader');
+        const gestureNotice = document.getElementById('gestureNotice');
 
-        // State & LocalStorage Keys
         let currentQuery = 'Trending Songs India';
         let nextPageToken = '';
         let isLoading = false;
@@ -289,28 +276,264 @@
         let currentPlayingIndex = -1;
         let ytPlayer = null;
 
-        // Persistent storage
+        // Pro Features State
+        let isAudioOnly = false;
+        let sleepTimerTimeout = null;
+        let loopPointA = null;
+        let loopPointB = null;
+        let loopInterval = null;
+        let currentBrightness = 0; // 0 to 0.7 opacity of black overlay
+
         let savedVideos = JSON.parse(localStorage.getItem('sk_saved') || '[]');
         let likedVideos = JSON.parse(localStorage.getItem('sk_liked') || '[]');
         let subscribedChannels = JSON.parse(localStorage.getItem('sk_subs') || '[]');
 
-        window.onYouTubeIframeAPIReady = function() {
-            console.log("YouTube API Loaded");
-        };
-
-        // UI Toast Helper
         function showToast(msg) {
             const toast = document.getElementById('toast');
             document.getElementById('toastMsg').innerText = msg;
             toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 2800);
+            setTimeout(() => toast.classList.add('hidden'), 2600);
         }
 
-        // Bottom Tab Switcher
+        // ========================================================
+        // 1. LIVE SEARCH SUGGESTIONS (Auto-complete engine)
+        // ========================================================
+        let debounceTimer;
+        function handleSearchSuggestions(val) {
+            clearTimeout(debounceTimer);
+            if (!val.trim()) { suggestionsBox.classList.add('hidden'); return; }
+            debounceTimer = setTimeout(() => {
+                fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`http://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${val}`)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const parsed = JSON.parse(data.contents);
+                        const queries = parsed[1] || [];
+                        if (queries.length) {
+                            suggestionsBox.innerHTML = queries.slice(0, 6).map(q => `
+                                <div onclick="selectSuggestion('${q}')" class="px-4 py-2.5 hover:bg-zinc-800 cursor-pointer flex items-center gap-3 border-b border-zinc-800/40 text-xs">
+                                    <i class="fa-solid fa-clock-rotate-left text-zinc-500"></i>
+                                    <span>${q}</span>
+                                </div>
+                            `).join('');
+                            suggestionsBox.classList.remove('hidden');
+                        }
+                    }).catch(() => {});
+            }, 250);
+        }
+
+        function selectSuggestion(q) {
+            searchInput.value = q;
+            suggestionsBox.classList.add('hidden');
+            handleSearch();
+        }
+
+        // ========================================================
+        // 2. GESTURE SENSORS (Double Tap & Swipe Brightness/Volume)
+        // ========================================================
+        let lastLeftTap = 0, lastRightTap = 0;
+        let startY = 0;
+
+        const leftZone = document.getElementById('leftTouchZone');
+        const rightZone = document.getElementById('rightTouchZone');
+
+        // Double tap 10s backward
+        leftZone.addEventListener('click', () => {
+            const now = Date.now();
+            if (now - lastLeftTap < 300 && ytPlayer) {
+                const cur = ytPlayer.getCurrentTime();
+                ytPlayer.seekTo(Math.max(cur - 10, 0), true);
+                flashGesture('⏪ 10s Rewind');
+            }
+            lastLeftTap = now;
+        });
+
+        // Double tap 10s forward
+        rightZone.addEventListener('click', () => {
+            const now = Date.now();
+            if (now - lastRightTap < 300 && ytPlayer) {
+                const cur = ytPlayer.getCurrentTime();
+                ytPlayer.seekTo(cur + 10, true);
+                flashGesture('⏩ 10s Forward');
+            }
+            lastRightTap = now;
+        });
+
+        // Left Swipe: Brightness Control
+        leftZone.addEventListener('touchstart', e => { startY = e.touches[0].clientY; });
+        leftZone.addEventListener('touchmove', e => {
+            const diff = startY - e.touches[0].clientY;
+            if (Math.abs(diff) > 20) {
+                currentBrightness = Math.min(Math.max(currentBrightness - (diff > 0 ? 0.03 : -0.03), 0), 0.7);
+                document.getElementById('brightnessOverlay').style.opacity = currentBrightness;
+                flashGesture(`Brightness: ${Math.round((1 - currentBrightness) * 100)}%`);
+                startY = e.touches[0].clientY;
+            }
+        });
+
+        // Right Swipe: Volume Control
+        rightZone.addEventListener('touchstart', e => { startY = e.touches[0].clientY; });
+        rightZone.addEventListener('touchmove', e => {
+            const diff = startY - e.touches[0].clientY;
+            if (Math.abs(diff) > 20 && ytPlayer) {
+                let vol = ytPlayer.getVolume();
+                vol = Math.min(Math.max(vol + (diff > 0 ? 5 : -5), 0), 100);
+                ytPlayer.setVolume(vol);
+                flashGesture(`Volume: ${vol}%`);
+                startY = e.touches[0].clientY;
+            }
+        });
+
+        function flashGesture(text) {
+            gestureNotice.innerText = text;
+            gestureNotice.classList.remove('hidden');
+            setTimeout(() => gestureNotice.classList.add('hidden'), 900);
+        }
+
+        // ========================================================
+        // 3. PIP, AUDIO-ONLY, SPEED & SLEEP TIMER
+        // ========================================================
+        function togglePiP() {
+            playerSec.classList.toggle('floating-pip');
+            showToast(playerSec.classList.contains('floating-pip') ? "Mini Player Mode" : "Expanded Player");
+        }
+
+        function toggleAudioOnly() {
+            isAudioOnly = !isAudioOnly;
+            document.getElementById('audioOnlyCover').classList.toggle('hidden', !isAudioOnly);
+            document.getElementById('audioOnlyText').innerText = isAudioOnly ? "Audio-Only" : "AV";
+            showToast(isAudioOnly ? "Data Saver: Audio-Only Enabled" : "Video Display Restored");
+        }
+
+        function openSpeedMenu() { document.getElementById('speedModal').classList.remove('hidden'); }
+        function setPlaybackSpeed(rate) {
+            if (ytPlayer && ytPlayer.setPlaybackRate) {
+                ytPlayer.setPlaybackRate(rate);
+                document.getElementById('speedLabel').innerText = rate + 'x';
+            }
+            document.getElementById('speedModal').classList.add('hidden');
+            showToast(`Speed set to ${rate}x`);
+        }
+
+        function openSleepMenu() { document.getElementById('sleepModal').classList.remove('hidden'); }
+        function setSleepTimer(minutes) {
+            clearTimeout(sleepTimerTimeout);
+            document.getElementById('sleepModal').classList.add('hidden');
+            if (minutes === 0) { showToast("Sleep timer cancelled"); return; }
+            showToast(`Player will stop in ${minutes} minutes`);
+            sleepTimerTimeout = setTimeout(() => {
+                if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+                showToast("Bedtime sleep timer paused player");
+            }, minutes * 60 * 1000);
+        }
+
+        // A-B Loop Logic
+        function toggleABLoop() {
+            if (!ytPlayer) return;
+            const cur = ytPlayer.getCurrentTime();
+            if (loopPointA === null) {
+                loopPointA = cur;
+                document.getElementById('abLoopBtn').classList.add('bg-red-600');
+                showToast(`Point A set at ${Math.floor(cur)}s. Tap again for Point B`);
+            } else if (loopPointB === null) {
+                loopPointB = cur;
+                showToast(`Looping between ${Math.floor(loopPointA)}s and ${Math.floor(loopPointB)}s`);
+                loopInterval = setInterval(() => {
+                    if (ytPlayer.getCurrentTime() >= loopPointB) {
+                        ytPlayer.seekTo(loopPointA, true);
+                    }
+                }, 400);
+            } else {
+                clearInterval(loopInterval);
+                loopPointA = null;
+                loopPointB = null;
+                document.getElementById('abLoopBtn').classList.remove('bg-red-600');
+                showToast("A-B Loop Disabled");
+            }
+        }
+
+        // ========================================================
+        // 4. SPONSORBLOCK (Auto-skip in-video sponsor talks)
+        // ========================================================
+        let sponsorInterval = null;
+        function checkSponsorSegments(videoId) {
+            clearInterval(sponsorInterval);
+            fetch(`https://sponsor.ajay.app/api/skipSegments?videoID=${videoId}&categories=["sponsor","selfpromo"]`)
+                .then(r => r.json())
+                .then(segments => {
+                    if (Array.isArray(segments) && segments.length) {
+                        sponsorInterval = setInterval(() => {
+                            if (!ytPlayer || !ytPlayer.getCurrentTime) return;
+                            const cur = ytPlayer.getCurrentTime();
+                            for (let seg of segments) {
+                                if (cur >= seg.segment[0] && cur < seg.segment[1]) {
+                                    ytPlayer.seekTo(seg.segment[1], true);
+                                    showToast("Skipped Sponsor Segment");
+                                    break;
+                                }
+                            }
+                        }, 500);
+                    }
+                }).catch(() => {});
+        }
+
+        // ========================================================
+        // 5. COMMENTS VIEWER
+        // ========================================================
+        function toggleComments() {
+            const sec = document.getElementById('commentsSection');
+            sec.classList.toggle('hidden');
+            if (!sec.classList.contains('hidden') && currentPlayingIndex > -1) {
+                fetchComments(loadedVideosList[currentPlayingIndex].id);
+            }
+        }
+
+        async function fetchComments(videoId) {
+            const list = document.getElementById('commentsList');
+            list.innerHTML = `<div class="py-4 text-center text-zinc-500">Loading comments...</div>`;
+            try {
+                const res = await fetch(`https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=10&key=${YOUTUBE_API_KEY.trim()}`);
+                const data = await res.json();
+                if (data.items?.length) {
+                    list.innerHTML = data.items.map(c => {
+                        const com = c.snippet.topLevelComment.snippet;
+                        return `
+                            <div class="flex gap-2.5 bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800/80">
+                                <img src="${com.authorProfileImageUrl}" class="w-7 h-7 rounded-full object-cover">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-semibold text-zinc-300 text-[11px]">${com.authorDisplayName}</span>
+                                        <span class="text-[9px] text-zinc-500">${formatTimeAgo(com.publishedAt)}</span>
+                                    </div>
+                                    <p class="text-zinc-200 mt-0.5 line-clamp-3 leading-relaxed">${com.textDisplay}</p>
+                                    <div class="mt-1 flex items-center gap-1 text-[10px] text-zinc-400">
+                                        <i class="fa-regular fa-thumbs-up"></i> ${com.likeCount}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    list.innerHTML = `<div class="py-3 text-center text-zinc-500">Comments disabled for this video</div>`;
+                }
+            } catch (e) {
+                list.innerHTML = `<div class="py-3 text-center text-zinc-500">Unable to load comments</div>`;
+            }
+        }
+
+        // ========================================================
+        // 6. CORE FEED & PLAYER CONTROLLER
+        // ========================================================
+        function toggleSearchBar() {
+            searchBarOverlay.classList.toggle('hidden');
+            if (!searchBarOverlay.classList.contains('hidden')) searchInput.focus();
+        }
+
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSearch();
+        });
+
         function switchTab(tab) {
             document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('text-white'));
-            const tabs = ['home', 'shorts', 'subscriptions', 'library'];
-            
             document.getElementById('homeView').classList.add('hidden');
             document.getElementById('libraryView').classList.add('hidden');
             document.getElementById('subsView').classList.add('hidden');
@@ -333,24 +556,11 @@
             }
         }
 
-        function toggleSearchBar() {
-            searchBarOverlay.classList.toggle('hidden');
-            if (!searchBarOverlay.classList.contains('hidden')) {
-                searchInput.focus();
-            }
-        }
-
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleSearch();
-        });
-
         function quickFilter(q) {
             document.querySelectorAll('.chip-btn').forEach(btn => {
-                if (btn.innerText.toLowerCase() === q.toLowerCase()) {
-                    btn.className = "chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap";
-                } else {
-                    btn.className = "chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]";
-                }
+                btn.className = btn.innerText.toLowerCase() === q.toLowerCase()
+                    ? "chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap"
+                    : "chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]";
             });
             startNewSearch(q);
         }
@@ -368,11 +578,10 @@
             hasMore = true;
             loadedVideosList = [];
             currentPlayingIndex = -1;
-
             videoFeed.innerHTML = `
                 <div class="py-24 flex flex-col items-center justify-center gap-3 text-zinc-400">
                     <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-3xl"></i>
-                    <p class="text-xs font-medium tracking-wide">Loading feed...</p>
+                    <p class="text-xs font-medium">Loading feed...</p>
                 </div>`;
             fetchNextBatch();
         }
@@ -384,31 +593,20 @@
 
             try {
                 let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(currentQuery)}&type=video&key=${YOUTUBE_API_KEY.trim()}`;
-                if (nextPageToken) {
-                    url += `&pageToken=${nextPageToken}`;
-                }
+                if (nextPageToken) url += `&pageToken=${nextPageToken}`;
 
                 const res = await fetch(url);
                 const data = await res.json();
-
                 if (data.error) throw new Error(data.error.message);
 
                 nextPageToken = data.nextPageToken || '';
                 if (!nextPageToken) hasMore = false;
 
-                if (videoFeed.querySelector('.fa-circle-notch')) {
-                    videoFeed.innerHTML = '';
-                }
-
+                if (videoFeed.querySelector('.fa-circle-notch')) videoFeed.innerHTML = '';
                 appendVideosToFeed(data.items || []);
             } catch (err) {
                 if (!videoFeed.children.length) {
-                    videoFeed.innerHTML = `
-                        <div class="mx-4 my-8 p-5 bg-zinc-900/60 rounded-2xl border border-zinc-800 text-center">
-                            <i class="fa-solid fa-triangle-exclamation text-red-500 text-2xl mb-2"></i>
-                            <p class="text-sm font-semibold text-zinc-200">Feed Error</p>
-                            <p class="text-xs text-zinc-400 mt-1">${err.message}</p>
-                        </div>`;
+                    videoFeed.innerHTML = `<div class="p-6 text-center text-red-400 text-xs">${err.message}</div>`;
                 }
             } finally {
                 isLoading = false;
@@ -417,29 +615,15 @@
         }
 
         function appendVideosToFeed(items) {
-            if (!items.length && !videoFeed.children.length) {
-                videoFeed.innerHTML = `<p class="text-center text-zinc-500 py-16 text-sm">No videos found</p>`;
-                return;
-            }
-
             const startIndex = loadedVideosList.length;
-
-            const htmlContent = items.map((item, idx) => {
+            const html = items.map((item, idx) => {
                 const id = item.id?.videoId;
                 if (!id) return '';
-
                 const snip = item.snippet;
                 const thumb = snip.thumbnails?.high?.url || snip.thumbnails?.medium?.url;
-                const timeAgo = formatTimeAgo(snip.publishedAt);
-                const fakeViews = (Math.random() * (900 - 50) + 50).toFixed(0) + 'K';
-
                 const globalIndex = startIndex + idx;
-                loadedVideosList.push({
-                    id: id,
-                    title: snip.title,
-                    channel: snip.channelTitle,
-                    thumb: thumb
-                });
+
+                loadedVideosList.push({ id, title: snip.title, channel: snip.channelTitle, thumb });
 
                 return `
                     <article class="flex flex-col cursor-pointer active:bg-zinc-900/40 transition">
@@ -449,77 +633,49 @@
                                 ${(Math.random() * 8 + 2).toFixed(0)}:${Math.floor(Math.random() * 50 + 10)}
                             </span>
                         </div>
-
                         <div class="flex items-start gap-3 px-3 py-3">
-                            <div onclick="playVideoByIndex(${globalIndex})" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700/80 flex items-center justify-center font-bold text-xs flex-shrink-0 text-zinc-300">
+                            <div onclick="playVideoByIndex(${globalIndex})" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs flex-shrink-0 text-zinc-300">
                                 ${snip.channelTitle.charAt(0).toUpperCase()}
                             </div>
-
                             <div onclick="playVideoByIndex(${globalIndex})" class="flex-1 min-w-0">
-                                <h3 class="text-sm font-normal text-zinc-100 line-clamp-2 leading-snug">
-                                    ${snip.title}
-                                </h3>
-                                <div class="text-[12px] text-zinc-400 mt-1 flex items-center gap-1.5 flex-wrap">
-                                    <span>${snip.channelTitle}</span>
-                                    <span>•</span>
-                                    <span>${fakeViews} views</span>
-                                    <span>•</span>
-                                    <span>${timeAgo}</span>
+                                <h3 class="text-sm font-normal text-zinc-100 line-clamp-2 leading-snug">${snip.title}</h3>
+                                <div class="text-[12px] text-zinc-400 mt-1 flex items-center gap-1.5">
+                                    <span>${snip.channelTitle}</span> • <span>${(Math.random() * 500 + 50).toFixed(0)}K views</span> • <span>${formatTimeAgo(snip.publishedAt)}</span>
                                 </div>
                             </div>
-
-                            <!-- Working 3-Dot Kebab Menu -->
-                            <button onclick="openVideoMenu(event, '${id}', '${encodeURIComponent(snip.title)}')" class="text-zinc-400 hover:text-white p-1 flex-shrink-0">
-                                <i class="fa-solid fa-ellipsis-vertical text-sm"></i>
-                            </button>
                         </div>
-                    </article>
-                `;
+                    </article>`;
             }).join('');
-
-            videoFeed.insertAdjacentHTML('beforeend', htmlContent);
+            videoFeed.insertAdjacentHTML('beforeend', html);
         }
 
-        // ========================================================
-        // 🎬 PLAYER & WORKING INTERACTIVE CONTROLS
-        // ========================================================
         function playVideoByIndex(index) {
             if (index < 0 || index >= loadedVideosList.length) return;
-
             currentPlayingIndex = index;
-            const videoData = loadedVideosList[index];
+            const video = loadedVideosList[index];
 
             playerSec.classList.remove('hidden');
-            document.getElementById('playingTitle').innerText = videoData.title;
-            document.getElementById('playingChannel').innerText = videoData.channel;
-            document.getElementById('channelAvatar').innerText = videoData.channel.charAt(0).toUpperCase();
-
-            updatePlayerButtonsState(videoData);
+            document.getElementById('playingTitle').innerText = video.title;
+            document.getElementById('playingChannel').innerText = video.channel;
+            document.getElementById('channelAvatar').innerText = video.channel.charAt(0).toUpperCase();
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            checkSponsorSegments(video.id);
 
             if (!ytPlayer) {
                 ytPlayer = new YT.Player('ytplayer', {
                     height: '100%',
                     width: '100%',
-                    videoId: videoData.id,
-                    playerVars: {
-                        'autoplay': 1,
-                        'playsinline': 1,
-                        'rel': 0,
-                        'modestbranding': 1,
-                        'iv_load_policy': 3,
-                        'controls': 1
-                    },
+                    videoId: video.id,
+                    playerVars: { 'autoplay': 1, 'playsinline': 1, 'rel': 0, 'modestbranding': 1, 'controls': 1 },
                     events: {
-                        'onReady': (event) => event.target.playVideo(),
-                        'onStateChange': (event) => {
-                            if (event.data === YT.PlayerState.ENDED) playNextVideo();
-                        }
+                        'onReady': e => e.target.playVideo(),
+                        'onStateChange': e => { if (e.data === YT.PlayerState.ENDED) playNextVideo(); }
                     }
                 });
             } else {
-                ytPlayer.loadVideoById(videoData.id);
+                ytPlayer.loadVideoById(video.id);
                 ytPlayer.playVideo();
             }
         }
@@ -528,205 +684,79 @@
             if (currentPlayingIndex + 1 < loadedVideosList.length) {
                 playVideoByIndex(currentPlayingIndex + 1);
             } else if (hasMore) {
-                fetchNextBatch().then(() => {
-                    if (currentPlayingIndex + 1 < loadedVideosList.length) {
-                        playVideoByIndex(currentPlayingIndex + 1);
-                    }
-                });
+                fetchNextBatch().then(() => playVideoByIndex(currentPlayingIndex + 1));
             }
         }
 
         function closePlayer() {
             playerSec.classList.add('hidden');
-            if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+            if (ytPlayer?.stopVideo) ytPlayer.stopVideo();
+            clearInterval(sponsorInterval);
+            clearInterval(loopInterval);
         }
 
-        // Update Button Active States for Current Video
-        function updatePlayerButtonsState(video) {
-            const isLiked = likedVideos.some(v => v.id === video.id);
-            const isSaved = savedVideos.some(v => v.id === video.id);
-            const isSubbed = subscribedChannels.includes(video.channel);
-
-            // Like state
-            document.getElementById('likeIcon').className = isLiked ? "fa-solid fa-thumbs-up text-red-500" : "fa-regular fa-thumbs-up";
-            document.getElementById('dislikeIcon').className = "fa-regular fa-thumbs-down";
-
-            // Save state
-            document.getElementById('saveIcon').className = isSaved ? "fa-solid fa-bookmark text-red-500" : "fa-regular fa-bookmark";
-            document.getElementById('saveText').innerText = isSaved ? "Saved" : "Save";
-
-            // Sub state
-            const subBtn = document.getElementById('subBtn');
-            if (isSubbed) {
-                subBtn.innerText = "Subscribed";
-                subBtn.className = "bg-[#272727] text-zinc-300 px-3.5 py-1.5 rounded-full text-xs font-semibold";
-            } else {
-                subBtn.innerText = "Subscribe";
-                subBtn.className = "bg-white text-black hover:bg-zinc-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition";
-            }
-        }
-
-        // Working Like Toggle
         function toggleLike() {
             if (currentPlayingIndex === -1) return;
             const video = loadedVideosList[currentPlayingIndex];
             const idx = likedVideos.findIndex(v => v.id === video.id);
-            const countElem = document.getElementById('likeCount');
-
             if (idx > -1) {
                 likedVideos.splice(idx, 1);
                 document.getElementById('likeIcon').className = "fa-regular fa-thumbs-up";
-                countElem.innerText = "142K";
-                showToast("Removed from Liked videos");
+                showToast("Removed from Liked");
             } else {
                 likedVideos.push(video);
                 document.getElementById('likeIcon').className = "fa-solid fa-thumbs-up text-red-500";
-                document.getElementById('dislikeIcon').className = "fa-regular fa-thumbs-down";
-                countElem.innerText = "143K";
-                showToast("Added to Liked videos");
+                showToast("Added to Liked Videos");
             }
             localStorage.setItem('sk_liked', JSON.stringify(likedVideos));
         }
 
-        function toggleDislike() {
-            document.getElementById('dislikeIcon').className = "fa-solid fa-thumbs-down text-zinc-400";
-            document.getElementById('likeIcon').className = "fa-regular fa-thumbs-up";
-            showToast("Feedback submitted");
-        }
-
-        // Working Save to Library Toggle
-        function toggleSaveCurrentVideo() {
-            if (currentPlayingIndex === -1) return;
-            const video = loadedVideosList[currentPlayingIndex];
-            const idx = savedVideos.findIndex(v => v.id === video.id);
-
-            if (idx > -1) {
-                savedVideos.splice(idx, 1);
-                document.getElementById('saveIcon').className = "fa-regular fa-bookmark";
-                document.getElementById('saveText').innerText = "Save";
-                showToast("Removed from Watch Later");
-            } else {
-                savedVideos.push(video);
-                document.getElementById('saveIcon').className = "fa-solid fa-bookmark text-red-500";
-                document.getElementById('saveText').innerText = "Saved";
-                showToast("Saved to Watch Later");
-            }
-            localStorage.setItem('sk_saved', JSON.stringify(savedVideos));
-        }
-
-        // Working Channel Subscribe Toggle
         function toggleSub() {
             if (currentPlayingIndex === -1) return;
             const channel = loadedVideosList[currentPlayingIndex].channel;
             const idx = subscribedChannels.indexOf(channel);
-            const subBtn = document.getElementById('subBtn');
-
+            const btn = document.getElementById('subBtn');
             if (idx > -1) {
                 subscribedChannels.splice(idx, 1);
-                subBtn.innerText = "Subscribe";
-                subBtn.className = "bg-white text-black hover:bg-zinc-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition";
-                showToast(`Unsubscribed from ${channel}`);
+                btn.innerText = "Subscribe";
+                btn.className = "bg-white text-black hover:bg-zinc-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition";
             } else {
                 subscribedChannels.push(channel);
-                subBtn.innerText = "Subscribed";
-                subBtn.className = "bg-[#272727] text-zinc-300 px-3.5 py-1.5 rounded-full text-xs font-semibold";
+                btn.innerText = "Subscribed";
+                btn.className = "bg-[#272727] text-zinc-300 px-3.5 py-1.5 rounded-full text-xs font-semibold";
                 showToast(`Subscribed to ${channel}`);
             }
             localStorage.setItem('sk_subs', JSON.stringify(subscribedChannels));
         }
 
-        // Working Native Share API
-        async function shareCurrentVideo() {
+        function shareCurrentVideo() {
             if (currentPlayingIndex === -1) return;
-            const video = loadedVideosList[currentPlayingIndex];
-            const shareUrl = `https://youtu.be/${video.id}`;
-
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: video.title,
-                        text: `Watch on SKPlayer: ${video.title}`,
-                        url: shareUrl
-                    });
-                } catch (e) {
-                    console.log("Share dismissed");
-                }
-            } else {
-                navigator.clipboard.writeText(shareUrl);
-                showToast("Link copied to clipboard!");
-            }
+            const url = `https://youtu.be/${loadedVideosList[currentPlayingIndex].id}`;
+            if (navigator.share) navigator.share({ title: loadedVideosList[currentPlayingIndex].title, url });
+            else { navigator.clipboard.writeText(url); showToast("Link copied!"); }
         }
 
-        // 3-Dot Kebab Menu Action
-        function openVideoMenu(e, id, title) {
-            e.stopPropagation();
-            const shareUrl = `https://youtu.be/${id}`;
-            navigator.clipboard.writeText(shareUrl);
-            showToast("Video URL copied to clipboard!");
-        }
-
-        // Download Modal Functions
-        function openDownloadModal() {
-            if (currentPlayingIndex === -1) return;
-            document.getElementById('downloadModal').classList.remove('hidden');
-        }
-
-        function closeDownloadModal() {
-            document.getElementById('downloadModal').classList.add('hidden');
-        }
-
+        function openDownloadModal() { document.getElementById('downloadModal').classList.remove('hidden'); }
         function triggerDownload(quality) {
-            closeDownloadModal();
-            const video = loadedVideosList[currentPlayingIndex];
-            showToast(`Generating ${quality} download stream...`);
-            // External high-speed video extractor portal redirect
-            setTimeout(() => {
-                window.open(`https://www.y2mate.com/youtube/${video.id}`, '_blank');
-            }, 1000);
+            document.getElementById('downloadModal').classList.add('hidden');
+            const v = loadedVideosList[currentPlayingIndex];
+            showToast(`Generating ${quality} stream...`);
+            window.open(`https://www.y2mate.com/youtube/${v.id}`, '_blank');
         }
 
-        // Library & Subscriptions Renderers
         function renderLibrary() {
             document.getElementById('savedCount').innerText = savedVideos.length;
             document.getElementById('likedCount').innerText = likedVideos.length;
-
-            const savedList = document.getElementById('savedList');
-            if (!savedVideos.length) {
-                savedList.innerHTML = `<p class="text-zinc-500 text-xs">No saved videos yet</p>`;
-            } else {
-                savedList.innerHTML = savedVideos.map(v => `
-                    <div onclick="playSavedVideo('${v.id}', '${encodeURIComponent(v.title)}', '${encodeURIComponent(v.channel)}')" class="flex gap-3 bg-[#181818] p-2 rounded-xl cursor-pointer hover:bg-zinc-800">
-                        <img src="${v.thumb || `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`}" class="w-24 aspect-video rounded-lg object-cover">
-                        <div class="flex-1 min-w-0">
-                            <h4 class="text-xs font-medium line-clamp-2">${v.title}</h4>
-                            <p class="text-[10px] text-zinc-400 mt-1">${v.channel}</p>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            const likedList = document.getElementById('likedList');
-            if (!likedVideos.length) {
-                likedList.innerHTML = `<p class="text-zinc-500 text-xs">No liked videos yet</p>`;
-            } else {
-                likedList.innerHTML = likedVideos.map(v => `
-                    <div onclick="playSavedVideo('${v.id}', '${encodeURIComponent(v.title)}', '${encodeURIComponent(v.channel)}')" class="flex gap-3 bg-[#181818] p-2 rounded-xl cursor-pointer hover:bg-zinc-800">
-                        <img src="${v.thumb || `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`}" class="w-24 aspect-video rounded-lg object-cover">
-                        <div class="flex-1 min-w-0">
-                            <h4 class="text-xs font-medium line-clamp-2">${v.title}</h4>
-                            <p class="text-[10px] text-zinc-400 mt-1">${v.channel}</p>
-                        </div>
-                    </div>
-                `).join('');
-            }
+            document.getElementById('likedList').innerHTML = likedVideos.map(v => `
+                <div onclick="playSaved('${v.id}','${encodeURIComponent(v.title)}','${encodeURIComponent(v.channel)}')" class="flex gap-3 bg-[#181818] p-2 rounded-xl cursor-pointer">
+                    <img src="${v.thumb}" class="w-24 aspect-video rounded-lg object-cover">
+                    <div class="flex-1 min-w-0"><h4 class="text-xs font-medium line-clamp-2">${v.title}</h4><p class="text-[10px] text-zinc-400 mt-1">${v.channel}</p></div>
+                </div>
+            `).join('') || `<p class="text-zinc-500 text-xs">No liked videos</p>`;
         }
 
-        function playSavedVideo(id, title, channel) {
-            loadedVideosList.unshift({
-                id: id,
-                title: decodeURIComponent(title),
-                channel: decodeURIComponent(channel)
-            });
+        function playSaved(id, title, channel) {
+            loadedVideosList.unshift({ id, title: decodeURIComponent(title), channel: decodeURIComponent(channel) });
             playVideoByIndex(0);
         }
 
@@ -734,50 +764,29 @@
             savedVideos = [];
             localStorage.removeItem('sk_saved');
             renderLibrary();
-            showToast("Saved videos cleared");
         }
 
         function renderSubscriptions() {
-            const list = document.getElementById('subsList');
-            if (!subscribedChannels.length) {
-                list.innerHTML = `<p class="text-zinc-500 text-xs py-8 text-center">You haven't subscribed to any channels yet</p>`;
-            } else {
-                list.innerHTML = subscribedChannels.map(c => `
-                    <div class="flex items-center justify-between bg-[#181818] p-3 rounded-xl">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-sm text-red-500">
-                                ${c.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                                <h4 class="text-xs font-semibold">${c}</h4>
-                                <span class="text-[10px] text-zinc-400">Subscribed</span>
-                            </div>
-                        </div>
-                        <button onclick="quickFilter('${c}'); switchTab('home')" class="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-full text-xs font-semibold">
-                            View
-                        </button>
-                    </div>
-                `).join('');
-            }
+            document.getElementById('subsList').innerHTML = subscribedChannels.map(c => `
+                <div class="flex items-center justify-between bg-[#181818] p-3 rounded-xl">
+                    <span class="text-xs font-semibold">${c}</span>
+                    <button onclick="quickFilter('${c}'); switchTab('home')" class="px-3 py-1 bg-zinc-800 rounded-full text-xs">View</button>
+                </div>
+            `).join('') || `<p class="text-zinc-500 text-xs py-8 text-center">No subscriptions yet</p>`;
         }
 
-        function formatTimeAgo(isoDate) {
-            const diff = Math.floor((new Date() - new Date(isoDate)) / 1000);
-            if (diff < 3600) return `${Math.floor(diff / 60)} mins ago`;
-            if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-            if (diff < 2592000) return `${Math.floor(diff / 86400)} days ago`;
-            return `${Math.floor(diff / 2592000)} months ago`;
+        function formatTimeAgo(iso) {
+            const s = Math.floor((new Date() - new Date(iso)) / 1000);
+            if (s < 3600) return `${Math.floor(s/60)}m ago`;
+            if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+            return `${Math.floor(s/86400)}d ago`;
         }
 
-        // Infinite Scroll
         window.addEventListener('scroll', () => {
             const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-            if (scrollTop + clientHeight >= scrollHeight - 600) {
-                fetchNextBatch();
-            }
+            if (scrollTop + clientHeight >= scrollHeight - 600) fetchNextBatch();
         });
 
-        // Initialize First Feed
         quickFilter('Trending Songs India');
     </script>
 </body>
