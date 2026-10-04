@@ -25,7 +25,7 @@
     <main class="max-w-3xl mx-auto px-4 pt-4">
         <!-- Search Field -->
         <div class="relative flex items-center mb-5">
-            <input id="searchInput" type="text" placeholder="Search videos..." 
+            <input id="searchInput" type="text" placeholder="Search any YouTube video..." 
                    class="w-full bg-[#1e1e1e] text-sm text-zinc-100 placeholder-zinc-500 pl-4 pr-12 py-3 rounded-full border border-zinc-800 focus:outline-none focus:border-red-500 transition">
             <button onclick="handleSearch()" class="absolute right-1.5 w-9 h-9 bg-red-600 rounded-full flex items-center justify-center text-white">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
@@ -38,80 +38,149 @@
                 <video id="mainVideo" controls autoplay playsinline class="w-full h-full object-contain"></video>
             </div>
             <h1 id="playingTitle" class="text-base font-semibold mt-3 line-clamp-2"></h1>
+            <p id="playerStatus" class="text-xs text-red-400 mt-1"></p>
         </div>
+
+        <!-- Feed Status / Heading -->
+        <h2 id="feedHeading" class="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Top Videos</h2>
 
         <!-- Video Grid -->
         <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
     </main>
 
     <script>
-        const API_BASE = "https://pipedapi.kavin.rocks";
+        // Multi-instance list taaki koi ek down ho toh doosra pick ho sake
+        const SERVERS = [
+            "https://pipedapi.kavin.rocks",
+            "https://api.piped.privacydev.net",
+            "https://pipedapi.tokhmi.xyz",
+            "https://piped-api.lunar.icu"
+        ];
+
+        let currentServerIndex = 0;
+
+        async function fetchWithFallback(endpoint) {
+            for (let i = 0; i < SERVERS.length; i++) {
+                const base = SERVERS[(currentServerIndex + i) % SERVERS.length];
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 6000);
+                    
+                    const res = await fetch(`${base}${endpoint}`, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+
+                    if (res.ok) {
+                        currentServerIndex = (currentServerIndex + i) % SERVERS.length;
+                        return await res.json();
+                    }
+                } catch (e) {
+                    console.warn(`Server ${base} unreachable, trying next...`);
+                }
+            }
+            throw new Error("All servers down");
+        }
+
         const searchInput = document.getElementById('searchInput');
+        const videoGrid = document.getElementById('videoGrid');
+        const playerSec = document.getElementById('playerSection');
+        const mainVideo = document.getElementById('mainVideo');
+        const playingTitle = document.getElementById('playingTitle');
+        const playerStatus = document.getElementById('playerStatus');
 
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleSearch();
         });
 
-        async function loadTrending() {
-            try {
-                const res = await fetch(`${API_BASE}/trending?region=IN`);
-                const data = await res.json();
-                renderList(data);
-            } catch (err) {
-                console.error("API Error", err);
-            }
-        }
-
         async function handleSearch() {
             const q = searchInput.value.trim();
             if (!q) return;
+
+            document.getElementById('feedHeading').innerText = `Results for "${q}"`;
+            videoGrid.innerHTML = `
+                <div class="col-span-full py-12 flex justify-center items-center text-zinc-400 gap-2">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Searching videos...
+                </div>`;
+
             try {
-                const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}&filter=videos`);
-                const data = await res.json();
-                renderList(data.items);
+                const data = await fetchWithFallback(`/search?q=${encodeURIComponent(q)}&filter=videos`);
+                renderList(data.items || []);
             } catch (err) {
-                alert("Search error");
+                videoGrid.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <p class="text-red-400 text-sm mb-2">Search network busy. Retrying alternate route...</p>
+                        <button onclick="handleSearch()" class="px-4 py-1.5 bg-red-600 rounded-lg text-xs font-semibold">Try Again</button>
+                    </div>`;
+            }
+        }
+
+        async function loadInitialFeed() {
+            videoGrid.innerHTML = `
+                <div class="col-span-full py-12 flex justify-center items-center text-zinc-400 gap-2">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Loading SKPlayer...
+                </div>`;
+            try {
+                const data = await fetchWithFallback(`/trending?region=IN`);
+                renderList(data);
+            } catch (err) {
+                // Agar trending block ho, fallback search
+                handleAutoFallback();
+            }
+        }
+
+        async function handleAutoFallback() {
+            try {
+                const data = await fetchWithFallback(`/search?q=new+music&filter=videos`);
+                renderList(data.items || []);
+            } catch (e) {
+                videoGrid.innerHTML = `<p class="col-span-full text-center text-zinc-500 py-8 text-xs">Search using the top bar</p>`;
             }
         }
 
         function renderList(items) {
-            const grid = document.getElementById('videoGrid');
-            grid.innerHTML = items.map(item => {
+            if (!items || items.length === 0) {
+                videoGrid.innerHTML = `<p class="col-span-full text-center text-zinc-400 py-6 text-sm">No videos found.</p>`;
+                return;
+            }
+
+            videoGrid.innerHTML = items.map(item => {
                 const vidId = item.url ? item.url.replace('/watch?v=', '') : '';
+                if (!vidId) return '';
                 return `
                     <div onclick="playStream('${vidId}', '${encodeURIComponent(item.title)}')" class="bg-[#181818] rounded-xl overflow-hidden cursor-pointer hover:bg-zinc-800 transition active:scale-[0.98]">
-                        <img src="${item.thumbnail}" class="w-full aspect-video object-cover" loading="lazy">
+                        <img src="${item.thumbnail}" class="w-full aspect-video object-cover" loading="lazy" onerror="this.src='https://placehold.co/640x360/181818/FFF?text=Video'">
                         <div class="p-3">
                             <h3 class="text-sm font-medium line-clamp-2">${item.title}</h3>
-                            <p class="text-xs text-zinc-400 mt-1">${item.uploaderName || 'Creator'}</p>
+                            <p class="text-xs text-zinc-400 mt-1">${item.uploaderName || 'YouTube'}</p>
                         </div>
                     </div>`;
             }).join('');
         }
 
         async function playStream(id, title) {
-            const playerSec = document.getElementById('playerSection');
-            const video = document.getElementById('mainVideo');
-            document.getElementById('playingTitle').innerText = decodeURIComponent(title);
             playerSec.classList.remove('hidden');
+            playingTitle.innerText = decodeURIComponent(title);
+            playerStatus.innerText = "Extracting ad-free stream...";
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             try {
-                const res = await fetch(`${API_BASE}/streams/${id}`);
-                const data = await res.json();
-                const stream = data.videoStreams.find(s => s.quality === "720p" && !s.videoOnly) || data.videoStreams[0];
+                const data = await fetchWithFallback(`/streams/${id}`);
+                const stream = data.videoStreams?.find(s => s.quality === "720p" && !s.videoOnly) 
+                             || data.videoStreams?.find(s => !s.videoOnly)
+                             || data.videoStreams?.[0];
+
                 if (stream && stream.url) {
-                    video.src = stream.url;
-                    video.play();
+                    mainVideo.src = stream.url;
+                    playerStatus.innerText = "";
+                    mainVideo.play();
                 } else {
-                    alert("Stream not available");
+                    playerStatus.innerText = "Stream unavailable for this video.";
                 }
             } catch (e) {
-                alert("Failed to load stream");
+                playerStatus.innerText = "Stream extraction failed. Please try another video.";
             }
         }
 
-        loadTrending();
+        loadInitialFeed();
     </script>
 </body>
 </html>
