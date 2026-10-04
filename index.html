@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SKPlayer Ultra</title>
+
+    <!-- App Favicons & Icons from Archive.zip -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f0f0f">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,12 +41,13 @@
 
     <!-- 1. TOP NAVBAR -->
     <header class="sticky top-0 z-50 bg-[#0f0f0f]/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between border-b border-zinc-800/60">
-        <div class="flex items-center gap-1.5 cursor-pointer" onclick="switchTab('home')">
-            <div class="w-7 h-5 bg-red-600 rounded-[6px] flex items-center justify-center shadow-md shadow-red-600/30">
-                <i class="fa-solid fa-play text-white text-[10px] ml-0.5"></i>
+        <!-- Logo with your official brand icon -->
+        <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('home')">
+            <img src="android-chrome-192x192.png" alt="SKPlayer" class="w-8 h-8 rounded-lg object-contain shadow-md shadow-red-600/20">
+            <div class="flex items-center">
+                <span class="text-[17px] font-bold tracking-tight">SK<span class="text-zinc-100 font-medium ml-0.5">Player</span></span>
+                <span class="text-[9px] font-bold bg-red-600/20 text-red-500 border border-red-500/30 px-1 rounded ml-1">ULTRA</span>
             </div>
-            <span class="text-[17px] font-bold tracking-tight">SK<span class="text-zinc-100 font-medium ml-0.5">Player</span></span>
-            <span class="text-[9px] font-bold bg-red-600/20 text-red-500 border border-red-500/30 px-1 rounded ml-1">ULTRA</span>
         </div>
 
         <div class="flex items-center gap-3.5 text-zinc-200">
@@ -45,7 +55,9 @@
                 <i class="fa-solid fa-headphones"></i> <span id="audioOnlyText">AV</span>
             </button>
             <button onclick="toggleSearchBar()" class="hover:text-white"><i class="fa-solid fa-magnifying-glass text-lg"></i></button>
-            <div onclick="switchTab('library')" class="cursor-pointer w-7 h-7 rounded-full bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center font-bold text-xs">S</div>
+            <div onclick="switchTab('library')" class="cursor-pointer w-7 h-7 rounded-full overflow-hidden border border-zinc-700 flex items-center justify-center">
+                <img src="apple-touch-icon.png" alt="Profile" class="w-full h-full object-cover">
+            </div>
         </div>
     </header>
 
@@ -85,7 +97,7 @@
             </div>
 
             <!-- Gesture Indicators -->
-            <div id="gestureNotice" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-black/80 px-3 py-1.5 rounded-full text-xs font-semibold text-white border border-zinc-700 pointer-events-none"></div>
+            <div id="gestureNotice" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-black/80 px-3 py-1.5 rounded-full text-xs font-semibold text-white border border-zinc-700 pointer-events-none z-20"></div>
             
             <!-- Gesture Touch Zones Overlay -->
             <div id="touchSurface" class="absolute inset-0 z-10 flex">
@@ -250,7 +262,10 @@
         <button onclick="switchTab('shorts')" class="nav-tab flex flex-col items-center gap-1"><i class="fa-solid fa-bolt text-base"></i><span class="text-[10px]">Shorts</span></button>
         <button onclick="toggleSearchBar()" class="flex flex-col items-center -mt-2"><div class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white"><i class="fa-solid fa-plus"></i></div></button>
         <button onclick="switchTab('subscriptions')" class="nav-tab flex flex-col items-center gap-1"><i class="fa-solid fa-layer-group text-base"></i><span class="text-[10px]">Subscriptions</span></button>
-        <button onclick="switchTab('library')" class="nav-tab flex flex-col items-center gap-1"><div class="w-4 h-4 rounded-full bg-red-600 flex items-center justify-center text-[9px] text-white font-bold">S</div><span class="text-[10px]">You</span></button>
+        <button onclick="switchTab('library')" class="nav-tab flex flex-col items-center gap-1">
+            <img src="favicon-32x32.png" alt="You" class="w-4 h-4 rounded-full object-cover">
+            <span class="text-[10px]">You</span>
+        </button>
     </nav>
 
     <!-- ======================================================== -->
