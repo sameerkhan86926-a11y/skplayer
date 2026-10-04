@@ -1,0 +1,6 @@
+{
+  "appId": "com.skplayer.app",
+  "appName": "SKPlayer",
+  "webDir": ".",
+  "bundledWebRuntime": false
+}
