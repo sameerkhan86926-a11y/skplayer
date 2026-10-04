@@ -36,9 +36,7 @@
 </head>
 <body class="bg-[#0f0f0f] text-white selection:bg-red-600 pb-20 select-none">
 
-    <!-- ======================================================== -->
-    <!-- 🚀 CINEMATIC SPLASH SCREEN                               -->
-    <!-- ======================================================== -->
+    <!-- 🚀 CINEMATIC SPLASH SCREEN -->
     <div id="appSplashScreen" class="fixed inset-0 z-[9999] bg-[#09090b] flex flex-col items-center justify-between py-12 px-6 transition-all duration-700 select-none">
         <div></div>
 
@@ -64,7 +62,7 @@
 
         <div class="flex flex-col items-center text-center">
             <span class="text-[10px] font-semibold text-zinc-500 tracking-widest uppercase">Engineered by Sameer</span>
-            <span class="text-[9px] text-zinc-600 mt-0.5">Version 1.0.5 • High Fidelity Audio</span>
+            <span class="text-[9px] text-zinc-600 mt-0.5">Version 1.0.6 • High Fidelity Audio</span>
         </div>
     </div>
 
@@ -134,7 +132,7 @@
             </div>
             <div class="flex-1">
                 <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
-                    Update Available! <span id="updateVersionBadge" class="bg-red-500/20 text-red-400 text-[10px] px-1.5 py-0.2 rounded font-mono">v1.0.5</span>
+                    Update Available! <span id="updateVersionBadge" class="bg-red-500/20 text-red-400 text-[10px] px-1.5 py-0.2 rounded font-mono">v1.0.6</span>
                 </h4>
                 <p class="text-[11px] text-zinc-300 mt-1">A newer version of SKPlayer with new features is ready.</p>
                 <div class="flex items-center gap-2 mt-3">
@@ -183,8 +181,8 @@
 
             <div class="flex items-center justify-between text-[11px] text-zinc-400 mt-1">
                 <span id="playingMeta">HD • Ad-Free Playback</span>
-                <span class="text-emerald-400 font-medium flex items-center gap-1">
-                    <i class="fa-solid fa-circle-check text-[10px]"></i> Background Mode: Active
+                <span id="engineBadge" class="text-emerald-400 font-medium flex items-center gap-1">
+                    <i class="fa-solid fa-circle-check text-[10px]"></i> Engine: Auto-Optimized
                 </span>
             </div>
 
@@ -243,7 +241,7 @@
         <section id="homeView">
             <div id="videoFeed" class="flex flex-col gap-5 pt-2"></div>
             <div id="infiniteLoader" class="hidden py-8 flex items-center justify-center gap-2 text-zinc-400 text-xs font-medium">
-                <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-lg"></i> Loading more videos...
+                <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-lg"></i> Loading videos...
             </div>
         </section>
 
@@ -339,14 +337,22 @@
     </nav>
 
     <!-- ======================================================== -->
-    <!-- ENGINE LOGIC                                             -->
+    <!-- ENGINE LOGIC WITH HYBRID AUTO-FALLBACK SCRAPER           -->
     <!-- ======================================================== -->
     <script>
         // 🔑 CONFIGURATION:
-        // YAHAN APNI ACTUAL YOUTUBE DATA API KEY PASTE KAREIN (Bina iske feed load nahi hogi):
-        const YOUTUBE_API_KEY = "AIzaSyD0jh94VaC1p2lH-5dQn-IXFGmlsOKBvy4";
+        const YOUTUBE_API_KEY = "AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY"; // Nayi key yahan daal sakte hain (optional)
         const CURRENT_APP_VERSION = "v1.0.5";
         const GITHUB_REPO = "sameerkhan86926-a11y/skplayer";
+
+        // Multi-instance Invidious scrapers (unlimited quota backups)
+        const INVIDIOUS_INSTANCES = [
+            "https://inv.tux.pizza",
+            "https://yewtu.at",
+            "https://invidious.nerdvpn.de",
+            "https://invidious.private.coffee"
+        ];
+        let currentInstanceIdx = 0;
 
         const videoFeed = document.getElementById('videoFeed');
         const playerSec = document.getElementById('playerSection');
@@ -359,11 +365,13 @@
 
         let currentQuery = 'Trending Songs India';
         let nextPageToken = '';
+        let scraperPage = 1;
         let isLoading = false;
         let hasMore = true;
         let loadedVideosList = [];
         let currentPlayingIndex = -1;
         let ytPlayer = null;
+        let isUsingFallback = false;
 
         let isAudioOnly = false;
         let sleepTimerTimeout = null;
@@ -383,35 +391,191 @@
             setTimeout(() => toast.classList.add('hidden'), 2600);
         }
 
-        // ========================================================
-        // 🎬 SPLASH SCREEN CONTROLLER WITH FAIL-SAFE
-        // ========================================================
         function launchAppWithSplash() {
             const splashScreen = document.getElementById('appSplashScreen');
             const progressBar = document.getElementById('splashProgressBar');
-
             if (!splashScreen || !progressBar) return;
 
             setTimeout(() => { progressBar.style.width = '45%'; }, 100);
             setTimeout(() => { progressBar.style.width = '85%'; }, 400);
-            setTimeout(() => { progressBar.style.width = '100%'; }, 800);
+            setTimeout(() => { progressBar.style.width = '100%'; }, 700);
 
             setTimeout(() => {
                 splashScreen.classList.add('opacity-0', 'scale-105', 'pointer-events-none');
-                setTimeout(() => {
-                    splashScreen.style.display = 'none';
-                }, 600);
-            }, 1000);
+                setTimeout(() => splashScreen.style.display = 'none', 500);
+            }, 900);
         }
 
-        // Fail-safe: Agar kisi wajah se splash na hate toh 2.5s me forcibly hata do
-        setTimeout(() => {
-            const sp = document.getElementById('appSplashScreen');
-            if (sp && sp.style.display !== 'none') {
-                sp.classList.add('opacity-0', 'pointer-events-none');
-                setTimeout(() => sp.style.display = 'none', 500);
+        // ========================================================
+        // 🔄 HYBRID FETCH ENGINE (YouTube API -> Scraper Fallback)
+        // ========================================================
+        async function fetchNextBatch() {
+            if (isLoading || !hasMore) return;
+            isLoading = true;
+            infiniteLoader.classList.remove('hidden');
+
+            const key = YOUTUBE_API_KEY.trim();
+
+            // 1. Agar fallback pehle hi activate ho chuka hai ya API key nahi hai:
+            if (isUsingFallback || !key || key === "PASTE_YOUR_API_KEY_HERE") {
+                await fetchFromScraperFallback();
+                isLoading = false;
+                infiniteLoader.classList.add('hidden');
+                return;
             }
-        }, 2500);
+
+            // 2. Cache check (Zero quota usage)
+            const cacheKey = `sk_${currentQuery}_${nextPageToken || 'p1'}`;
+            const cached = sessionStorage.getItem(cacheKey);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                cleanFeedCard();
+                appendVideosToFeed(parsed.items || []);
+                nextPageToken = parsed.nextPageToken || '';
+                isLoading = false;
+                infiniteLoader.classList.add('hidden');
+                return;
+            }
+
+            // 3. Try Official YouTube API
+            try {
+                let url = '';
+                if (currentQuery === 'Trending Songs India') {
+                    url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&videoCategoryId=10&regionCode=IN&maxResults=20&key=${key}`;
+                } else {
+                    url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(currentQuery)}&type=video&key=${key}`;
+                }
+                if (nextPageToken) url += `&pageToken=${nextPageToken}`;
+
+                const res = await fetch(url);
+                const data = await res.json();
+
+                // Agar quota 429 ya koi error mila -> Instant Scraper Fallback Trigger
+                if (data.error) {
+                    console.warn("YouTube API Quota/Error hit, auto-switching to Unlimited Scraper:", data.error);
+                    isUsingFallback = true;
+                    showToast("Switched to Unlimited Stream Mode");
+                    await fetchFromScraperFallback();
+                } else {
+                    sessionStorage.setItem(cacheKey, JSON.stringify(data));
+                    nextPageToken = data.nextPageToken || '';
+                    if (!nextPageToken) hasMore = false;
+                    cleanFeedCard();
+                    appendVideosToFeed(data.items || []);
+                }
+            } catch (err) {
+                console.warn("Official API connection failed, switching to scraper:", err);
+                isUsingFallback = true;
+                await fetchFromScraperFallback();
+            } finally {
+                isLoading = false;
+                infiniteLoader.classList.add('hidden');
+            }
+        }
+
+        // ========================================================
+        // 🌐 UNLIMITED SCRAPER FALLBACK (Invidious Multi-Instances)
+        // ========================================================
+        async function fetchFromScraperFallback() {
+            let success = false;
+            let attempts = 0;
+
+            while (!success && attempts < INVIDIOUS_INSTANCES.length) {
+                const baseInstance = INVIDIOUS_INSTANCES[currentInstanceIdx];
+                try {
+                    let endpoint = `${baseInstance}/api/v1/search?q=${encodeURIComponent(currentQuery)}&page=${scraperPage}&type=video`;
+                    if (currentQuery === 'Trending Songs India' && scraperPage === 1) {
+                        endpoint = `${baseInstance}/api/v1/trending?region=IN&type=music`;
+                    }
+
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
+
+                    const res = await fetch(endpoint, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+
+                    if (!res.ok) throw new Error("Instance status: " + res.status);
+                    const data = await res.json();
+
+                    if (Array.isArray(data) && data.length) {
+                        cleanFeedCard();
+                        const formattedItems = data.map(item => ({
+                            id: { videoId: item.videoId },
+                            snippet: {
+                                title: item.title,
+                                channelTitle: item.author,
+                                publishedAt: new Date(item.published * 1000).toISOString(),
+                                thumbnails: {
+                                    high: { url: item.videoThumbnails?.[0]?.url || `https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg` }
+                                }
+                            }
+                        }));
+
+                        appendVideosToFeed(formattedItems);
+                        scraperPage++;
+                        success = true;
+                        document.getElementById('engineBadge').innerHTML = `<i class="fa-solid fa-bolt text-amber-400 text-[10px]"></i> Engine: Unlimited Fallback`;
+                    } else {
+                        throw new Error("No data returned");
+                    }
+                } catch (e) {
+                    console.log(`Instance ${baseInstance} failed, trying next...`, e);
+                    currentInstanceIdx = (currentInstanceIdx + 1) % INVIDIOUS_INSTANCES.length;
+                    attempts++;
+                }
+            }
+
+            if (!success && !videoFeed.children.length) {
+                videoFeed.innerHTML = `
+                    <div class="m-5 p-5 bg-zinc-900 border border-red-500/50 rounded-2xl text-center">
+                        <i class="fa-solid fa-rotate text-red-500 text-2xl mb-2"></i>
+                        <h3 class="text-sm font-bold text-white">Stream Connecting...</h3>
+                        <p class="text-xs text-zinc-400 mt-1">Tap below to refresh streams.</p>
+                        <button onclick="startNewSearch('${currentQuery}')" class="mt-4 px-4 py-2 bg-red-600 rounded-xl text-xs font-semibold">Retry Now</button>
+                    </div>`;
+            }
+        }
+
+        function cleanFeedCard() {
+            if (videoFeed.querySelector('.fa-circle-notch') || videoFeed.querySelector('.bg-zinc-900')) {
+                videoFeed.innerHTML = '';
+            }
+        }
+
+        function appendVideosToFeed(items) {
+            const startIndex = loadedVideosList.length;
+            const html = items.map((item, idx) => {
+                const id = item.id?.videoId || item.id;
+                if (!id) return '';
+                const snip = item.snippet;
+                const thumb = snip.thumbnails?.high?.url || snip.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+                const globalIndex = startIndex + idx;
+
+                loadedVideosList.push({ id, title: snip.title, channel: snip.channelTitle, thumb });
+
+                return `
+                    <article class="flex flex-col cursor-pointer active:bg-zinc-900/40 transition">
+                        <div onclick="playVideoByIndex(${globalIndex})" class="relative w-full aspect-video bg-zinc-900 overflow-hidden sm:rounded-2xl">
+                            <img src="${thumb}" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'" class="w-full h-full object-cover">
+                            <span class="absolute bottom-2.5 right-2.5 bg-black/85 text-white font-medium text-[11px] px-1.5 py-0.5 rounded">
+                                ${(Math.random() * 8 + 2).toFixed(0)}:${Math.floor(Math.random() * 50 + 10)}
+                            </span>
+                        </div>
+                        <div class="flex items-start gap-3 px-3 py-3">
+                            <div onclick="playVideoByIndex(${globalIndex})" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs flex-shrink-0 text-zinc-300">
+                                ${(snip.channelTitle || 'Y').charAt(0).toUpperCase()}
+                            </div>
+                            <div onclick="playVideoByIndex(${globalIndex})" class="flex-1 min-w-0">
+                                <h3 class="text-sm font-normal text-zinc-100 line-clamp-2 leading-snug">${snip.title}</h3>
+                                <div class="text-[12px] text-zinc-400 mt-1 flex items-center gap-1.5">
+                                    <span>${snip.channelTitle}</span> • <span>${(Math.random() * 500 + 50).toFixed(0)}K views</span> • <span>${formatTimeAgo(snip.publishedAt)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </article>`;
+            }).join('');
+            videoFeed.insertAdjacentHTML('beforeend', html);
+        }
 
         // ========================================================
         // 🎵 REAL BACKGROUND AUDIO ENGINE (WakeLock + AudioContext)
@@ -421,9 +585,7 @@
 
         async function requestScreenWakeLock() {
             try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
+                if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
             } catch (err) {}
         }
 
@@ -431,12 +593,8 @@
             requestScreenWakeLock();
 
             try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 gain.gain.value = 0.001;
@@ -465,29 +623,16 @@
                     title: video.title,
                     artist: video.channel,
                     album: 'SKPlayer Ultra Ad-Free',
-                    artwork: [
-                        { src: video.thumb || 'android-chrome-512x512.png', sizes: '512x512', type: 'image/png' }
-                    ]
+                    artwork: [{ src: video.thumb || 'android-chrome-512x512.png', sizes: '512x512', type: 'image/png' }]
                 });
 
                 navigator.mediaSession.setActionHandler('play', () => {
-                    if (ytPlayer && ytPlayer.playVideo) {
-                        ytPlayer.playVideo();
-                        updatePlayPauseUI(true);
-                    }
+                    if (ytPlayer && ytPlayer.playVideo) { ytPlayer.playVideo(); updatePlayPauseUI(true); }
                 });
-
                 navigator.mediaSession.setActionHandler('pause', () => {
-                    if (ytPlayer && ytPlayer.pauseVideo) {
-                        ytPlayer.pauseVideo();
-                        updatePlayPauseUI(false);
-                    }
+                    if (ytPlayer && ytPlayer.pauseVideo) { ytPlayer.pauseVideo(); updatePlayPauseUI(false); }
                 });
-
-                navigator.mediaSession.setActionHandler('nexttrack', () => {
-                    playNextVideo();
-                });
-
+                navigator.mediaSession.setActionHandler('nexttrack', () => playNextVideo());
                 navigator.mediaSession.setActionHandler('previoustrack', () => {
                     if (currentPlayingIndex > 0) playVideoByIndex(currentPlayingIndex - 1);
                 });
@@ -549,48 +694,27 @@
                 permissions.checkPermission(permissions.RECORD_AUDIO, function(status) {
                     if (!status.hasPermission) {
                         permissions.requestPermission(permissions.RECORD_AUDIO, function(status) {
-                            if (status.hasPermission) {
-                                executeSpeech();
-                            } else {
-                                alert("Please allow Microphone permission in App Settings.");
-                            }
+                            if (status.hasPermission) executeSpeech();
+                            else alert("Please allow Microphone permission in App Settings.");
                         }, () => alert("Permission request failed"));
-                    } else {
-                        executeSpeech();
-                    }
+                    } else executeSpeech();
                 });
             } else if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        stream.getTracks().forEach(track => track.stop());
-                        executeSpeech();
-                    })
-                    .catch(() => {
-                        alert("Microphone permission denied. Enable it in phone settings.");
-                    });
-            } else {
-                executeSpeech();
-            }
+                    .then(stream => { stream.getTracks().forEach(t => t.stop()); executeSpeech(); })
+                    .catch(() => alert("Microphone permission denied."));
+            } else executeSpeech();
         }
 
         function executeSpeech() {
             if (recognition) {
-                try {
-                    recognition.abort();
-                    recognition.start();
-                } catch(e) {
-                    console.log("Recognition restart", e);
-                }
-            } else {
-                alert("Voice search is not supported on this device.");
-            }
+                try { recognition.abort(); recognition.start(); } catch(e) {}
+            } else alert("Voice search is not supported on this device.");
         }
 
         function closeVoiceSearch() {
             document.getElementById('voiceModal').classList.add('hidden');
-            if (recognition) {
-                try { recognition.stop(); } catch(e) {}
-            }
+            if (recognition) { try { recognition.stop(); } catch(e) {} }
         }
 
         // ========================================================
@@ -614,18 +738,14 @@
                         document.getElementById('updateBanner').classList.remove('hidden');
                     }
                 }
-            } catch (e) {
-                console.log("Update check skipped", e);
-            }
+            } catch (e) {}
         }
 
         function dismissUpdate() {
             document.getElementById('updateBanner').classList.add('hidden');
         }
 
-        // ========================================================
-        // 🔎 JSONP AUTO-SUGGESTIONS (Direct & Ultra-Fast)
-        // ========================================================
+        // JSONP FAST AUTO-SUGGESTIONS
         let debounceTimer;
         window.handleGoogleSuggest = function(data) {
             if (data && data[1] && data[1].length) {
@@ -645,7 +765,6 @@
             debounceTimer = setTimeout(() => {
                 const oldScript = document.getElementById('jsonpSuggest');
                 if (oldScript) oldScript.remove();
-
                 const script = document.createElement('script');
                 script.id = 'jsonpSuggest';
                 script.src = `https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(val)}&jsonp=handleGoogleSuggest`;
@@ -659,7 +778,7 @@
             handleSearch();
         }
 
-        // Touch & Gesture Sensors
+        // Touch & Gesture Controls
         let lastLeftTap = 0, lastRightTap = 0;
         let leftTapTimeout = null, rightTapTimeout = null;
         let startY = 0;
@@ -684,13 +803,8 @@
         function updatePlayPauseUI(isPlaying) {
             const icon = document.getElementById('playPauseIcon');
             const text = document.getElementById('playPauseText');
-            if (isPlaying) {
-                icon.className = "fa-solid fa-pause";
-                text.innerText = "Pause";
-            } else {
-                icon.className = "fa-solid fa-play";
-                text.innerText = "Play";
-            }
+            if (isPlaying) { icon.className = "fa-solid fa-pause"; text.innerText = "Pause"; }
+            else { icon.className = "fa-solid fa-play"; text.innerText = "Play"; }
         }
 
         leftZone.addEventListener('click', () => {
@@ -779,10 +893,7 @@
             if (minutes === 0) { showToast("Sleep timer cancelled"); return; }
             showToast(`Player will stop in ${minutes} minutes`);
             sleepTimerTimeout = setTimeout(() => {
-                if (ytPlayer && ytPlayer.pauseVideo) {
-                    ytPlayer.pauseVideo();
-                    updatePlayPauseUI(false);
-                }
+                if (ytPlayer && ytPlayer.pauseVideo) { ytPlayer.pauseVideo(); updatePlayPauseUI(false); }
                 showToast("Bedtime sleep timer paused player");
             }, minutes * 60 * 1000);
         }
@@ -808,28 +919,6 @@
             }
         }
 
-        let sponsorInterval = null;
-        function checkSponsorSegments(videoId) {
-            clearInterval(sponsorInterval);
-            fetch(`https://sponsor.ajay.app/api/skipSegments?videoID=${videoId}&categories=["sponsor","selfpromo"]`)
-                .then(r => r.json())
-                .then(segments => {
-                    if (Array.isArray(segments) && segments.length) {
-                        sponsorInterval = setInterval(() => {
-                            if (!ytPlayer || !ytPlayer.getCurrentTime) return;
-                            const cur = ytPlayer.getCurrentTime();
-                            for (let seg of segments) {
-                                if (cur >= seg.segment[0] && cur < seg.segment[1]) {
-                                    ytPlayer.seekTo(seg.segment[1], true);
-                                    showToast("Skipped Sponsor Segment");
-                                    break;
-                                }
-                            }
-                        }, 500);
-                    }
-                }).catch(() => {});
-        }
-
         function toggleComments() {
             const sec = document.getElementById('commentsSection');
             sec.classList.toggle('hidden');
@@ -841,32 +930,28 @@
         async function fetchComments(videoId) {
             const list = document.getElementById('commentsList');
             list.innerHTML = `<div class="py-4 text-center text-zinc-500">Loading comments...</div>`;
+            const baseInstance = INVIDIOUS_INSTANCES[currentInstanceIdx];
             try {
-                const res = await fetch(`https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=10&key=${YOUTUBE_API_KEY.trim()}`);
+                const res = await fetch(`${baseInstance}/api/v1/comments/${videoId}`);
                 const data = await res.json();
-                if (data.items?.length) {
-                    list.innerHTML = data.items.map(c => {
-                        const com = c.snippet.topLevelComment.snippet;
-                        return `
-                            <div class="flex gap-2.5 bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800/80">
-                                <img src="${com.authorProfileImageUrl}" class="w-7 h-7 rounded-full object-cover">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-semibold text-zinc-300 text-[11px]">${com.authorDisplayName}</span>
-                                        <span class="text-[9px] text-zinc-500">${formatTimeAgo(com.publishedAt)}</span>
-                                    </div>
-                                    <p class="text-zinc-200 mt-0.5 line-clamp-3 leading-relaxed">${com.textDisplay}</p>
-                                    <div class="mt-1 flex items-center gap-1 text-[10px] text-zinc-400">
-                                        <i class="fa-regular fa-thumbs-up"></i> ${com.likeCount}
-                                    </div>
+                if (data.comments?.length) {
+                    list.innerHTML = data.comments.slice(0, 10).map(c => `
+                        <div class="flex gap-2.5 bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800/80">
+                            <img src="${c.authorThumbnails?.[0]?.url || 'apple-touch-icon.png'}" class="w-7 h-7 rounded-full object-cover">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-zinc-300 text-[11px]">${c.author}</span>
+                                    <span class="text-[9px] text-zinc-500">${c.publishedText || ''}</span>
                                 </div>
-                            </div>`;
-                    }).join('');
+                                <p class="text-zinc-200 mt-0.5 line-clamp-3 leading-relaxed">${c.contentHtml || c.content}</p>
+                            </div>
+                        </div>
+                    `).join('');
                 } else {
-                    list.innerHTML = `<div class="py-3 text-center text-zinc-500">Comments disabled for this video</div>`;
+                    list.innerHTML = `<div class="py-3 text-center text-zinc-500">No comments available</div>`;
                 }
             } catch (e) {
-                list.innerHTML = `<div class="py-3 text-center text-zinc-500">Unable to load comments</div>`;
+                list.innerHTML = `<div class="py-3 text-center text-zinc-500">Comments stream unavailable</div>`;
             }
         }
 
@@ -922,90 +1007,16 @@
         function startNewSearch(query) {
             currentQuery = query;
             nextPageToken = '';
+            scraperPage = 1;
             hasMore = true;
             loadedVideosList = [];
             currentPlayingIndex = -1;
             videoFeed.innerHTML = `
                 <div class="py-24 flex flex-col items-center justify-center gap-3 text-zinc-400">
                     <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-3xl"></i>
-                    <p class="text-xs font-medium">Loading feed...</p>
+                    <p class="text-xs font-medium">Loading videos...</p>
                 </div>`;
             fetchNextBatch();
-        }
-
-        async function fetchNextBatch() {
-            if (isLoading || !hasMore) return;
-
-            // Agar API key blank hai toh friendly warning dikhayein
-            if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === "PASTE_YOUR_API_KEY_HERE") {
-                videoFeed.innerHTML = `
-                    <div class="m-5 p-5 bg-zinc-900 border border-red-500/50 rounded-2xl text-center">
-                        <i class="fa-solid fa-key text-red-500 text-2xl mb-2"></i>
-                        <h3 class="text-sm font-bold text-white">YouTube API Key Missing</h3>
-                        <p class="text-xs text-zinc-400 mt-1">Please add your YouTube API Key in index.html (Line 369) to load videos.</p>
-                    </div>`;
-                return;
-            }
-
-            isLoading = true;
-            infiniteLoader.classList.remove('hidden');
-
-            try {
-                let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(currentQuery)}&type=video&key=${YOUTUBE_API_KEY.trim()}`;
-                if (nextPageToken) url += `&pageToken=${nextPageToken}`;
-
-                const res = await fetch(url);
-                const data = await res.json();
-                if (data.error) throw new Error(data.error.message);
-
-                nextPageToken = data.nextPageToken || '';
-                if (!nextPageToken) hasMore = false;
-
-                if (videoFeed.querySelector('.fa-circle-notch')) videoFeed.innerHTML = '';
-                appendVideosToFeed(data.items || []);
-            } catch (err) {
-                if (!videoFeed.children.length) {
-                    videoFeed.innerHTML = `<div class="p-6 text-center text-red-400 text-xs">${err.message}</div>`;
-                }
-            } finally {
-                isLoading = false;
-                infiniteLoader.classList.add('hidden');
-            }
-        }
-
-        function appendVideosToFeed(items) {
-            const startIndex = loadedVideosList.length;
-            const html = items.map((item, idx) => {
-                const id = item.id?.videoId;
-                if (!id) return '';
-                const snip = item.snippet;
-                const thumb = snip.thumbnails?.high?.url || snip.thumbnails?.medium?.url;
-                const globalIndex = startIndex + idx;
-
-                loadedVideosList.push({ id, title: snip.title, channel: snip.channelTitle, thumb });
-
-                return `
-                    <article class="flex flex-col cursor-pointer active:bg-zinc-900/40 transition">
-                        <div onclick="playVideoByIndex(${globalIndex})" class="relative w-full aspect-video bg-zinc-900 overflow-hidden sm:rounded-2xl">
-                            <img src="${thumb}" loading="lazy" class="w-full h-full object-cover">
-                            <span class="absolute bottom-2.5 right-2.5 bg-black/85 text-white font-medium text-[11px] px-1.5 py-0.5 rounded">
-                                ${(Math.random() * 8 + 2).toFixed(0)}:${Math.floor(Math.random() * 50 + 10)}
-                            </span>
-                        </div>
-                        <div class="flex items-start gap-3 px-3 py-3">
-                            <div onclick="playVideoByIndex(${globalIndex})" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs flex-shrink-0 text-zinc-300">
-                                ${snip.channelTitle.charAt(0).toUpperCase()}
-                            </div>
-                            <div onclick="playVideoByIndex(${globalIndex})" class="flex-1 min-w-0">
-                                <h3 class="text-sm font-normal text-zinc-100 line-clamp-2 leading-snug">${snip.title}</h3>
-                                <div class="text-[12px] text-zinc-400 mt-1 flex items-center gap-1.5">
-                                    <span>${snip.channelTitle}</span> • <span>${(Math.random() * 500 + 50).toFixed(0)}K views</span> • <span>${formatTimeAgo(snip.publishedAt)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </article>`;
-            }).join('');
-            videoFeed.insertAdjacentHTML('beforeend', html);
         }
 
         function playVideoByIndex(index) {
@@ -1016,11 +1027,9 @@
             playerSec.classList.remove('hidden');
             document.getElementById('playingTitle').innerText = video.title;
             document.getElementById('playingChannel').innerText = video.channel;
-            document.getElementById('channelAvatar').innerText = video.channel.charAt(0).toUpperCase();
+            document.getElementById('channelAvatar').innerText = (video.channel || 'Y').charAt(0).toUpperCase();
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            checkSponsorSegments(video.id);
-
             activateBackgroundAudioEngine(video);
 
             if (!ytPlayer) {
@@ -1030,10 +1039,7 @@
                     videoId: video.id,
                     playerVars: { 'autoplay': 1, 'playsinline': 1, 'rel': 0, 'modestbranding': 1, 'controls': 1 },
                     events: {
-                        'onReady': e => {
-                            e.target.playVideo();
-                            updatePlayPauseUI(true);
-                        },
+                        'onReady': e => { e.target.playVideo(); updatePlayPauseUI(true); },
                         'onStateChange': e => {
                             if (e.data === YT.PlayerState.PLAYING) updatePlayPauseUI(true);
                             else if (e.data === YT.PlayerState.PAUSED) updatePlayPauseUI(false);
@@ -1049,18 +1055,14 @@
         }
 
         function playNextVideo() {
-            if (currentPlayingIndex + 1 < loadedVideosList.length) {
-                playVideoByIndex(currentPlayingIndex + 1);
-            } else if (hasMore) {
-                fetchNextBatch().then(() => playVideoByIndex(currentPlayingIndex + 1));
-            }
+            if (currentPlayingIndex + 1 < loadedVideosList.length) playVideoByIndex(currentPlayingIndex + 1);
+            else if (hasMore) fetchNextBatch().then(() => playVideoByIndex(currentPlayingIndex + 1));
         }
 
         function closePlayer() {
             playerSec.classList.add('hidden');
             if (ytPlayer?.stopVideo) ytPlayer.stopVideo();
             if (keepAliveAudio) keepAliveAudio.pause();
-            clearInterval(sponsorInterval);
             clearInterval(loopInterval);
         }
 
@@ -1146,6 +1148,7 @@
         }
 
         function formatTimeAgo(iso) {
+            if (!iso) return 'Recent';
             const s = Math.floor((new Date() - new Date(iso)) / 1000);
             if (s < 3600) return `${Math.floor(s/60)}m ago`;
             if (s < 86400) return `${Math.floor(s/3600)}h ago`;
@@ -1157,7 +1160,6 @@
             if (scrollTop + clientHeight >= scrollHeight - 600) fetchNextBatch();
         });
 
-        // App Launch Sequence with Splash Screen & Auto-Fallback
         window.addEventListener('DOMContentLoaded', () => {
             launchAppWithSplash();
             quickFilter('Trending Songs India');
