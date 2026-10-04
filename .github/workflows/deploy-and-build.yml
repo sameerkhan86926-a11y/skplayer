@@ -40,7 +40,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   # ---------------------------------------------
-  # JOB 2: Build Android APK
+  # JOB 2: Build Android APK with Custom Icon
   # ---------------------------------------------
   build-apk:
     runs-on: ubuntu-latest
@@ -64,13 +64,63 @@ jobs:
           npm install -g cordova
           cordova create skplayer_app com.skplayer.app SKPlayer
           cd skplayer_app
+          
+          # Copy web assets
           rm -rf www/*
-          cp ../index.html www/
+          cp -r ../* www/ 2>/dev/null || true
+          
+          # Cordova config with app icons
+          cat << 'EOF' > config.xml
+          <?xml version='1.0' encoding='utf-8'?>
+          <widget id="com.skplayer.app" version="1.0.1" xmlns="http://www.w3.org/ns/widgets">
+              <name>SKPlayer</name>
+              <description>SKPlayer Ad-Free Video App</description>
+              <author email="dev@skplayer.app">Sameer</author>
+              <content src="index.html" />
+              <access origin="*" />
+              <allow-intent href="http://*/*" />
+              <allow-intent href="https://*/*" />
+              <preference name="ScrollEnabled" value="false" />
+              
+              <platform name="android">
+                  <icon src="www/android-chrome-512x512.png" />
+                  <icon density="ldpi" src="www/favicon-32x32.png" />
+                  <icon density="mdpi" src="www/favicon-32x32.png" />
+                  <icon density="hdpi" src="www/android-chrome-192x192.png" />
+                  <icon density="xhdpi" src="www/android-chrome-192x192.png" />
+                  <icon density="xxhdpi" src="www/android-chrome-512x512.png" />
+                  <icon density="xxxhdpi" src="www/android-chrome-512x512.png" />
+              </platform>
+          </widget>
+          EOF
+          
           cordova platform add android
+          
+          # Force overwrite mipmap icons
+          mkdir -p platforms/android/app/src/main/res/mipmap-hdpi
+          mkdir -p platforms/android/app/src/main/res/mipmap-xhdpi
+          mkdir -p platforms/android/app/src/main/res/mipmap-xxhdpi
+          mkdir -p platforms/android/app/src/main/res/mipmap-xxxhdpi
+          
+          cp ../android-chrome-192x192.png platforms/android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+          cp ../android-chrome-192x192.png platforms/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          cp ../android-chrome-512x512.png platforms/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          cp ../android-chrome-512x512.png platforms/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          
           cordova build android --debug
 
-      - name: Upload SKPlayer APK
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: SKPlayer-Release-APK
           path: skplayer_app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Create Automatic GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v1.0.1"
+          name: "SKPlayer v1.0.1"
+          body: "Official release for sameerkhan86926-a11y/skplayer with custom icon, mic voice search, and in-app updates."
+          files: skplayer_app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
