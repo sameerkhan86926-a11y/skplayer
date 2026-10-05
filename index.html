@@ -20,32 +20,36 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Floating PiP Window Styles */
-        .pip-mode {
+        .auto-pip {
             position: fixed !important;
-            bottom: 75px !important;
+            bottom: 70px !important;
             right: 12px !important;
-            width: 220px !important;
-            height: 124px !important;
-            z-index: 100 !important;
-            border-radius: 14px !important;
+            width: 210px !important;
+            height: 118px !important;
+            z-index: 99 !important;
+            border-radius: 12px !important;
             overflow: hidden !important;
-            box-shadow: 0 12px 35px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.1) !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.12) !important;
+            transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
         }
 
-        /* YouTube Shimmer Skeleton Animation */
+        /* YouTube Custom Range Slider */
+        input[type="range"] {
+            accent-color: #ef4444;
+        }
+
         @keyframes shimmer {
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
         }
         .skeleton {
-            background: linear-gradient(90deg, #181818 25%, #282828 50%, #181818 75%);
+            background: linear-gradient(90deg, #181818 25%, #262626 50%, #181818 75%);
             background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
+            animation: shimmer 1.4s infinite;
         }
     </style>
 </head>
-<body class="bg-[#0f0f0f] text-white selection:bg-red-600 pb-24 select-none overflow-x-hidden">
+<body class="bg-[#0f0f0f] text-white selection:bg-red-600 pb-20 select-none overflow-x-hidden">
 
     <!-- 🚀 SPLASH SCREEN -->
     <div id="appSplashScreen" class="fixed inset-0 z-[9999] bg-[#09090b] flex flex-col items-center justify-between py-14 px-6 transition-all duration-700 select-none">
@@ -63,7 +67,7 @@
                 <div id="splashProgressBar" class="h-full bg-red-600 w-0 transition-all duration-300 ease-out rounded-full shadow-[0_0_12px_rgba(239,68,68,0.8)]"></div>
             </div>
         </div>
-        <div class="text-[9px] font-semibold text-zinc-600 uppercase tracking-widest">Engineered by Sameer • Version 3.2.0</div>
+        <div class="text-[9px] font-semibold text-zinc-600 uppercase tracking-widest">Engineered by Sameer • Precision Scrub Edition</div>
     </div>
 
     <!-- 1. TOP NAVBAR -->
@@ -111,7 +115,7 @@
             </div>
         </div>
         <h3 id="voiceStatusTitle" class="text-base font-bold text-white mb-1">Listening...</h3>
-        <p id="voiceRecognizedText" class="text-xs text-zinc-400 max-w-xs h-6">Speak song or artist name...</p>
+        <p id="voiceRecognizedText" class="text-xs text-zinc-400 max-w-xs h-6">Speak now...</p>
         <button onclick="closeVoiceSearch()" class="mt-6 px-5 py-2 bg-zinc-800 rounded-full text-xs font-semibold hover:bg-zinc-700">Cancel</button>
     </div>
 
@@ -125,21 +129,19 @@
         <button onclick="quickFilter('Bhojpuri Song 2026')" class="chip-btn px-3 py-1 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Bhojpuri</button>
     </nav>
 
-    <!-- 2. STICKY DEDICATED PLAYER WITH FLOATING PIP -->
-    <div id="playerSection" class="hidden sticky top-[45px] z-40 bg-[#0f0f0f] shadow-2xl transition-all">
-        <!-- Floating Container -->
+    <!-- 2. STICKY DEDICATED PLAYER -->
+    <div id="playerSection" class="hidden w-full bg-[#0f0f0f] transition-all duration-300">
         <div id="videoContainer" class="relative w-full aspect-video bg-black overflow-hidden transition-all duration-300">
             <div id="ytplayer" class="w-full h-full"></div>
 
             <div id="audioOnlyCover" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-2 pointer-events-none z-10">
                 <i class="fa-solid fa-headphones text-red-500 text-3xl animate-bounce"></i>
                 <p class="text-xs font-semibold text-zinc-300">Background Audio Active</p>
-                <p class="text-[10px] text-zinc-500">Screen lock supported</p>
             </div>
 
-            <!-- Floating Mode Close / Restore Overlay -->
-            <div id="pipControls" class="hidden absolute top-2 right-2 z-30 flex items-center gap-1.5">
-                <button onclick="toggleFloatingPiP()" class="w-7 h-7 bg-black/80 rounded-full flex items-center justify-center text-white text-xs border border-zinc-700">
+            <!-- Floating Overlay Controls -->
+            <div id="pipOverlayControls" class="hidden absolute top-2 right-2 z-30 flex items-center gap-1.5">
+                <button onclick="scrollToPlayerTop()" class="w-7 h-7 bg-black/80 rounded-full flex items-center justify-center text-white text-xs border border-zinc-700">
                     <i class="fa-solid fa-expand"></i>
                 </button>
                 <button onclick="closePlayer()" class="w-7 h-7 bg-black/80 rounded-full flex items-center justify-center text-white text-xs border border-zinc-700">
@@ -155,7 +157,18 @@
             </div>
         </div>
 
-        <div id="playerMetadata" class="p-3 bg-[#0f0f0f] border-b border-zinc-800">
+        <!-- ⏩ INTERACTIVE TIMELINE / PROGRESS SEEK BAR -->
+        <div id="scrubBarContainer" class="bg-[#121212] px-3.5 py-1.5 border-b border-zinc-800/80 flex items-center gap-3">
+            <span id="currentTimeLabel" class="text-[11px] font-mono text-zinc-400">00:00</span>
+            <input id="seekBar" type="range" min="0" max="100" value="0" step="0.5" 
+                   oninput="handleSeekInput(this.value)" 
+                   onchange="handleSeekChange(this.value)"
+                   class="w-full h-1 bg-zinc-700 rounded-lg cursor-pointer">
+            <span id="totalDurationLabel" class="text-[11px] font-mono text-zinc-400">00:00</span>
+        </div>
+
+        <!-- Video Metadata, Controls & Up Next -->
+        <div id="playerDetailsSection" class="p-3 bg-[#0f0f0f] border-b border-zinc-800">
             <div class="flex items-start justify-between gap-3">
                 <h1 id="playingTitle" class="text-sm font-semibold leading-snug line-clamp-2 text-zinc-100"></h1>
                 <button onclick="closePlayer()" class="text-zinc-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-base"></i></button>
@@ -180,18 +193,33 @@
                 <button id="subBtn" onclick="toggleSub()" class="bg-white text-black hover:bg-zinc-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Subscribe</button>
             </div>
 
-            <!-- Horizontal Toolbar with Floating PiP Button -->
+            <!-- Dedicated Fast-Forward / Toolbar Controls -->
             <div class="flex items-center gap-2 mt-3.5 overflow-x-auto no-scrollbar text-xs">
+                <!-- ⏪ REWIND 10s -->
+                <button onclick="seekOffset(-10)" class="flex items-center gap-1 bg-[#222] hover:bg-[#333] border border-zinc-800 px-3 py-1.5 rounded-full font-semibold text-zinc-200 active:scale-95 transition whitespace-nowrap">
+                    <i class="fa-solid fa-rotate-left text-xs text-red-500"></i> -10s
+                </button>
+
+                <!-- PLAY / PAUSE -->
                 <button onclick="togglePlayPause()" id="playPauseBtn" class="flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold px-3 py-1.5 rounded-full whitespace-nowrap border border-zinc-700">
                     <i id="playPauseIcon" class="fa-solid fa-pause"></i> <span id="playPauseText">Pause</span>
                 </button>
+
+                <!-- ⏩ FORWARD 10s -->
+                <button onclick="seekOffset(10)" class="flex items-center gap-1 bg-[#222] hover:bg-[#333] border border-zinc-800 px-3 py-1.5 rounded-full font-semibold text-zinc-200 active:scale-95 transition whitespace-nowrap">
+                    +10s <i class="fa-solid fa-rotate-right text-xs text-red-500"></i>
+                </button>
+
+                <!-- NEXT TRACK -->
                 <button onclick="playNextVideo()" class="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-1.5 rounded-full whitespace-nowrap">
                     <i class="fa-solid fa-forward-step"></i> Next
                 </button>
-                <!-- Floating PiP Button -->
-                <button onclick="toggleFloatingPiP()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3.5 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap text-amber-400 font-medium">
+
+                <!-- FLOATING PIP -->
+                <button onclick="forceManualPiP()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap text-amber-400">
                     <i class="fa-solid fa-arrow-up-right-from-square"></i> Floating PiP
                 </button>
+
                 <button onclick="openSpeedMenu()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
                     <i class="fa-solid fa-gauge-high"></i> <span id="speedLabel">1.0x</span>
                 </button>
@@ -206,23 +234,22 @@
                 </div>
                 <button onclick="shareCurrentVideo()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full whitespace-nowrap"><i class="fa-solid fa-share"></i> Share</button>
             </div>
-        </div>
 
-        <!-- Up Next Dynamic Queue -->
-        <div id="upNextSection" class="p-3 bg-[#141414] border-b border-zinc-800">
-            <h3 class="text-xs font-bold text-zinc-300 mb-2 flex items-center gap-1.5">
-                <i class="fa-solid fa-list-ul text-red-500"></i> Up Next (Auto-Queue)
-            </h3>
-            <div id="upNextList" class="flex flex-col gap-2 max-h-48 overflow-y-auto no-scrollbar"></div>
+            <!-- Up Next Queue -->
+            <div class="mt-4 pt-3 border-t border-zinc-800/80">
+                <h3 class="text-xs font-bold text-zinc-300 mb-2 flex items-center justify-between">
+                    <span>Up Next</span>
+                    <span class="text-[10px] text-zinc-500 font-normal">Autoplay on</span>
+                </h3>
+                <div id="upNextList" class="flex flex-col gap-2"></div>
+            </div>
         </div>
     </div>
 
     <!-- 3. MAIN FEEDS -->
     <main class="max-w-xl mx-auto">
-        <!-- Home / Feed Section -->
         <section id="homeView">
             <div id="videoFeed" class="flex flex-col gap-4 pt-2"></div>
-            <!-- Skeleton Loader -->
             <div id="shimmerLoader" class="flex flex-col gap-4 p-2">
                 <div class="flex flex-col gap-2">
                     <div class="w-full aspect-video skeleton rounded-2xl"></div>
@@ -237,7 +264,6 @@
             </div>
         </section>
 
-        <!-- Library View -->
         <section id="libraryView" class="hidden px-4 pt-4">
             <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-red-500"></i> My Library</h2>
             <div class="mb-6">
@@ -288,28 +314,24 @@
         <span id="toastMsg">Notification</span>
     </div>
 
-    <!-- 4. FULL WORKING BOTTOM DOCK NAVIGATION -->
+    <!-- 4. BOTTOM DOCK NAVIGATION -->
     <nav class="fixed bottom-0 left-0 right-0 z-40 bg-[#0f0f0f]/98 backdrop-blur-md border-t border-zinc-800/80 px-4 py-2 flex items-center justify-around text-zinc-400">
-        <!-- Button 1: Home -->
         <button id="navHomeBtn" onclick="switchTab('home')" class="nav-tab active flex flex-col items-center gap-1 text-white">
             <i class="fa-solid fa-house text-base"></i>
             <span class="text-[10px] font-medium">Home</span>
         </button>
 
-        <!-- Button 2: Trending / Explore (Cleaned, No Skib/Shorts) -->
         <button id="navTrendingBtn" onclick="switchTab('trending')" class="nav-tab flex flex-col items-center gap-1">
             <i class="fa-solid fa-fire-flame-curved text-base"></i>
             <span class="text-[10px] font-medium">Trending</span>
         </button>
 
-        <!-- Button 3: Mic Voice Search Action -->
         <button onclick="startVoiceSearch()" class="flex flex-col items-center -mt-3">
             <div class="w-10 h-10 rounded-full bg-red-600 shadow-lg shadow-red-600/40 flex items-center justify-center text-white text-sm active:scale-95 transition">
                 <i class="fa-solid fa-microphone"></i>
             </div>
         </button>
 
-        <!-- Button 4: Library / You -->
         <button id="navLibraryBtn" onclick="switchTab('library')" class="nav-tab flex flex-col items-center gap-1">
             <i class="fa-solid fa-folder-open text-base"></i>
             <span class="text-[10px] font-medium">You</span>
@@ -325,20 +347,26 @@
         const videoFeed = document.getElementById('videoFeed');
         const playerSec = document.getElementById('playerSection');
         const videoContainer = document.getElementById('videoContainer');
-        const playerMetadata = document.getElementById('playerMetadata');
-        const upNextSection = document.getElementById('upNextSection');
-        const pipControls = document.getElementById('pipControls');
+        const playerDetailsSection = document.getElementById('playerDetailsSection');
+        const scrubBarContainer = document.getElementById('scrubBarContainer');
+        const pipOverlayControls = document.getElementById('pipOverlayControls');
         const shimmerLoader = document.getElementById('shimmerLoader');
         const searchInput = document.getElementById('searchInput');
         const searchBarOverlay = document.getElementById('searchBarOverlay');
         const suggestionsBox = document.getElementById('suggestionsBox');
         const gestureNotice = document.getElementById('gestureNotice');
+        const seekBar = document.getElementById('seekBar');
+        const currentTimeLabel = document.getElementById('currentTimeLabel');
+        const totalDurationLabel = document.getElementById('totalDurationLabel');
 
         let currentQuery = 'Trending Songs India';
         let nextPageToken = '';
         let isLoading = false;
         let hasMore = true;
+        let isPlayerActive = false;
         let isFloatingPiP = false;
+        let isSeeking = false;
+        let scrubTimer = null;
         let loadedVideosList = [];
         let currentPlayingIndex = -1;
         let ytPlayer = null;
@@ -376,12 +404,12 @@
         }
 
         // ========================================================
-        // 🚀 SMART INFINITE FETCHER (1 UNIT POPULAR + CACHE)
+        // 🚀 SMART INFINITE FETCHER (MAX RESULTS + CLEAN DATA)
         // ========================================================
         async function fetchNextBatch() {
             if (isLoading || !hasMore) return;
 
-            const cacheKey = `sk_v5_${encodeURIComponent(currentQuery)}_${nextPageToken || 'p1'}`;
+            const cacheKey = `sk_feed_v7_${encodeURIComponent(currentQuery)}_${nextPageToken || 'p1'}`;
             const cached = sessionStorage.getItem(cacheKey);
 
             if (cached) {
@@ -399,9 +427,9 @@
             try {
                 let url = '';
                 if (currentQuery === 'Trending Songs India') {
-                    url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=IN&videoCategoryId=10&maxResults=20&key=${API_KEY}`;
+                    url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=IN&maxResults=25&key=${API_KEY}`;
                 } else {
-                    url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(currentQuery)}&key=${API_KEY}`;
+                    url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=25&q=${encodeURIComponent(currentQuery)}&key=${API_KEY}`;
                 }
 
                 if (nextPageToken) url += `&pageToken=${encodeURIComponent(nextPageToken)}`;
@@ -475,7 +503,57 @@
         }
 
         // ========================================================
-        // 🎧 PLAY VIDEO, FLOATING PIP ENGINE & AUTO-QUEUE
+        // ⏩ PRECISION VIDEO SCRUBBER & OFFSET CONTROLS
+        // ========================================================
+        function seekOffset(seconds) {
+            if (!ytPlayer || !ytPlayer.getCurrentTime) return;
+            const current = ytPlayer.getCurrentTime();
+            const total = ytPlayer.getDuration ? ytPlayer.getDuration() : 0;
+            const target = Math.max(0, Math.min(current + seconds, total || current + seconds));
+            ytPlayer.seekTo(target, true);
+            flashGesture(seconds > 0 ? `⏩ +${seconds}s` : `⏪ ${seconds}s`);
+        }
+
+        function handleSeekInput(val) {
+            isSeeking = true;
+            if (!ytPlayer || !ytPlayer.getDuration) return;
+            const total = ytPlayer.getDuration();
+            const target = (val / 100) * total;
+            currentTimeLabel.innerText = formatDurationSec(target);
+        }
+
+        function handleSeekChange(val) {
+            if (!ytPlayer || !ytPlayer.getDuration) return;
+            const total = ytPlayer.getDuration();
+            const target = (val / 100) * total;
+            ytPlayer.seekTo(target, true);
+            isSeeking = false;
+        }
+
+        function startTimelineTracker() {
+            clearInterval(scrubTimer);
+            scrubTimer = setInterval(() => {
+                if (!ytPlayer || !ytPlayer.getCurrentTime || isSeeking) return;
+                const cur = ytPlayer.getCurrentTime();
+                const total = ytPlayer.getDuration ? ytPlayer.getDuration() : 0;
+
+                if (total > 0) {
+                    seekBar.value = (cur / total) * 100;
+                    currentTimeLabel.innerText = formatDurationSec(cur);
+                    totalDurationLabel.innerText = formatDurationSec(total);
+                }
+            }, 800);
+        }
+
+        function formatDurationSec(sec) {
+            if (!sec || isNaN(sec)) return "00:00";
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        // ========================================================
+        // 🎧 PLAY VIDEO & SCROLL-TRIGGERED AUTO FLOATING PIP
         // ========================================================
         function playVideoByIndex(index) {
             if (index < 0 || index >= loadedVideosList.length) return;
@@ -483,9 +561,9 @@
             const video = loadedVideosList[index];
 
             playerSec.classList.remove('hidden');
+            isPlayerActive = true;
 
-            // Agar floating PiP me tha, toh normal expand view par le aao
-            if (isFloatingPiP) toggleFloatingPiP();
+            disableFloatingPiP();
 
             document.getElementById('playingTitle').innerText = video.title;
             document.getElementById('playingChannel').innerText = video.channel;
@@ -502,11 +580,20 @@
                     videoId: video.id,
                     playerVars: { 'autoplay': 1, 'playsinline': 1, 'rel': 0, 'modestbranding': 1, 'controls': 1 },
                     events: {
-                        'onReady': e => { e.target.playVideo(); updatePlayPauseUI(true); },
+                        'onReady': e => { 
+                            e.target.playVideo(); 
+                            updatePlayPauseUI(true);
+                            startTimelineTracker();
+                        },
                         'onStateChange': e => {
-                            if (e.data === YT.PlayerState.PLAYING) updatePlayPauseUI(true);
-                            else if (e.data === YT.PlayerState.PAUSED) updatePlayPauseUI(false);
-                            else if (e.data === YT.PlayerState.ENDED) playNextVideo();
+                            if (e.data === YT.PlayerState.PLAYING) {
+                                updatePlayPauseUI(true);
+                                startTimelineTracker();
+                            } else if (e.data === YT.PlayerState.PAUSED) {
+                                updatePlayPauseUI(false);
+                            } else if (e.data === YT.PlayerState.ENDED) {
+                                playNextVideo();
+                            }
                         }
                     }
                 });
@@ -514,28 +601,55 @@
                 ytPlayer.loadVideoById(video.id);
                 ytPlayer.playVideo();
                 updatePlayPauseUI(true);
+                startTimelineTracker();
             }
         }
 
-        // 🌟 REAL FLOATING PIP WINDOW CONTROLLER
-        function toggleFloatingPiP() {
-            isFloatingPiP = !isFloatingPiP;
-            if (isFloatingPiP) {
-                videoContainer.classList.add('pip-mode');
-                playerMetadata.classList.add('hidden');
-                upNextSection.classList.add('hidden');
-                pipControls.classList.remove('hidden');
-                playerSec.classList.remove('sticky');
+        window.addEventListener('scroll', () => {
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+
+            if (isPlayerActive) {
+                if (scrollTop > 380 && !isFloatingPiP) {
+                    enableFloatingPiP();
+                } else if (scrollTop <= 100 && isFloatingPiP) {
+                    disableFloatingPiP();
+                }
+            }
+
+            if (scrollTop + clientHeight >= scrollHeight - 650) {
+                fetchNextBatch();
+            }
+        });
+
+        function enableFloatingPiP() {
+            isFloatingPiP = true;
+            videoContainer.classList.add('auto-pip');
+            playerDetailsSection.classList.add('hidden');
+            scrubBarContainer.classList.add('hidden');
+            pipOverlayControls.classList.remove('hidden');
+        }
+
+        function disableFloatingPiP() {
+            isFloatingPiP = false;
+            videoContainer.classList.remove('auto-pip');
+            playerDetailsSection.classList.remove('hidden');
+            scrubBarContainer.classList.remove('hidden');
+            pipOverlayControls.classList.add('hidden');
+        }
+
+        function forceManualPiP() {
+            if (!isFloatingPiP) {
+                enableFloatingPiP();
                 showToast("Floating PiP Window Active");
             } else {
-                videoContainer.classList.remove('pip-mode');
-                playerMetadata.classList.remove('hidden');
-                upNextSection.classList.remove('hidden');
-                pipControls.classList.add('hidden');
-                playerSec.classList.add('sticky');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                disableFloatingPiP();
                 showToast("Restored to Standard Player");
             }
+        }
+
+        function scrollToPlayerTop() {
+            disableFloatingPiP();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function renderUpNextQueue() {
@@ -595,7 +709,9 @@
         }
 
         function closePlayer() {
-            if (isFloatingPiP) toggleFloatingPiP();
+            disableFloatingPiP();
+            isPlayerActive = false;
+            clearInterval(scrubTimer);
             playerSec.classList.add('hidden');
             if (ytPlayer?.stopVideo) ytPlayer.stopVideo();
         }
@@ -610,6 +726,8 @@
                 });
                 navigator.mediaSession.setActionHandler('play', () => { ytPlayer?.playVideo(); updatePlayPauseUI(true); });
                 navigator.mediaSession.setActionHandler('pause', () => { ytPlayer?.pauseVideo(); updatePlayPauseUI(false); });
+                navigator.mediaSession.setActionHandler('seekforward', () => seekOffset(10));
+                navigator.mediaSession.setActionHandler('seekbackward', () => seekOffset(-10));
                 navigator.mediaSession.setActionHandler('nexttrack', () => playNextVideo());
             }
         }
@@ -622,10 +740,7 @@
         leftZone.addEventListener('click', () => {
             const now = Date.now();
             if (now - lastLeftTap < 300) {
-                if (ytPlayer && ytPlayer.getCurrentTime) {
-                    ytPlayer.seekTo(Math.max(ytPlayer.getCurrentTime() - 10, 0), true);
-                    flashGesture('⏪ 10s Rewind');
-                }
+                seekOffset(-10);
             } else {
                 setTimeout(() => togglePlayPause(), 300);
             }
@@ -635,10 +750,7 @@
         rightZone.addEventListener('click', () => {
             const now = Date.now();
             if (now - lastRightTap < 300) {
-                if (ytPlayer && ytPlayer.getCurrentTime) {
-                    ytPlayer.seekTo(ytPlayer.getCurrentTime() + 10, true);
-                    flashGesture('⏩ 10s Forward');
-                }
+                seekOffset(10);
             } else {
                 setTimeout(() => togglePlayPause(), 300);
             }
@@ -710,7 +822,6 @@
             if (e.key === 'Enter') handleSearch();
         });
 
-        // JSONP Live Auto-Suggestions
         let debounceTimer;
         window.handleGoogleSuggest = function(data) {
             if (data && data[1] && data[1].length) {
@@ -810,7 +921,6 @@
             else { navigator.clipboard.writeText(url); showToast("Link copied!"); }
         }
 
-        // 🌟 100% WORKING DOCK NAVIGATION CONTROLLER
         function switchTab(tab) {
             document.querySelectorAll('.nav-tab').forEach(b => {
                 b.classList.remove('text-white');
@@ -863,7 +973,6 @@
             return `${Math.floor(s/86400)}d ago`;
         }
 
-        // Voice Search
         let recognition = null;
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -892,11 +1001,6 @@
             document.getElementById('voiceModal').classList.add('hidden');
             recognition?.stop();
         }
-
-        window.addEventListener('scroll', () => {
-            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-            if (scrollTop + clientHeight >= scrollHeight - 600) fetchNextBatch();
-        });
 
         window.addEventListener('DOMContentLoaded', () => {
             launchAppWithSplash();
