@@ -1,15 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SKPlayer Ultra</title>
+    <title>SKPlayer • Professional Video Platform</title>
 
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0f0f">
 
+    <!-- Tailwind CSS & FontAwesome -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ytBlack: '#0f0f0f',
+                        ytElevated: '#181818',
+                        ytPill: '#272727',
+                        ytBorder: '#2e2e2e',
+                        ytRed: '#ff0000'
+                    }
+                }
+            }
+        }
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -20,32 +37,47 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .pip-active {
-            position: fixed !important;
-            bottom: 74px !important;
-            right: 12px !important;
-            width: 210px !important;
-            height: 118px !important;
-            z-index: 100 !important;
-            border-radius: 12px !important;
-            overflow: hidden !important;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.15) !important;
-        }
+        /* Custom Scrollbar for desktop */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f0f0f; }
+        ::-webkit-scrollbar-thumb { background: #333333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4f4f4f; }
 
-        input[type="range"] { accent-color: #ef4444; }
+        input[type="range"] { accent-color: #ff0000; }
 
+        /* YouTube Skeleton Shimmer */
         @keyframes shimmer {
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
         }
         .skeleton {
-            background: linear-gradient(90deg, #181818 25%, #262626 50%, #181818 75%);
+            background: linear-gradient(90deg, #181818 25%, #292929 50%, #181818 75%);
             background-size: 200% 100%;
-            animation: shimmer 1.4s infinite;
+            animation: shimmer 1.5s infinite;
+        }
+
+        /* Ambient Glow */
+        .ambient-glow {
+            filter: blur(55px);
+            opacity: 0.35;
+            transition: opacity 0.5s ease;
+        }
+
+        /* Floating Mini PiP */
+        .pip-window {
+            position: fixed !important;
+            bottom: 74px !important;
+            right: 16px !important;
+            width: 250px !important;
+            height: 140px !important;
+            z-index: 99 !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+            box-shadow: 0 16px 36px rgba(0,0,0,0.92), 0 0 0 1px rgba(255,255,255,0.12) !important;
         }
     </style>
 </head>
-<body class="bg-[#0f0f0f] text-white selection:bg-red-600 pb-24 select-none overflow-x-hidden">
+<body class="bg-ytBlack text-white selection:bg-ytRed pb-20 md:pb-6 select-none overflow-x-hidden min-h-screen">
 
     <!-- 🚀 SPLASH SCREEN -->
     <div id="appSplashScreen" class="fixed inset-0 z-[9999] bg-[#09090b] flex flex-col items-center justify-between py-14 px-6 transition-all duration-700 select-none">
@@ -57,47 +89,84 @@
             </div>
             <div class="flex items-center gap-1.5 mt-2">
                 <span class="text-2xl font-black tracking-tight text-white">SK<span class="text-red-500">Player</span></span>
-                <span class="text-[9px] font-bold tracking-widest uppercase bg-red-600/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full ml-1">PRO</span>
+                <span class="text-[9px] font-bold tracking-widest uppercase bg-red-600/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full ml-1">PLATFORM</span>
             </div>
             <div class="w-36 h-1 bg-zinc-800 rounded-full mt-6 overflow-hidden relative">
                 <div id="splashProgressBar" class="h-full bg-red-600 w-0 transition-all duration-300 ease-out rounded-full shadow-[0_0_12px_rgba(239,68,68,0.8)]"></div>
             </div>
         </div>
-        <div class="text-[9px] font-semibold text-zinc-600 uppercase tracking-widest">Engineered by Sameer • Direct Live Stream</div>
+        <div class="text-[9px] font-semibold text-zinc-600 uppercase tracking-widest">Engineered by Sameer • Desktop & Mobile Pro</div>
     </div>
 
-    <!-- 1. TOP NAVBAR -->
-    <header class="sticky top-0 z-40 bg-[#0f0f0f]/95 backdrop-blur-md px-4 py-2.5 flex items-center justify-between border-b border-zinc-800/60">
-        <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('home')">
-            <img src="android-chrome-192x192.png" alt="SKPlayer" onerror="this.src='favicon-32x32.png'" class="w-7 h-7 rounded-lg object-contain shadow-md shadow-red-600/20">
-            <div class="flex items-center">
-                <span class="text-base font-bold tracking-tight">SK<span class="text-zinc-100 font-medium ml-0.5">Player</span></span>
-                <span class="text-[8px] font-bold bg-red-600/20 text-red-500 border border-red-500/30 px-1 rounded ml-1">PRO</span>
+    <!-- 1. TOP NAVBAR (Full YouTube Desktop & Mobile Header) -->
+    <header class="sticky top-0 z-40 bg-ytBlack/95 backdrop-blur-md px-3 md:px-5 py-2.5 flex items-center justify-between border-b border-ytBorder/60">
+        <!-- Left: Hamburger & Brand -->
+        <div class="flex items-center gap-3 md:gap-4">
+            <button onclick="toggleSidebar()" class="p-2 rounded-full hover:bg-zinc-800 text-zinc-300 transition">
+                <i class="fa-solid fa-bars text-base"></i>
+            </button>
+            <div class="flex items-center gap-2 cursor-pointer" onclick="switchMainTab('home')">
+                <img src="android-chrome-192x192.png" alt="SKPlayer" onerror="this.src='favicon-32x32.png'" class="w-7 h-7 rounded-lg object-contain shadow-md shadow-red-600/20">
+                <div class="flex items-center">
+                    <span class="text-lg font-bold tracking-tight">SK<span class="text-zinc-100 font-medium ml-0.5">Player</span></span>
+                    <span class="text-[8px] font-bold bg-red-600/20 text-red-500 border border-red-500/30 px-1 rounded ml-1">PRO</span>
+                </div>
             </div>
         </div>
 
-        <div class="flex items-center gap-4 text-zinc-200">
-            <button onclick="toggleAudioOnly()" id="audioOnlyBtn" class="text-xs px-2.5 py-1 bg-zinc-800 rounded-full border border-zinc-700 flex items-center gap-1.5 active:scale-95 transition">
+        <!-- Center: Search Bar + Voice (Desktop Expanded, Mobile Compact) -->
+        <div class="flex-1 max-w-2xl mx-3 md:mx-6 hidden sm:flex items-center gap-2">
+            <div class="flex items-center flex-1 bg-[#121212] border border-ytBorder rounded-full overflow-hidden focus-within:border-red-500 transition">
+                <input id="desktopSearchInput" type="text" placeholder="Search songs, artists, channels..."
+                       oninput="handleSearchSuggestions(this.value)"
+                       onkeypress="if(event.key==='Enter') executeDesktopSearch()"
+                       class="w-full bg-transparent text-sm text-white placeholder-zinc-500 px-4 py-2 focus:outline-none">
+                <button onclick="executeDesktopSearch()" class="px-5 py-2 bg-ytPill hover:bg-zinc-700 text-zinc-300 border-l border-ytBorder transition">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                </button>
+            </div>
+            <button onclick="startVoiceSearch()" class="w-9 h-9 rounded-full bg-ytPill hover:bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white transition" title="Search with voice">
+                <i class="fa-solid fa-microphone text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Right: Actions, Notifications, Profile -->
+        <div class="flex items-center gap-2 md:gap-3 text-zinc-200">
+            <!-- Mobile Search Icon -->
+            <button onclick="toggleMobileSearch()" class="sm:hidden p-2 text-zinc-300 hover:text-white">
+                <i class="fa-solid fa-magnifying-glass text-base"></i>
+            </button>
+            <!-- Audio-Only Toggle -->
+            <button onclick="toggleAudioOnly()" id="audioOnlyBtn" class="text-xs px-2.5 py-1 bg-ytPill rounded-full border border-zinc-700 flex items-center gap-1.5 active:scale-95 transition">
                 <i class="fa-solid fa-headphones text-red-500 text-[11px]"></i> <span id="audioOnlyText" class="font-medium text-[11px]">AV</span>
             </button>
-            <button onclick="startVoiceSearch()" class="text-zinc-300 hover:text-white"><i class="fa-solid fa-microphone text-sm"></i></button>
-            <button onclick="toggleSearchBar()" class="text-zinc-300 hover:text-white"><i class="fa-solid fa-magnifying-glass text-sm"></i></button>
-            <div onclick="switchTab('library')" class="w-6 h-6 rounded-full overflow-hidden border border-zinc-700 flex items-center justify-center cursor-pointer">
+            <!-- Create/Upload Mock Modal -->
+            <button onclick="showToast('Upload feature ready in Creator Studio')" class="hidden md:flex items-center gap-1.5 bg-ytPill hover:bg-zinc-700 px-3 py-1 rounded-full text-xs font-semibold transition">
+                <i class="fa-solid fa-plus text-red-500"></i> Create
+            </button>
+            <!-- Notifications Mock -->
+            <button onclick="showToast('No new notifications')" class="p-2 text-zinc-300 hover:text-white relative">
+                <i class="fa-regular fa-bell text-base"></i>
+                <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-600 rounded-full"></span>
+            </button>
+            <!-- Profile Avatar (Opens Library) -->
+            <div onclick="switchMainTab('library')" class="w-8 h-8 rounded-full overflow-hidden border border-zinc-700 flex items-center justify-center cursor-pointer ml-1 hover:border-red-500 transition">
                 <img src="apple-touch-icon.png" alt="Profile" onerror="this.src='favicon-32x32.png'" class="w-full h-full object-cover">
             </div>
         </div>
     </header>
 
-    <!-- Search Overlay -->
-    <div id="searchBarOverlay" class="hidden fixed inset-0 z-50 bg-[#0f0f0f] p-3 flex flex-col">
+    <!-- Mobile Fullscreen Search Bar Overlay -->
+    <div id="searchBarOverlay" class="hidden fixed inset-0 z-50 bg-ytBlack p-3 flex flex-col">
         <div class="flex items-center gap-2 max-w-xl mx-auto w-full">
-            <button onclick="toggleSearchBar()" class="text-zinc-400 p-2"><i class="fa-solid fa-arrow-left text-base"></i></button>
+            <button onclick="toggleMobileSearch()" class="text-zinc-400 p-2"><i class="fa-solid fa-arrow-left text-base"></i></button>
             <div class="relative flex-1 flex items-center">
-                <input id="searchInput" type="text" placeholder="Search YouTube..." 
+                <input id="mobileSearchInput" type="text" placeholder="Search YouTube..." 
                        oninput="handleSearchSuggestions(this.value)"
+                       onkeypress="if(event.key==='Enter') executeMobileSearch()"
                        class="w-full bg-[#202020] text-sm text-white placeholder-zinc-500 pl-4 pr-16 py-2 rounded-full border border-zinc-800 focus:outline-none focus:border-zinc-600">
                 <button onclick="startVoiceSearch()" class="absolute right-9 text-zinc-400 hover:text-white p-1.5"><i class="fa-solid fa-microphone text-xs"></i></button>
-                <button onclick="handleSearch()" class="absolute right-3 text-zinc-400 hover:text-white p-1.5"><i class="fa-solid fa-magnifying-glass text-xs"></i></button>
+                <button onclick="executeMobileSearch()" class="absolute right-3 text-zinc-400 hover:text-white p-1.5"><i class="fa-solid fa-magnifying-glass text-xs"></i></button>
             </div>
         </div>
         <div id="suggestionsBox" class="max-w-xl mx-auto w-full mt-3 flex flex-col divide-y divide-zinc-900 overflow-y-auto no-scrollbar flex-1"></div>
@@ -111,161 +180,391 @@
             </div>
         </div>
         <h3 id="voiceStatusTitle" class="text-base font-bold text-white mb-1">Listening...</h3>
-        <p id="voiceRecognizedText" class="text-xs text-zinc-400 max-w-xs h-6">Speak now...</p>
+        <p id="voiceRecognizedText" class="text-xs text-zinc-400 max-w-xs h-6">Speak song or creator name...</p>
         <button onclick="closeVoiceSearch()" class="mt-6 px-5 py-2 bg-zinc-800 rounded-full text-xs font-semibold hover:bg-zinc-700">Cancel</button>
     </div>
 
-    <!-- Category Pills -->
-    <nav id="categoryChipsNav" class="sticky top-[45px] z-30 bg-[#0f0f0f] py-2 px-3 flex gap-2 overflow-x-auto no-scrollbar border-b border-zinc-900">
-        <button onclick="quickFilter('Trending Songs India')" class="chip-btn active px-3 py-1 bg-white text-black text-xs font-medium rounded-lg whitespace-nowrap">All</button>
-        <button onclick="quickFilter('Latest Bollywood Hits 2026')" class="chip-btn px-3 py-1 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Bollywood</button>
-        <button onclick="quickFilter('Punjabi Hits 2026')" class="chip-btn px-3 py-1 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Punjabi</button>
-        <button onclick="quickFilter('Arijit Singh Hits')" class="chip-btn px-3 py-1 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Arijit Singh</button>
-        <button onclick="quickFilter('Hindi Lofi Chill Songs')" class="chip-btn px-3 py-1 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Lo-Fi</button>
-        <button onclick="quickFilter('Bhojpuri Song 2026')" class="chip-btn px-3 py-1 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Bhojpuri</button>
-    </nav>
+    <!-- ======================================================== -->
+    <!-- 2. MAIN LAYOUT: FIXED SIDEBAR + CONTENT AREA             -->
+    <!-- ======================================================== -->
+    <div class="flex w-full">
 
-    <!-- 2. STICKY DEDICATED PLAYER -->
-    <div id="playerSection" class="hidden w-full bg-[#0f0f0f] transition-all duration-300">
-        <div id="videoContainer" class="relative w-full aspect-video bg-black overflow-hidden transition-all duration-300">
-            <div id="ytplayer" class="w-full h-full"></div>
+        <!-- DESKTOP LEFT SIDEBAR (Collapsible) -->
+        <aside id="desktopSidebar" class="hidden md:flex flex-col w-56 flex-shrink-0 h-[calc(100vh-56px)] sticky top-[56px] px-3 py-3 border-r border-ytBorder/40 overflow-y-auto no-scrollbar gap-1 text-sm text-zinc-300">
+            <button onclick="switchMainTab('home')" class="sidebar-link active flex items-center gap-4 px-3 py-2.5 rounded-xl bg-ytPill text-white font-medium hover:bg-zinc-800 transition">
+                <i class="fa-solid fa-house text-base w-5 text-center"></i> <span>Home</span>
+            </button>
+            <button onclick="switchMainTab('shorts')" class="sidebar-link flex items-center gap-4 px-3 py-2.5 rounded-xl hover:bg-zinc-800 transition">
+                <i class="fa-solid fa-bolt text-base w-5 text-center text-red-500"></i> <span>Shorts</span>
+            </button>
+            <button onclick="switchMainTab('subscriptions')" class="sidebar-link flex items-center gap-4 px-3 py-2.5 rounded-xl hover:bg-zinc-800 transition">
+                <i class="fa-solid fa-layer-group text-base w-5 text-center"></i> <span>Subscriptions</span>
+            </button>
 
-            <div id="audioOnlyCover" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-2 pointer-events-none z-10">
-                <i class="fa-solid fa-headphones text-red-500 text-3xl animate-bounce"></i>
-                <p class="text-xs font-semibold text-zinc-300">Background Audio Active</p>
-            </div>
+            <hr class="border-ytBorder/60 my-2">
 
-            <!-- Floating Overlay Controls -->
-            <div id="pipOverlayControls" class="hidden absolute top-2 right-2 z-30 flex items-center gap-1.5">
-                <button onclick="restoreFromFloatingPiP()" class="w-7 h-7 bg-black/80 rounded-full flex items-center justify-center text-white text-xs border border-zinc-700">
-                    <i class="fa-solid fa-expand"></i>
-                </button>
-                <button onclick="closePlayer()" class="w-7 h-7 bg-black/80 rounded-full flex items-center justify-center text-white text-xs border border-zinc-700">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+            <div class="px-3 text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">You</div>
+            <button onclick="switchMainTab('history')" class="sidebar-link flex items-center gap-4 px-3 py-2.5 rounded-xl hover:bg-zinc-800 transition">
+                <i class="fa-solid fa-clock-rotate-left text-base w-5 text-center"></i> <span>History</span>
+            </button>
+            <button onclick="switchMainTab('library')" class="sidebar-link flex items-center gap-4 px-3 py-2.5 rounded-xl hover:bg-zinc-800 transition">
+                <i class="fa-solid fa-book-bookmark text-base w-5 text-center"></i> <span>Playlists</span>
+            </button>
+            <button onclick="switchMainTab('liked')" class="sidebar-link flex items-center gap-4 px-3 py-2.5 rounded-xl hover:bg-zinc-800 transition">
+                <i class="fa-solid fa-thumbs-up text-base w-5 text-center"></i> <span>Liked Videos</span>
+            </button>
 
-            <div id="gestureNotice" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-black/85 px-3.5 py-1 rounded-full text-xs font-semibold text-white border border-zinc-700 pointer-events-none z-30"></div>
+            <hr class="border-ytBorder/60 my-2">
 
-            <div class="absolute inset-0 z-20 flex">
-                <div id="leftTouchZone" class="w-1/2 h-full"></div>
-                <div id="rightTouchZone" class="w-1/2 h-full"></div>
-            </div>
-        </div>
+            <div class="px-3 text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">Explore</div>
+            <button onclick="quickFilter('Trending Songs India')" class="sidebar-link flex items-center gap-4 px-3 py-2 rounded-xl hover:bg-zinc-800 transition">
+                <i class="fa-solid fa-music text-sm w-5 text-center text-amber-400"></i> <span>Music</span>
+            </button>
+            <button onclick="quickFilter('Trending Gaming India')" class="sidebar-link flex items-center gap-4 px-3 py-2 rounded-xl hover:bg-zinc-800 transition">
+                <i class="fa-solid fa-gamepad text-sm w-5 text-center text-emerald-400"></i> <span>Gaming</span>
+            </button>
+            <button onclick="quickFilter('Hindi News Live')" class="sidebar-link flex items-center gap-4 px-3 py-2 rounded-xl hover:bg-zinc-800 transition">
+                <i class="fa-solid fa-newspaper text-sm w-5 text-center text-blue-400"></i> <span>News</span>
+            </button>
+            <button onclick="quickFilter('Cricket Live Highlights')" class="sidebar-link flex items-center gap-4 px-3 py-2 rounded-xl hover:bg-zinc-800 transition">
+                <i class="fa-solid fa-trophy text-sm w-5 text-center text-yellow-500"></i> <span>Sports</span>
+            </button>
+        </aside>
 
-        <!-- ⏩ INTERACTIVE TIMELINE / PROGRESS SEEK BAR -->
-        <div id="scrubBarContainer" class="bg-[#121212] px-3.5 py-1.5 border-b border-zinc-800/80 flex items-center gap-3">
-            <span id="currentTimeLabel" class="text-[11px] font-mono text-zinc-400">00:00</span>
-            <input id="seekBar" type="range" min="0" max="100" value="0" step="0.5" 
-                   oninput="handleSeekInput(this.value)" 
-                   onchange="handleSeekChange(this.value)"
-                   class="w-full h-1 bg-zinc-700 rounded-lg cursor-pointer">
-            <span id="totalDurationLabel" class="text-[11px] font-mono text-zinc-400">00:00</span>
-        </div>
+        <!-- MAIN DYNAMIC CONTENT CONTAINER -->
+        <div class="flex-1 min-w-0 px-3 md:px-6 py-2">
 
-        <!-- Video Metadata, Controls & Up Next -->
-        <div id="playerDetailsSection" class="p-3 bg-[#0f0f0f] border-b border-zinc-800">
-            <div class="flex items-start justify-between gap-3">
-                <h1 id="playingTitle" class="text-sm font-semibold leading-snug line-clamp-2 text-zinc-100"></h1>
-                <button onclick="closePlayer()" class="text-zinc-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-base"></i></button>
-            </div>
+            <!-- Category Pills Bar -->
+            <nav id="categoryChipsNav" class="sticky top-[53px] z-30 bg-ytBlack/95 backdrop-blur-md py-2 flex gap-2 overflow-x-auto no-scrollbar border-b border-zinc-900/60 mb-4">
+                <button onclick="quickFilter('Trending Songs India')" class="chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap">All</button>
+                <button onclick="quickFilter('Latest Bollywood Hits 2026')" class="chip-btn px-3.5 py-1.5 bg-ytPill text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Bollywood</button>
+                <button onclick="quickFilter('Punjabi Hits 2026')" class="chip-btn px-3.5 py-1.5 bg-ytPill text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Punjabi</button>
+                <button onclick="quickFilter('Arijit Singh Hits')" class="chip-btn px-3.5 py-1.5 bg-ytPill text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Arijit Singh</button>
+                <button onclick="quickFilter('Hindi Podcasts 2026')" class="chip-btn px-3.5 py-1.5 bg-ytPill text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Podcasts</button>
+                <button onclick="quickFilter('Trending Gaming India')" class="chip-btn px-3.5 py-1.5 bg-ytPill text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Gaming</button>
+                <button onclick="quickFilter('Hindi Lofi Chill Songs')" class="chip-btn px-3.5 py-1.5 bg-ytPill text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Lo-Fi</button>
+            </nav>
 
-            <div class="flex items-center justify-between text-[11px] text-zinc-400 mt-1">
-                <span id="playingMeta">HD • Ad-Free Playback</span>
-                <span class="text-emerald-400 font-medium flex items-center gap-1">
-                    <i class="fa-solid fa-circle-check text-[10px]"></i> Ultra Quota Guard: Active
-                </span>
-            </div>
+            <!-- ======================================================== -->
+            <!-- 3. DEDICATED CINEMA THEATER WATCH VIEW                   -->
+            <!-- ======================================================== -->
+            <section id="watchView" class="hidden mb-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <div class="flex items-center justify-between mt-3 pt-2 border-t border-zinc-800/60">
-                <div class="flex items-center gap-2.5">
-                    <div id="channelAvatar" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs uppercase text-white">YT</div>
-                    <div>
-                        <h4 id="playingChannel" class="text-xs font-semibold text-white"></h4>
-                        <span class="text-[10px] text-zinc-400">Official Channel</span>
+                    <!-- Left: Large Player + Video Info (2 Columns on Desktop) -->
+                    <div class="lg:col-span-2 flex flex-col">
+                        <!-- Video Player Box with Ambient Glow -->
+                        <div id="videoContainer" class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl transition-all duration-300">
+                            <!-- Dynamic Ambient Glow Backdrop -->
+                            <div id="ambientBackdrop" class="absolute inset-0 ambient-glow pointer-events-none -z-10 bg-red-900/30"></div>
+
+                            <div id="ytplayer" class="w-full h-full"></div>
+
+                            <!-- Audio-Only Canvas -->
+                            <div id="audioOnlyCover" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-2 pointer-events-none z-10">
+                                <i class="fa-solid fa-headphones text-red-500 text-4xl animate-bounce"></i>
+                                <p class="text-xs font-semibold text-zinc-300">Background Audio Stream Active</p>
+                                <p class="text-[10px] text-zinc-500">Screen lock supported</p>
+                            </div>
+
+                            <!-- PiP Floating Overlay Controls -->
+                            <div id="pipOverlayControls" class="hidden absolute top-2 right-2 z-30 flex items-center gap-1.5">
+                                <button onclick="restoreFromFloatingPiP()" class="w-7 h-7 bg-black/80 rounded-full flex items-center justify-center text-white text-xs border border-zinc-700">
+                                    <i class="fa-solid fa-expand"></i>
+                                </button>
+                                <button onclick="closeWatchPlayer()" class="w-7 h-7 bg-black/80 rounded-full flex items-center justify-center text-white text-xs border border-zinc-700">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+
+                            <div id="gestureNotice" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-black/85 px-3.5 py-1 rounded-full text-xs font-semibold text-white border border-zinc-700 pointer-events-none z-30"></div>
+
+                            <!-- Touch zones for double tap 10s seek -->
+                            <div class="absolute inset-0 z-20 flex">
+                                <div id="leftTouchZone" class="w-1/2 h-full"></div>
+                                <div id="rightTouchZone" class="w-1/2 h-full"></div>
+                            </div>
+                        </div>
+
+                        <!-- ⏩ Precision Interactive Seek Bar -->
+                        <div id="scrubBarContainer" class="bg-[#141414] px-4 py-2 mt-2 rounded-xl border border-ytBorder/60 flex items-center gap-3">
+                            <span id="currentTimeLabel" class="text-[11px] font-mono text-zinc-400">00:00</span>
+                            <input id="seekBar" type="range" min="0" max="100" value="0" step="0.5" 
+                                   oninput="handleSeekInput(this.value)" 
+                                   onchange="handleSeekChange(this.value)"
+                                   class="w-full h-1 bg-zinc-700 rounded-lg cursor-pointer">
+                            <span id="totalDurationLabel" class="text-[11px] font-mono text-zinc-400">00:00</span>
+                        </div>
+
+                        <!-- Video Title & Primary Metadata -->
+                        <div class="mt-3">
+                            <h1 id="playingTitle" class="text-base sm:text-lg font-bold leading-snug text-white"></h1>
+                            
+                            <!-- Channel Bar + Action Buttons -->
+                            <div class="flex flex-wrap items-center justify-between gap-4 mt-3 pb-3 border-b border-ytBorder/60">
+                                <!-- Channel Info -->
+                                <div class="flex items-center gap-3">
+                                    <div id="channelAvatar" onclick="openChannelPage()" class="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-sm uppercase text-white cursor-pointer hover:border-red-500 transition">YT</div>
+                                    <div>
+                                        <h4 id="playingChannel" onclick="openChannelPage()" class="text-sm font-semibold text-white cursor-pointer hover:text-red-400 transition flex items-center gap-1.5">
+                                            <span>Channel Name</span> <i class="fa-solid fa-circle-check text-[10px] text-zinc-400"></i>
+                                        </h4>
+                                        <span id="channelSubscribers" class="text-[11px] text-zinc-400">4.82M subscribers</span>
+                                    </div>
+                                    <button id="subBtn" onclick="toggleSub()" class="ml-2 bg-white text-black hover:bg-zinc-200 px-4 py-2 rounded-full text-xs font-bold transition">Subscribe</button>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar text-xs">
+                                    <!-- Like / Dislike Pill -->
+                                    <div class="flex items-center bg-ytPill rounded-full overflow-hidden border border-ytBorder">
+                                        <button id="likeBtn" onclick="toggleLike()" class="px-3.5 py-2 hover:bg-zinc-700 flex items-center gap-1.5 border-r border-ytBorder transition">
+                                            <i id="likeIcon" class="fa-regular fa-thumbs-up"></i> <span id="likeCount">142K</span>
+                                        </button>
+                                        <button onclick="showToast('Disliked')" class="px-3 py-2 hover:bg-zinc-700 transition">
+                                            <i class="fa-regular fa-thumbs-down"></i>
+                                        </button>
+                                    </div>
+                                    <button onclick="shareCurrentVideo()" class="flex items-center gap-1.5 bg-ytPill hover:bg-zinc-700 px-3.5 py-2 rounded-full border border-ytBorder transition whitespace-nowrap">
+                                        <i class="fa-solid fa-share"></i> Share
+                                    </button>
+                                    <button onclick="manualTogglePiP()" class="flex items-center gap-1.5 bg-ytPill hover:bg-zinc-700 px-3.5 py-2 rounded-full border border-ytBorder text-amber-400 transition whitespace-nowrap">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> PiP
+                                    </button>
+                                    <button onclick="openSpeedMenu()" class="flex items-center gap-1.5 bg-ytPill hover:bg-zinc-700 px-3.5 py-2 rounded-full border border-ytBorder transition whitespace-nowrap">
+                                        <i class="fa-solid fa-gauge-high"></i> <span id="speedLabel">1.0x</span>
+                                    </button>
+                                    <button onclick="openSleepMenu()" class="flex items-center gap-1.5 bg-ytPill hover:bg-zinc-700 px-3.5 py-2 rounded-full border border-ytBorder transition whitespace-nowrap">
+                                        <i class="fa-solid fa-moon"></i> Sleep
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Expandable Video Description Box -->
+                            <div id="descriptionBox" onclick="toggleDescription()" class="bg-[#181818] p-3.5 rounded-2xl mt-3 text-xs cursor-pointer hover:bg-[#202020] transition border border-ytBorder/40">
+                                <div class="flex items-center gap-2 font-bold text-zinc-300 mb-1">
+                                    <span id="descViews">1.2M views</span>
+                                    <span>•</span>
+                                    <span id="descDate">3 days ago</span>
+                                </div>
+                                <p id="descContent" class="text-zinc-300 leading-relaxed line-clamp-2">
+                                    Official streaming release on SKPlayer Ultra platform. Enjoy non-stop high-fidelity audio and crystal clear video feeds.
+                                </p>
+                                <span id="descShowMore" class="font-bold text-zinc-400 mt-1.5 inline-block">Show more</span>
+                            </div>
+
+                            <!-- Real Comments Section -->
+                            <div class="mt-6">
+                                <h3 class="text-sm font-bold text-white flex items-center gap-3 mb-3">
+                                    <span>Comments</span>
+                                    <span class="text-zinc-500 font-normal text-xs">Top Comments</span>
+                                </h3>
+                                <div id="commentsList" class="flex flex-col gap-3"></div>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Right: Up Next / Related Recommendation Feed -->
+                    <div class="flex flex-col">
+                        <h3 class="text-sm font-bold text-zinc-300 mb-3 flex items-center justify-between">
+                            <span>Up Next</span>
+                            <span class="text-[10px] text-zinc-500 font-normal">Autoplay on</span>
+                        </h3>
+                        <div id="upNextList" class="flex flex-col gap-3"></div>
+                    </div>
+
                 </div>
-                <button id="subBtn" onclick="toggleSub()" class="bg-white text-black hover:bg-zinc-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Subscribe</button>
-            </div>
+            </section>
 
-            <!-- Dedicated Controls -->
-            <div class="flex items-center gap-2 mt-3.5 overflow-x-auto no-scrollbar text-xs">
-                <button onclick="seekOffset(-10)" class="flex items-center gap-1 bg-[#222] hover:bg-[#333] border border-zinc-800 px-3 py-1.5 rounded-full font-semibold text-zinc-200 active:scale-95 transition whitespace-nowrap">
-                    <i class="fa-solid fa-rotate-left text-xs text-red-500"></i> -10s
-                </button>
-                <button onclick="togglePlayPause()" id="playPauseBtn" class="flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold px-3 py-1.5 rounded-full whitespace-nowrap border border-zinc-700">
-                    <i id="playPauseIcon" class="fa-solid fa-pause"></i> <span id="playPauseText">Pause</span>
-                </button>
-                <button onclick="seekOffset(10)" class="flex items-center gap-1 bg-[#222] hover:bg-[#333] border border-zinc-800 px-3 py-1.5 rounded-full font-semibold text-zinc-200 active:scale-95 transition whitespace-nowrap">
-                    +10s <i class="fa-solid fa-rotate-right text-xs text-red-500"></i>
-                </button>
-                <button onclick="playNextVideo()" class="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-1.5 rounded-full whitespace-nowrap">
-                    <i class="fa-solid fa-forward-step"></i> Next
-                </button>
-                <button onclick="manualTogglePiP()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap text-amber-400">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Floating PiP
-                </button>
-                <button onclick="openSpeedMenu()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
-                    <i class="fa-solid fa-gauge-high"></i> <span id="speedLabel">1.0x</span>
-                </button>
-                <button onclick="openSleepMenu()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
-                    <i class="fa-solid fa-moon"></i> Sleep
-                </button>
-                <button onclick="toggleABLoop()" id="abLoopBtn" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
-                    <i class="fa-solid fa-repeat"></i> Loop
-                </button>
-                <div class="flex items-center bg-[#222] rounded-full px-3 py-1.5 gap-2 border border-zinc-800 whitespace-nowrap">
-                    <button id="likeBtn" onclick="toggleLike()"><i id="likeIcon" class="fa-regular fa-thumbs-up"></i> <span id="likeCount">142K</span></button>
-                </div>
-                <button onclick="shareCurrentVideo()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full whitespace-nowrap"><i class="fa-solid fa-share"></i> Share</button>
-            </div>
+            <!-- ======================================================== -->
+            <!-- 4. SHORTS VIEW (9:16 Vertical Video Reel)                -->
+            <!-- ======================================================== -->
+            <section id="shortsView" class="hidden max-w-sm mx-auto py-2">
+                <div class="relative w-full aspect-[9/16] bg-black rounded-3xl overflow-hidden shadow-2xl border border-ytBorder flex items-center justify-center">
+                    <div id="shortsVideoPlaceholder" class="w-full h-full relative">
+                        <img id="shortsThumb" src="" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90"></div>
+                        
+                        <!-- Shorts Controls Overlay -->
+                        <div class="absolute right-3 bottom-16 flex flex-col items-center gap-5 text-white z-20">
+                            <button onclick="showToast('Liked Short')" class="flex flex-col items-center gap-1">
+                                <div class="w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-lg active:scale-90 transition"><i class="fa-solid fa-thumbs-up"></i></div>
+                                <span class="text-[10px] font-bold">182K</span>
+                            </button>
+                            <button onclick="showToast('Disliked')" class="flex flex-col items-center gap-1">
+                                <div class="w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-lg"><i class="fa-solid fa-thumbs-down"></i></div>
+                                <span class="text-[10px] font-bold">Dislike</span>
+                            </button>
+                            <button onclick="showToast('Comments on Shorts')" class="flex flex-col items-center gap-1">
+                                <div class="w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-lg"><i class="fa-solid fa-comment-dots"></i></div>
+                                <span class="text-[10px] font-bold">1.2K</span>
+                            </button>
+                            <button onclick="shareCurrentVideo()" class="flex flex-col items-center gap-1">
+                                <div class="w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-lg"><i class="fa-solid fa-share"></i></div>
+                                <span class="text-[10px] font-bold">Share</span>
+                            </button>
+                        </div>
 
-            <!-- Up Next Queue -->
-            <div class="mt-4 pt-3 border-t border-zinc-800/80">
-                <h3 class="text-xs font-bold text-zinc-300 mb-2 flex items-center justify-between">
-                    <span>Up Next</span>
-                    <span class="text-[10px] text-zinc-500 font-normal">Autoplay on</span>
-                </h3>
-                <div id="upNextList" class="flex flex-col gap-2"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. MAIN FEEDS -->
-    <main class="max-w-xl mx-auto">
-        <section id="homeView">
-            <div id="videoFeed" class="flex flex-col gap-4 pt-2"></div>
-            <div id="shimmerLoader" class="flex flex-col gap-4 p-2">
-                <div class="flex flex-col gap-2">
-                    <div class="w-full aspect-video skeleton rounded-2xl"></div>
-                    <div class="flex gap-3 px-1 mt-1">
-                        <div class="w-9 h-9 rounded-full skeleton flex-shrink-0"></div>
-                        <div class="flex-1 flex flex-col gap-1.5">
-                            <div class="h-4 w-3/4 skeleton rounded"></div>
-                            <div class="h-3 w-1/2 skeleton rounded"></div>
+                        <!-- Shorts Bottom Channel Info -->
+                        <div class="absolute left-4 right-16 bottom-6 text-white z-20">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-xs uppercase">YT</div>
+                                <span id="shortsChannel" class="font-bold text-xs">@CreatorShorts</span>
+                                <button class="px-3 py-1 bg-white text-black font-bold text-[10px] rounded-full">Subscribe</button>
+                            </div>
+                            <h4 id="shortsTitle" class="text-xs font-medium line-clamp-2 leading-relaxed">Exciting new viral video stream moment! 🔥</h4>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <section id="libraryView" class="hidden px-4 pt-4">
-            <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-red-500"></i> My Library</h2>
-            <div class="mb-6">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-sm font-semibold text-zinc-300">Saved for Later (<span id="savedCount">0</span>)</h3>
-                    <button onclick="clearSavedVideos()" class="text-[11px] text-red-400">Clear</button>
+                <div class="flex justify-center gap-3 mt-4">
+                    <button onclick="playNextShort()" class="px-5 py-2 bg-ytPill hover:bg-zinc-700 text-xs font-bold rounded-full border border-ytBorder">Next Short <i class="fa-solid fa-arrow-down ml-1"></i></button>
                 </div>
-                <div id="savedList" class="flex flex-col gap-3"></div>
+            </section>
+
+            <!-- ======================================================== -->
+            <!-- 5. MAIN FEED SECTION (YouTube Responsive Grid)           -->
+            <!-- ======================================================== -->
+            <section id="homeView">
+                <!-- Responsive YouTube Grid (1 col on mobile, 2 on tablet, 3 on desktop, 4 on wide) -->
+                <div id="videoFeed" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-6 gap-x-4"></div>
+
+                <!-- Skeleton Loader Grid -->
+                <div id="shimmerLoader" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-6 gap-x-4 mt-2">
+                    <div class="flex flex-col gap-2.5">
+                        <div class="w-full aspect-video skeleton rounded-2xl"></div>
+                        <div class="flex gap-3 px-1 mt-1">
+                            <div class="w-9 h-9 rounded-full skeleton flex-shrink-0"></div>
+                            <div class="flex-1 flex flex-col gap-1.5">
+                                <div class="h-4 w-4/5 skeleton rounded"></div>
+                                <div class="h-3 w-3/5 skeleton rounded"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2.5 hidden sm:flex">
+                        <div class="w-full aspect-video skeleton rounded-2xl"></div>
+                        <div class="flex gap-3 px-1 mt-1">
+                            <div class="w-9 h-9 rounded-full skeleton flex-shrink-0"></div>
+                            <div class="flex-1 flex flex-col gap-1.5">
+                                <div class="h-4 w-4/5 skeleton rounded"></div>
+                                <div class="h-3 w-3/5 skeleton rounded"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2.5 hidden lg:flex">
+                        <div class="w-full aspect-video skeleton rounded-2xl"></div>
+                        <div class="flex gap-3 px-1 mt-1">
+                            <div class="w-9 h-9 rounded-full skeleton flex-shrink-0"></div>
+                            <div class="flex-1 flex flex-col gap-1.5">
+                                <div class="h-4 w-4/5 skeleton rounded"></div>
+                                <div class="h-3 w-3/5 skeleton rounded"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================================== -->
+            <!-- 6. LIBRARY / HISTORY / LIKED / PLAYLISTS VIEW             -->
+            <!-- ======================================================== -->
+            <section id="libraryView" class="hidden max-w-4xl mx-auto py-2">
+                <h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="fa-solid fa-folder-open text-red-500"></i> Library & Activity</h2>
+
+                <!-- Watch History Shelf -->
+                <div class="mb-7">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-zinc-200">Watch History (<span id="historyCount">0</span>)</h3>
+                        <button onclick="clearHistory()" class="text-xs text-red-400 font-semibold hover:underline">Clear all</button>
+                    </div>
+                    <div id="historyList" class="flex gap-3.5 overflow-x-auto no-scrollbar py-1"></div>
+                </div>
+
+                <!-- Custom User Playlists -->
+                <div class="mb-7">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-zinc-200">Playlists</h3>
+                        <button onclick="createNewPlaylistPrompt()" class="text-xs text-red-500 font-bold hover:underline">+ New Playlist</button>
+                    </div>
+                    <div id="playlistsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+                </div>
+
+                <!-- Liked Videos -->
+                <div>
+                    <h3 class="text-sm font-bold text-zinc-200 mb-3">Liked Videos (<span id="likedCount">0</span>)</h3>
+                    <div id="likedList" class="flex flex-col gap-3"></div>
+                </div>
+            </section>
+
+            <!-- ======================================================== -->
+            <!-- 7. CREATOR CHANNEL PAGE MODAL                            -->
+            <!-- ======================================================== -->
+            <div id="channelPageModal" class="hidden fixed inset-0 z-50 bg-ytBlack overflow-y-auto no-scrollbar p-3 md:p-6">
+                <button onclick="closeChannelPage()" class="mb-3 px-4 py-1.5 bg-ytPill hover:bg-zinc-800 text-xs font-semibold rounded-full border border-ytBorder">
+                    <i class="fa-solid fa-arrow-left mr-1.5"></i> Back
+                </button>
+                <!-- Channel Header Banner -->
+                <div class="w-full h-36 md:h-52 rounded-3xl bg-gradient-to-r from-red-950 via-zinc-900 to-black overflow-hidden relative border border-ytBorder flex items-center justify-center">
+                    <span class="text-xs text-zinc-600 font-bold tracking-widest uppercase">Official Verified Creator Channel</span>
+                </div>
+                <!-- Channel Info Bar -->
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-4 px-2">
+                    <div class="flex items-center gap-4">
+                        <div id="modalChannelAvatar" class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-zinc-800 border-2 border-red-600 flex items-center justify-center font-bold text-xl uppercase text-white shadow-xl">YT</div>
+                        <div>
+                            <h2 id="modalChannelTitle" class="text-xl font-black text-white flex items-center gap-1.5">
+                                <span>Channel</span> <i class="fa-solid fa-circle-check text-xs text-zinc-400"></i>
+                            </h2>
+                            <p class="text-xs text-zinc-400 mt-0.5">@OfficialCreator • 4.8M subscribers • 240 videos</p>
+                        </div>
+                    </div>
+                    <button class="bg-white text-black hover:bg-zinc-200 px-6 py-2 rounded-full font-bold text-xs shadow-lg transition">Subscribe</button>
+                </div>
+
+                <!-- Channel Tabs -->
+                <div class="flex gap-4 border-b border-ytBorder pb-2 mb-4 text-xs font-bold text-zinc-400">
+                    <span class="text-white border-b-2 border-white pb-2 cursor-pointer">Videos</span>
+                    <span class="hover:text-white cursor-pointer" onclick="showToast('Shorts tab')">Shorts</span>
+                    <span class="hover:text-white cursor-pointer" onclick="showToast('Playlists tab')">Playlists</span>
+                    <span class="hover:text-white cursor-pointer" onclick="showToast('About tab')">About</span>
+                </div>
+                <div id="channelVideosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
-            <div>
-                <h3 class="text-sm font-semibold text-zinc-300 mb-2">Liked Tracks (<span id="likedCount">0</span>)</h3>
-                <div id="likedList" class="flex flex-col gap-3"></div>
+
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 8. MOBILE BOTTOM NAVIGATION DOCK (Native YouTube Bar)    -->
+    <!-- ======================================================== -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-ytBlack/98 backdrop-blur-md border-t border-ytBorder/80 px-4 py-2 flex items-center justify-around text-zinc-400">
+        <button id="navHomeBtn" onclick="switchMainTab('home')" class="nav-tab active flex flex-col items-center gap-1 text-white">
+            <i class="fa-solid fa-house text-base"></i>
+            <span class="text-[10px] font-medium">Home</span>
+        </button>
+
+        <button id="navShortsBtn" onclick="switchMainTab('shorts')" class="nav-tab flex flex-col items-center gap-1">
+            <i class="fa-solid fa-bolt text-base text-red-500"></i>
+            <span class="text-[10px] font-medium">Shorts</span>
+        </button>
+
+        <button onclick="startVoiceSearch()" class="flex flex-col items-center -mt-3">
+            <div class="w-10 h-10 rounded-full bg-red-600 shadow-lg shadow-red-600/40 flex items-center justify-center text-white text-sm active:scale-95 transition">
+                <i class="fa-solid fa-microphone"></i>
             </div>
-        </section>
-    </main>
+        </button>
+
+        <button id="navSubsBtn" onclick="switchMainTab('subscriptions')" class="nav-tab flex flex-col items-center gap-1">
+            <i class="fa-solid fa-layer-group text-base"></i>
+            <span class="text-[10px] font-medium">Subs</span>
+        </button>
+
+        <button id="navLibraryBtn" onclick="switchMainTab('library')" class="nav-tab flex flex-col items-center gap-1">
+            <i class="fa-solid fa-folder-open text-base"></i>
+            <span class="text-[10px] font-medium">You</span>
+        </button>
+    </nav>
 
     <!-- Modals -->
+    <!-- Speed Modal -->
     <div id="speedModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-3">
         <div class="bg-[#1c1c1c] w-full max-w-sm rounded-3xl p-4 border border-zinc-800">
             <h3 class="font-bold text-sm mb-3">Playback Speed</h3>
@@ -281,67 +580,53 @@
         </div>
     </div>
 
+    <!-- Sleep Modal -->
     <div id="sleepModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-3">
         <div class="bg-[#1c1c1c] w-full max-w-sm rounded-3xl p-4 border border-zinc-800">
-            <h3 class="font-bold text-sm mb-3">Sleep Timer</h3>
+            <h3 class="font-bold text-sm mb-3">Bedtime Sleep Timer</h3>
             <div class="flex flex-col gap-2 text-xs font-medium">
-                <button onclick="setSleepTimer(15)" class="p-3 bg-zinc-800 rounded-xl text-left">15 minutes</button>
-                <button onclick="setSleepTimer(30)" class="p-3 bg-zinc-800 rounded-xl text-left">30 minutes</button>
-                <button onclick="setSleepTimer(60)" class="p-3 bg-zinc-800 rounded-xl text-left">60 minutes</button>
-                <button onclick="setSleepTimer(0)" class="p-3 bg-red-600/30 text-red-400 rounded-xl text-left">Turn off</button>
+                <button onclick="setSleepTimer(15)" class="p-3 bg-zinc-800 rounded-xl text-left">Stop in 15 minutes</button>
+                <button onclick="setSleepTimer(30)" class="p-3 bg-zinc-800 rounded-xl text-left">Stop in 30 minutes</button>
+                <button onclick="setSleepTimer(60)" class="p-3 bg-zinc-800 rounded-xl text-left">Stop in 1 hour</button>
+                <button onclick="setSleepTimer(0)" class="p-3 bg-red-600/30 text-red-400 rounded-xl text-left">Turn off timer</button>
             </div>
         </div>
     </div>
 
+    <!-- Toast -->
     <div id="toast" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-zinc-800 text-white text-xs px-4 py-2.5 rounded-full border border-zinc-700 flex items-center gap-2 shadow-2xl">
         <i class="fa-solid fa-circle-check text-red-500"></i>
         <span id="toastMsg">Notification</span>
     </div>
 
-    <!-- 4. BOTTOM NAVIGATION -->
-    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-[#0f0f0f]/98 backdrop-blur-md border-t border-zinc-800/80 px-4 py-2 flex items-center justify-around text-zinc-400">
-        <button id="navHomeBtn" onclick="switchTab('home')" class="nav-tab active flex flex-col items-center gap-1 text-white">
-            <i class="fa-solid fa-house text-base"></i>
-            <span class="text-[10px] font-medium">Home</span>
-        </button>
-
-        <button id="navTrendingBtn" onclick="switchTab('trending')" class="nav-tab flex flex-col items-center gap-1">
-            <i class="fa-solid fa-fire-flame-curved text-base"></i>
-            <span class="text-[10px] font-medium">Trending</span>
-        </button>
-
-        <button onclick="startVoiceSearch()" class="flex flex-col items-center -mt-3">
-            <div class="w-10 h-10 rounded-full bg-red-600 shadow-lg shadow-red-600/40 flex items-center justify-center text-white text-sm active:scale-95 transition">
-                <i class="fa-solid fa-microphone"></i>
-            </div>
-        </button>
-
-        <button id="navLibraryBtn" onclick="switchTab('library')" class="nav-tab flex flex-col items-center gap-1">
-            <i class="fa-solid fa-folder-open text-base"></i>
-            <span class="text-[10px] font-medium">You</span>
-        </button>
-    </nav>
-
     <!-- ======================================================== -->
-    <!-- ⚡ PROFESSIONAL RUNTIME ENGINE JAVASCRIPT                 -->
+    <!-- ⚡ PROFESSIONAL PLATFORM ENGINE JAVASCRIPT               -->
     <!-- ======================================================== -->
     <script>
         const API_KEY = "AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY";
 
+        // View elements
+        const homeView = document.getElementById('homeView');
+        const watchView = document.getElementById('watchView');
+        const shortsView = document.getElementById('shortsView');
+        const libraryView = document.getElementById('libraryView');
         const videoFeed = document.getElementById('videoFeed');
-        const playerSec = document.getElementById('playerSection');
-        const videoContainer = document.getElementById('videoContainer');
-        const playerDetailsSection = document.getElementById('playerDetailsSection');
-        const scrubBarContainer = document.getElementById('scrubBarContainer');
-        const pipOverlayControls = document.getElementById('pipOverlayControls');
         const shimmerLoader = document.getElementById('shimmerLoader');
-        const searchInput = document.getElementById('searchInput');
-        const searchBarOverlay = document.getElementById('searchBarOverlay');
-        const suggestionsBox = document.getElementById('suggestionsBox');
-        const gestureNotice = document.getElementById('gestureNotice');
+
+        // Player elements
+        const videoContainer = document.getElementById('videoContainer');
+        const ambientBackdrop = document.getElementById('ambientBackdrop');
+        const pipOverlayControls = document.getElementById('pipOverlayControls');
         const seekBar = document.getElementById('seekBar');
         const currentTimeLabel = document.getElementById('currentTimeLabel');
         const totalDurationLabel = document.getElementById('totalDurationLabel');
+
+        // Search & Inputs
+        const desktopSearchInput = document.getElementById('desktopSearchInput');
+        const mobileSearchInput = document.getElementById('mobileSearchInput');
+        const searchBarOverlay = document.getElementById('searchBarOverlay');
+        const suggestionsBox = document.getElementById('suggestionsBox');
+        const gestureNotice = document.getElementById('gestureNotice');
 
         let currentQuery = 'Trending Songs India';
         let nextPageToken = '';
@@ -351,18 +636,17 @@
         let isFloatingPiP = false;
         let isSeeking = false;
         let scrubTimer = null;
+
         let loadedVideosList = [];
         let currentPlayingIndex = -1;
         let ytPlayer = null;
         let isAudioOnly = false;
         let sleepTimerTimeout = null;
 
-        let loopPointA = null;
-        let loopPointB = null;
-        let loopInterval = null;
-
-        let savedVideos = JSON.parse(localStorage.getItem('sk_saved') || '[]');
+        // Local Storage Sync
         let likedVideos = JSON.parse(localStorage.getItem('sk_liked') || '[]');
+        let watchHistory = JSON.parse(localStorage.getItem('sk_history') || '[]');
+        let userPlaylists = JSON.parse(localStorage.getItem('sk_playlists') || '{"Favorites":[]}');
         let subscribedChannels = JSON.parse(localStorage.getItem('sk_subs') || '[]');
 
         function showToast(msg) {
@@ -388,10 +672,23 @@
         }
 
         // ========================================================
-        // 🚀 LIVE STREAM FETCHER (STALE CACHE PURGED + GUARANTEED LOAD)
+        // 🚀 SMART INFINITE FETCHER (25 BATCH + 1 UNIT POPULAR)
         // ========================================================
         async function fetchNextBatch() {
             if (isLoading || !hasMore) return;
+
+            const cacheKey = `sk_plat_v1_${encodeURIComponent(currentQuery)}_${nextPageToken || 'p1'}`;
+            const cached = sessionStorage.getItem(cacheKey);
+
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                appendVideosToFeed(parsed.items || []);
+                nextPageToken = parsed.nextPageToken || '';
+                if (!nextPageToken) hasMore = false;
+                shimmerLoader.classList.add('hidden');
+                return;
+            }
+
             isLoading = true;
             shimmerLoader.classList.remove('hidden');
 
@@ -407,22 +704,21 @@
 
                 const res = await fetch(url);
                 const data = await res.json();
-                
                 if (data.error) throw new Error(data.error.message);
+
+                try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch(e) {}
 
                 nextPageToken = data.nextPageToken || '';
                 if (!nextPageToken) hasMore = false;
 
                 if (data.items && data.items.length > 0) {
                     appendVideosToFeed(data.items);
-                } else if (!loadedVideosList.length) {
-                    videoFeed.innerHTML = `<div class="p-8 text-center text-zinc-400 text-xs">No tracks found. Pull to refresh.</div>`;
                 }
             } catch (err) {
                 console.error("Fetch error:", err);
                 if (!loadedVideosList.length) {
                     videoFeed.innerHTML = `
-                        <div class="m-5 p-5 bg-zinc-900 border border-red-500/50 rounded-2xl text-center">
+                        <div class="col-span-full m-5 p-5 bg-zinc-900 border border-red-500/50 rounded-2xl text-center">
                             <i class="fa-solid fa-triangle-exclamation text-red-500 text-2xl mb-2"></i>
                             <h3 class="text-sm font-bold text-white">Stream Notice</h3>
                             <p class="text-xs text-zinc-400 mt-1">${err.message || 'Network issue'}</p>
@@ -448,24 +744,24 @@
                 const channel = snip.channelTitle || "Official Channel";
                 const globalIndex = startIndex + idx;
 
-                loadedVideosList.push({ id, title, channel, thumb });
+                loadedVideosList.push({ id, title, channel, thumb, publishedAt: snip.publishedAt, description: snip.description });
 
                 return `
-                    <article class="flex flex-col cursor-pointer active:bg-zinc-900/60 transition">
-                        <div onclick="playVideoByIndex(${globalIndex})" class="relative w-full aspect-video bg-zinc-900 overflow-hidden sm:rounded-2xl">
-                            <img src="${thumb}" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'" class="w-full h-full object-cover">
+                    <article class="flex flex-col cursor-pointer group">
+                        <div onclick="playVideoByIndex(${globalIndex})" class="relative w-full aspect-video bg-zinc-900 overflow-hidden rounded-2xl">
+                            <img src="${thumb}" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                             <span class="absolute bottom-2 right-2 bg-black/85 text-white font-medium text-[10px] px-1.5 py-0.5 rounded">
                                 ${(Math.random() * 4 + 3).toFixed(0)}:${Math.floor(Math.random() * 50 + 10)}
                             </span>
                         </div>
-                        <div class="flex items-start gap-3 px-3 py-2.5">
-                            <div onclick="playVideoByIndex(${globalIndex})" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs flex-shrink-0 text-zinc-300">
+                        <div class="flex items-start gap-3 px-1 py-2.5">
+                            <div onclick="openChannelPage('${channel}')" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs flex-shrink-0 text-zinc-300 hover:border-red-500 transition">
                                 ${(channel || 'Y').charAt(0).toUpperCase()}
                             </div>
                             <div onclick="playVideoByIndex(${globalIndex})" class="flex-1 min-w-0">
-                                <h3 class="text-sm font-normal text-zinc-100 line-clamp-2 leading-snug">${title}</h3>
-                                <div class="text-[11px] text-zinc-400 mt-0.5 flex items-center gap-1.5">
-                                    <span>${channel}</span> • <span>Trending</span> • <span>${formatTimeAgo(snip.publishedAt)}</span>
+                                <h3 class="text-sm font-semibold text-zinc-100 line-clamp-2 leading-snug group-hover:text-red-400 transition">${title}</h3>
+                                <div class="text-[11px] text-zinc-400 mt-1 flex items-center gap-1.5">
+                                    <span class="hover:text-white transition">${channel}</span> • <span>${(Math.random() * 600 + 40).toFixed(0)}K views</span> • <span>${formatTimeAgo(snip.publishedAt)}</span>
                                 </div>
                             </div>
                         </div>
@@ -475,7 +771,87 @@
         }
 
         // ========================================================
-        // ⏩ SEEK & TIMELINE CONTROLS
+        // 🎧 CINEMA WATCH VIEW & PLAYER ENGINE
+        // ========================================================
+        function playVideoByIndex(index) {
+            if (index < 0 || index >= loadedVideosList.length) return;
+            currentPlayingIndex = index;
+            const video = loadedVideosList[index];
+
+            // Record Watch History
+            recordHistory(video);
+
+            // Open Cinema Watch View
+            watchView.classList.remove('hidden');
+            homeView.classList.add('hidden');
+            shortsView.classList.add('hidden');
+            libraryView.classList.add('hidden');
+            isPlayerActive = true;
+
+            // Reset Floating PiP if active
+            disableFloatingPiP();
+
+            document.getElementById('playingTitle').innerText = video.title;
+            document.getElementById('playingChannel').innerText = video.channel;
+            document.getElementById('channelAvatar').innerText = (video.channel || 'Y').charAt(0).toUpperCase();
+
+            // Set Description & Metadata
+            document.getElementById('descViews').innerText = `${(Math.random() * 1.5 + 0.4).toFixed(1)}M views`;
+            document.getElementById('descDate').innerText = formatTimeAgo(video.publishedAt);
+            document.getElementById('descContent').innerText = video.description || `Official video streaming on SKPlayer Platform. Enjoy uninterrupted playback.`;
+
+            // Random Ambient Glow Color
+            const ambientColors = ['#991b1b', '#9a3412', '#3730a3', '#065f46', '#581c87'];
+            ambientBackdrop.style.background = ambientColors[Math.floor(Math.random() * ambientColors.length)];
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setupMediaSession(video);
+            renderUpNextQueue();
+            fetchComments(video.id);
+
+            if (!ytPlayer) {
+                ytPlayer = new YT.Player('ytplayer', {
+                    height: '100%',
+                    width: '100%',
+                    videoId: video.id,
+                    playerVars: { 'autoplay': 1, 'playsinline': 1, 'rel': 0, 'modestbranding': 1, 'controls': 1 },
+                    events: {
+                        'onReady': e => {
+                            e.target.playVideo();
+                            updatePlayPauseUI(true);
+                            startTimelineTracker();
+                        },
+                        'onStateChange': e => {
+                            if (e.data === YT.PlayerState.PLAYING) {
+                                updatePlayPauseUI(true);
+                                startTimelineTracker();
+                            } else if (e.data === YT.PlayerState.PAUSED) {
+                                updatePlayPauseUI(false);
+                            } else if (e.data === YT.PlayerState.ENDED) {
+                                playNextVideo();
+                            }
+                        }
+                    }
+                });
+            } else {
+                ytPlayer.loadVideoById(video.id);
+                ytPlayer.playVideo();
+                updatePlayPauseUI(true);
+                startTimelineTracker();
+            }
+        }
+
+        function closeWatchPlayer() {
+            disableFloatingPiP();
+            isPlayerActive = false;
+            clearInterval(scrubTimer);
+            watchView.classList.add('hidden');
+            homeView.classList.remove('hidden');
+            if (ytPlayer?.stopVideo) ytPlayer.stopVideo();
+        }
+
+        // ========================================================
+        // ⏩ PRECISION TIMELINE SCRUBBER
         // ========================================================
         function seekOffset(seconds) {
             if (!ytPlayer || !ytPlayer.getCurrentTime) return;
@@ -524,119 +900,19 @@
             return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
         }
 
-        // ========================================================
-        // 🎧 PLAY VIDEO & SCROLL PiP CONTROLLER
-        // ========================================================
-        function playVideoByIndex(index) {
-            if (index < 0 || index >= loadedVideosList.length) return;
-            currentPlayingIndex = index;
-            const video = loadedVideosList[index];
-
-            playerSec.classList.remove('hidden');
-            isPlayerActive = true;
-
-            disableFloatingPiP();
-
-            document.getElementById('playingTitle').innerText = video.title;
-            document.getElementById('playingChannel').innerText = video.channel;
-            document.getElementById('channelAvatar').innerText = (video.channel || 'Y').charAt(0).toUpperCase();
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            setupMediaSession(video);
-            renderUpNextQueue();
-
-            if (!ytPlayer) {
-                ytPlayer = new YT.Player('ytplayer', {
-                    height: '100%',
-                    width: '100%',
-                    videoId: video.id,
-                    playerVars: { 'autoplay': 1, 'playsinline': 1, 'rel': 0, 'modestbranding': 1, 'controls': 1 },
-                    events: {
-                        'onReady': e => { 
-                            e.target.playVideo(); 
-                            updatePlayPauseUI(true);
-                            startTimelineTracker();
-                        },
-                        'onStateChange': e => {
-                            if (e.data === YT.PlayerState.PLAYING) {
-                                updatePlayPauseUI(true);
-                                startTimelineTracker();
-                            } else if (e.data === YT.PlayerState.PAUSED) {
-                                updatePlayPauseUI(false);
-                            } else if (e.data === YT.PlayerState.ENDED) {
-                                playNextVideo();
-                            }
-                        }
-                    }
-                });
-            } else {
-                ytPlayer.loadVideoById(video.id);
-                ytPlayer.playVideo();
-                updatePlayPauseUI(true);
-                startTimelineTracker();
-            }
-        }
-
-        window.addEventListener('scroll', () => {
-            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-
-            if (isPlayerActive) {
-                if (scrollTop > 420 && !isFloatingPiP) {
-                    enableFloatingPiP();
-                } else if (scrollTop < 120 && isFloatingPiP) {
-                    disableFloatingPiP();
-                }
-            }
-
-            if (scrollTop + clientHeight >= scrollHeight - 650) {
-                fetchNextBatch();
-            }
-        });
-
-        function enableFloatingPiP() {
-            isFloatingPiP = true;
-            videoContainer.classList.add('pip-active');
-            playerDetailsSection.classList.add('hidden');
-            scrubBarContainer.classList.add('hidden');
-            pipOverlayControls.classList.remove('hidden');
-        }
-
-        function disableFloatingPiP() {
-            isFloatingPiP = false;
-            videoContainer.classList.remove('pip-active');
-            playerDetailsSection.classList.remove('hidden');
-            scrubBarContainer.classList.remove('hidden');
-            pipOverlayControls.classList.add('hidden');
-        }
-
-        function manualTogglePiP() {
-            if (!isFloatingPiP) {
-                enableFloatingPiP();
-                showToast("Floating PiP Window Active");
-            } else {
-                disableFloatingPiP();
-                showToast("Restored to Normal Player");
-            }
-        }
-
-        function restoreFromFloatingPiP() {
-            disableFloatingPiP();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
         function renderUpNextQueue() {
-            const nextList = loadedVideosList.slice(currentPlayingIndex + 1, currentPlayingIndex + 8);
+            const nextList = loadedVideosList.slice(currentPlayingIndex + 1, currentPlayingIndex + 10);
             const container = document.getElementById('upNextList');
             if (!nextList.length) {
-                container.innerHTML = `<p class="text-zinc-500 text-xs py-2">Scroll down to queue more songs...</p>`;
+                container.innerHTML = `<p class="text-zinc-500 text-xs py-2">Queue complete. Scroll down for more...</p>`;
                 return;
             }
             container.innerHTML = nextList.map((v, i) => `
-                <div onclick="playVideoByIndex(${currentPlayingIndex + 1 + i})" class="flex items-center gap-3 p-1.5 hover:bg-zinc-800/60 rounded-xl cursor-pointer">
-                    <img src="${v.thumb}" class="w-20 aspect-video rounded-lg object-cover flex-shrink-0">
+                <div onclick="playVideoByIndex(${currentPlayingIndex + 1 + i})" class="flex gap-2.5 p-1.5 hover:bg-zinc-800/60 rounded-xl cursor-pointer group">
+                    <img src="${v.thumb}" class="w-28 aspect-video rounded-xl object-cover flex-shrink-0 group-hover:scale-105 transition">
                     <div class="flex-1 min-w-0">
-                        <h4 class="text-xs text-zinc-200 line-clamp-1 font-medium">${v.title}</h4>
-                        <p class="text-[10px] text-zinc-400 mt-0.5">${v.channel}</p>
+                        <h4 class="text-xs font-semibold text-zinc-200 line-clamp-2 leading-snug group-hover:text-red-400 transition">${v.title}</h4>
+                        <p class="text-[10px] text-zinc-400 mt-1">${v.channel}</p>
                     </div>
                 </div>
             `).join('');
@@ -671,129 +947,297 @@
         function updatePlayPauseUI(isPlaying) {
             const icon = document.getElementById('playPauseIcon');
             const text = document.getElementById('playPauseText');
-            if (isPlaying) { 
-                icon.className = "fa-solid fa-pause"; 
-                text.innerText = "Pause"; 
-            } else { 
-                icon.className = "fa-solid fa-play"; 
-                text.innerText = "Play"; 
+            if (isPlaying) { icon.className = "fa-solid fa-pause"; text.innerText = "Pause"; }
+            else { icon.className = "fa-solid fa-play"; text.innerText = "Play"; }
+        }
+
+        // ========================================================
+        // 🌟 FLOATING PIP WINDOW CONTROLLER
+        // ========================================================
+        function enableFloatingPiP() {
+            isFloatingPiP = true;
+            videoContainer.classList.add('pip-window');
+            pipOverlayControls.classList.remove('hidden');
+        }
+
+        function disableFloatingPiP() {
+            isFloatingPiP = false;
+            videoContainer.classList.remove('pip-window');
+            pipOverlayControls.classList.add('hidden');
+        }
+
+        function manualTogglePiP() {
+            if (!isFloatingPiP) {
+                enableFloatingPiP();
+                showToast("Floating PiP Window Active");
+            } else {
+                disableFloatingPiP();
+                showToast("Restored to Standard Player");
             }
         }
 
-        function closePlayer() {
+        function restoreFromFloatingPiP() {
             disableFloatingPiP();
-            isPlayerActive = false;
-            clearInterval(scrubTimer);
-            playerSec.classList.add('hidden');
-            if (ytPlayer?.stopVideo) ytPlayer.stopVideo();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function setupMediaSession(video) {
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: video.title,
-                    artist: video.channel,
-                    album: 'SKPlayer Ultra Ad-Free',
-                    artwork: [{ src: video.thumb, sizes: '512x512', type: 'image/png' }]
-                });
-                navigator.mediaSession.setActionHandler('play', () => { ytPlayer?.playVideo(); updatePlayPauseUI(true); });
-                navigator.mediaSession.setActionHandler('pause', () => { ytPlayer?.pauseVideo(); updatePlayPauseUI(false); });
-                navigator.mediaSession.setActionHandler('seekforward', () => seekOffset(10));
-                navigator.mediaSession.setActionHandler('seekbackward', () => seekOffset(-10));
-                navigator.mediaSession.setActionHandler('nexttrack', () => playNextVideo());
-            }
-        }
+        // Auto PiP on scroll down in Watch View
+        window.addEventListener('scroll', () => {
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
 
-        // Gesture Double-Tap Controls
-        let lastLeftTap = 0, lastRightTap = 0;
-        const leftZone = document.getElementById('leftTouchZone');
-        const rightZone = document.getElementById('rightTouchZone');
-
-        leftZone.addEventListener('click', () => {
-            const now = Date.now();
-            if (now - lastLeftTap < 300) {
-                seekOffset(-10);
-            } else {
-                setTimeout(() => togglePlayPause(), 300);
+            if (isPlayerActive && !watchView.classList.contains('hidden')) {
+                if (scrollTop > 520 && !isFloatingPiP) {
+                    enableFloatingPiP();
+                } else if (scrollTop < 120 && isFloatingPiP) {
+                    disableFloatingPiP();
+                }
             }
-            lastLeftTap = now;
+
+            if (scrollTop + clientHeight >= scrollHeight - 650) {
+                fetchNextBatch();
+            }
         });
 
-        rightZone.addEventListener('click', () => {
-            const now = Date.now();
-            if (now - lastRightTap < 300) {
-                seekOffset(10);
+        // ========================================================
+        // 💬 YOUTUBE COMMENTS FETCHER
+        // ========================================================
+        async function fetchComments(videoId) {
+            const list = document.getElementById('commentsList');
+            list.innerHTML = `<div class="py-3 text-zinc-500 text-xs">Loading verified comments...</div>`;
+            try {
+                const res = await fetch(`https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=8&key=${API_KEY}`);
+                const data = await res.json();
+                if (data.items?.length) {
+                    list.innerHTML = data.items.map(c => {
+                        const com = c.snippet.topLevelComment.snippet;
+                        return `
+                            <div class="flex gap-3 bg-[#181818]/60 p-3 rounded-2xl border border-ytBorder/40">
+                                <img src="${com.authorProfileImageUrl}" class="w-8 h-8 rounded-full object-cover flex-shrink-0">
+                                <div class="flex-1 text-xs">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-zinc-200">${com.authorDisplayName}</span>
+                                        <span class="text-[10px] text-zinc-500">${formatTimeAgo(com.publishedAt)}</span>
+                                    </div>
+                                    <p class="text-zinc-300 mt-1 leading-relaxed">${com.textDisplay}</p>
+                                </div>
+                            </div>`;
+                    }).join('');
+                } else {
+                    list.innerHTML = `<div class="py-2 text-zinc-500 text-xs">Comments are disabled on this track.</div>`;
+                }
+            } catch (e) {
+                list.innerHTML = `<div class="py-2 text-zinc-500 text-xs">Live comments offline.</div>`;
+            }
+        }
+
+        function toggleDescription() {
+            const desc = document.getElementById('descContent');
+            const showMore = document.getElementById('descShowMore');
+            if (desc.classList.contains('line-clamp-2')) {
+                desc.classList.remove('line-clamp-2');
+                showMore.innerText = "Show less";
             } else {
-                setTimeout(() => togglePlayPause(), 300);
-            }
-            lastRightTap = now;
-        });
-
-        function flashGesture(text) {
-            gestureNotice.innerText = text;
-            gestureNotice.classList.remove('hidden');
-            setTimeout(() => gestureNotice.classList.add('hidden'), 900);
-        }
-
-        function toggleAudioOnly() {
-            isAudioOnly = !isAudioOnly;
-            document.getElementById('audioOnlyCover').classList.toggle('hidden', !isAudioOnly);
-            document.getElementById('audioOnlyText').innerText = isAudioOnly ? "Audio" : "AV";
-            showToast(isAudioOnly ? "Data Saver: Audio-Only Enabled" : "Video Display Restored");
-        }
-
-        function openSpeedMenu() { document.getElementById('speedModal').classList.remove('hidden'); }
-        function setPlaybackSpeed(rate) {
-            if (ytPlayer && ytPlayer.setPlaybackRate) {
-                ytPlayer.setPlaybackRate(rate);
-                document.getElementById('speedLabel').innerText = rate + 'x';
-            }
-            document.getElementById('speedModal').classList.add('hidden');
-            showToast(`Speed set to ${rate}x`);
-        }
-
-        function openSleepMenu() { document.getElementById('sleepModal').classList.remove('hidden'); }
-        function setSleepTimer(minutes) {
-            clearTimeout(sleepTimerTimeout);
-            document.getElementById('sleepModal').classList.add('hidden');
-            if (minutes === 0) { showToast("Sleep timer cancelled"); return; }
-            showToast(`Player will stop in ${minutes} minutes`);
-            sleepTimerTimeout = setTimeout(() => {
-                if (ytPlayer && ytPlayer.pauseVideo) { ytPlayer.pauseVideo(); updatePlayPauseUI(false); }
-                showToast("Bedtime sleep timer paused player");
-            }, minutes * 60 * 1000);
-        }
-
-        function toggleABLoop() {
-            if (!ytPlayer) return;
-            const cur = ytPlayer.getCurrentTime();
-            if (loopPointA === null) {
-                loopPointA = cur;
-                document.getElementById('abLoopBtn').classList.add('bg-red-600');
-                showToast(`Point A set at ${Math.floor(cur)}s`);
-            } else if (loopPointB === null) {
-                loopPointB = cur;
-                showToast(`Looping ${Math.floor(loopPointA)}s to ${Math.floor(loopPointB)}s`);
-                loopInterval = setInterval(() => {
-                    if (ytPlayer.getCurrentTime() >= loopPointB) ytPlayer.seekTo(loopPointA, true);
-                }, 400);
-            } else {
-                clearInterval(loopInterval);
-                loopPointA = null; loopPointB = null;
-                document.getElementById('abLoopBtn').classList.remove('bg-red-600');
-                showToast("Loop Disabled");
+                desc.classList.add('line-clamp-2');
+                showMore.innerText = "Show more";
             }
         }
 
-        function toggleSearchBar() {
+        // ========================================================
+        // ⚡ VERTICAL SHORTS REEL CONTROLLER
+        // ========================================================
+        let currentShortIndex = 0;
+        function renderShortsReel() {
+            if (!loadedVideosList.length) return;
+            const short = loadedVideosList[currentShortIndex % loadedVideosList.length];
+            document.getElementById('shortsThumb').src = short.thumb;
+            document.getElementById('shortsTitle').innerText = short.title;
+            document.getElementById('shortsChannel').innerText = `@${short.channel}`;
+        }
+
+        function playNextShort() {
+            currentShortIndex++;
+            renderShortsReel();
+        }
+
+        // ========================================================
+        // 👤 CHANNEL PAGE SYSTEM
+        // ========================================================
+        function openChannelPage(name) {
+            const cName = name || (currentPlayingIndex > -1 ? loadedVideosList[currentPlayingIndex].channel : 'Official Creator');
+            document.getElementById('modalChannelTitle').innerText = cName;
+            document.getElementById('modalChannelAvatar').innerText = cName.charAt(0).toUpperCase();
+
+            // Populate Channel Videos
+            const grid = document.getElementById('channelVideosGrid');
+            const sampleVideos = loadedVideosList.slice(0, 6);
+            grid.innerHTML = sampleVideos.map(v => `
+                <div onclick="playSavedTrack('${v.id}','${encodeURIComponent(v.title)}','${encodeURIComponent(v.channel)}'); closeChannelPage()" class="flex flex-col cursor-pointer group">
+                    <img src="${v.thumb}" class="w-full aspect-video rounded-2xl object-cover group-hover:scale-105 transition">
+                    <h4 class="text-xs font-semibold text-white mt-2 line-clamp-2 leading-tight">${v.title}</h4>
+                </div>
+            `).join('');
+
+            document.getElementById('channelPageModal').classList.remove('hidden');
+        }
+
+        function closeChannelPage() {
+            document.getElementById('channelPageModal').classList.add('hidden');
+        }
+
+        // ========================================================
+        // 📚 USER DATA: HISTORY & PLAYLIST MANAGEMENT
+        // ========================================================
+        function recordHistory(video) {
+            watchHistory = watchHistory.filter(v => v.id !== video.id);
+            watchHistory.unshift(video);
+            if (watchHistory.length > 25) watchHistory.pop();
+            localStorage.setItem('sk_history', JSON.stringify(watchHistory));
+        }
+
+        function clearHistory() {
+            watchHistory = [];
+            localStorage.removeItem('sk_history');
+            renderLibrary();
+            showToast("History cleared");
+        }
+
+        function createNewPlaylistPrompt() {
+            const name = prompt("Enter new Playlist name:");
+            if (name && !userPlaylists[name]) {
+                userPlaylists[name] = [];
+                localStorage.setItem('sk_playlists', JSON.stringify(userPlaylists));
+                renderLibrary();
+                showToast(`Created playlist "${name}"`);
+            }
+        }
+
+        function renderLibrary() {
+            document.getElementById('historyCount').innerText = watchHistory.length;
+            document.getElementById('likedCount').innerText = likedVideos.length;
+
+            // Render History
+            document.getElementById('historyList').innerHTML = watchHistory.map(v => `
+                <div onclick="playSavedTrack('${v.id}','${encodeURIComponent(v.title)}','${encodeURIComponent(v.channel)}')" class="flex-shrink-0 w-36 cursor-pointer group">
+                    <img src="${v.thumb}" class="w-36 aspect-video rounded-xl object-cover group-hover:scale-105 transition">
+                    <h5 class="text-xs font-medium line-clamp-1 mt-1 text-zinc-200">${v.title}</h5>
+                </div>
+            `).join('') || `<p class="text-zinc-500 text-xs py-2">No recently played videos</p>`;
+
+            // Render Playlists
+            const pContainer = document.getElementById('playlistsContainer');
+            pContainer.innerHTML = Object.keys(userPlaylists).map(pName => `
+                <div class="bg-[#181818] p-3 rounded-2xl flex items-center justify-between border border-ytBorder/40">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-red-600/20 text-red-500 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-music"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">${pName}</h4>
+                            <span class="text-[10px] text-zinc-400">${userPlaylists[pName].length} tracks</span>
+                        </div>
+                    </div>
+                    <button onclick="playEntirePlaylist('${pName}')" class="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-xs rounded-full font-medium">Play</button>
+                </div>
+            `).join('');
+
+            // Render Liked List
+            document.getElementById('likedList').innerHTML = likedVideos.map(v => `
+                <div onclick="playSavedTrack('${v.id}','${encodeURIComponent(v.title)}','${encodeURIComponent(v.channel)}')" class="flex gap-3 bg-[#181818] p-2 rounded-xl cursor-pointer">
+                    <img src="${v.thumb}" class="w-24 aspect-video rounded-lg object-cover">
+                    <div class="flex-1 min-w-0"><h4 class="text-xs font-medium line-clamp-2">${v.title}</h4><p class="text-[10px] text-zinc-400 mt-1">${v.channel}</p></div>
+                </div>
+            `).join('') || `<p class="text-zinc-500 text-xs py-2">No liked videos</p>`;
+        }
+
+        function playSavedTrack(id, title, channel) {
+            loadedVideosList.unshift({ id, title: decodeURIComponent(title), channel: decodeURIComponent(channel), thumb: `https://i.ytimg.com/vi/${id}/hqdefault.jpg` });
+            playVideoByIndex(0);
+        }
+
+        function playEntirePlaylist(name) {
+            const list = userPlaylists[name];
+            if (!list || !list.length) { showToast("Playlist is empty"); return; }
+            loadedVideosList = [...list];
+            playVideoByIndex(0);
+        }
+
+        // ========================================================
+        // 🔄 TAB ROUTING & NAVIGATION
+        // ========================================================
+        function switchMainTab(tab) {
+            // Reset Sidebar & Dock Active states
+            document.querySelectorAll('.sidebar-link').forEach(b => b.classList.remove('bg-ytPill', 'text-white'));
+            document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('text-white'));
+
+            homeView.classList.add('hidden');
+            watchView.classList.add('hidden');
+            shortsView.classList.add('hidden');
+            libraryView.classList.add('hidden');
+
+            if (tab === 'home') {
+                homeView.classList.remove('hidden');
+                document.getElementById('navHomeBtn').classList.add('text-white');
+            } else if (tab === 'shorts') {
+                shortsView.classList.remove('hidden');
+                document.getElementById('navShortsBtn').classList.add('text-white');
+                renderShortsReel();
+            } else if (tab === 'subscriptions') {
+                homeView.classList.remove('hidden');
+                document.getElementById('navSubsBtn').classList.add('text-white');
+                quickFilter('Official Music Channels India');
+            } else if (tab === 'history' || tab === 'library' || tab === 'liked') {
+                libraryView.classList.remove('hidden');
+                document.getElementById('navLibraryBtn').classList.add('text-white');
+                renderLibrary();
+            }
+        }
+
+        function toggleSidebar() {
+            const sb = document.getElementById('desktopSidebar');
+            sb.classList.toggle('hidden');
+        }
+
+        // Mobile Search Toggle
+        function toggleMobileSearch() {
             searchBarOverlay.classList.toggle('hidden');
-            if (!searchBarOverlay.classList.contains('hidden')) searchInput.focus();
+            if (!searchBarOverlay.classList.contains('hidden')) mobileSearchInput.focus();
         }
 
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleSearch();
-        });
+        function executeDesktopSearch() {
+            const query = desktopSearchInput.value.trim();
+            if (!query) return;
+            startNewSearch(query);
+        }
 
+        function executeMobileSearch() {
+            const query = mobileSearchInput.value.trim();
+            if (!query) return;
+            searchBarOverlay.classList.add('hidden');
+            startNewSearch(query);
+        }
+
+        function quickFilter(q) {
+            document.querySelectorAll('.chip-btn').forEach(btn => {
+                btn.className = btn.innerText.toLowerCase() === q.toLowerCase()
+                    ? "chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap"
+                    : "chip-btn px-3.5 py-1.5 bg-ytPill text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]";
+            });
+            startNewSearch(q);
+        }
+
+        function startNewSearch(query) {
+            currentQuery = query;
+            nextPageToken = '';
+            hasMore = true;
+            loadedVideosList = [];
+            currentPlayingIndex = -1;
+            videoFeed.innerHTML = '';
+            switchMainTab('home');
+            shimmerLoader.classList.remove('hidden');
+            fetchNextBatch();
+        }
+
+        // Live Auto Suggestions
         let debounceTimer;
         window.handleGoogleSuggest = function(data) {
             if (data && data[1] && data[1].length) {
@@ -821,36 +1265,95 @@
         }
 
         function selectSuggestion(q) {
-            searchInput.value = q;
+            if (!searchBarOverlay.classList.contains('hidden')) {
+                mobileSearchInput.value = q;
+                executeMobileSearch();
+            } else {
+                desktopSearchInput.value = q;
+                executeDesktopSearch();
+            }
             suggestionsBox.classList.add('hidden');
-            handleSearch();
         }
 
-        function handleSearch() {
-            const query = searchInput.value.trim();
-            if (!query) return;
-            searchBarOverlay.classList.add('hidden');
-            startNewSearch(query);
+        // ========================================================
+        // 🎙 VOICE ENGINE
+        // ========================================================
+        let recognition = null;
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRec();
+            recognition.continuous = false;
+            recognition.lang = 'hi-IN';
+            recognition.onstart = () => document.getElementById('voiceModal').classList.remove('hidden');
+            recognition.onresult = e => {
+                const text = e.results[0][0].transcript;
+                document.getElementById('voiceRecognizedText').innerText = `"${text}"`;
+                if (e.results[0].isFinal) {
+                    closeVoiceSearch();
+                    startNewSearch(text);
+                }
+            };
+            recognition.onend = () => closeVoiceSearch();
         }
 
-        function quickFilter(q) {
-            document.querySelectorAll('.chip-btn').forEach(btn => {
-                btn.className = btn.innerText.toLowerCase() === q.toLowerCase()
-                    ? "chip-btn active px-3 py-1 bg-white text-black text-xs font-medium rounded-lg whitespace-nowrap"
-                    : "chip-btn px-3 py-1 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]";
-            });
-            startNewSearch(q);
+        function startVoiceSearch() {
+            if (recognition) { try { recognition.start(); } catch(e) {} }
+            else alert("Voice recognition not supported on this browser.");
         }
 
-        function startNewSearch(query) {
-            currentQuery = query;
-            nextPageToken = '';
-            hasMore = true;
-            loadedVideosList = [];
-            currentPlayingIndex = -1;
-            videoFeed.innerHTML = '';
-            shimmerLoader.classList.remove('hidden');
-            fetchNextBatch();
+        function closeVoiceSearch() {
+            document.getElementById('voiceModal').classList.add('hidden');
+            recognition?.stop();
+        }
+
+        // Controls: Double Tap 10s Seek
+        let lastLeftTap = 0, lastRightTap = 0;
+        document.getElementById('leftTouchZone').addEventListener('click', () => {
+            const now = Date.now();
+            if (now - lastLeftTap < 300) seekOffset(-10);
+            else setTimeout(() => togglePlayPause(), 300);
+            lastLeftTap = now;
+        });
+        document.getElementById('rightTouchZone').addEventListener('click', () => {
+            const now = Date.now();
+            if (now - lastRightTap < 300) seekOffset(10);
+            else setTimeout(() => togglePlayPause(), 300);
+            lastRightTap = now;
+        });
+
+        function flashGesture(text) {
+            gestureNotice.innerText = text;
+            gestureNotice.classList.remove('hidden');
+            setTimeout(() => gestureNotice.classList.add('hidden'), 900);
+        }
+
+        function toggleAudioOnly() {
+            isAudioOnly = !isAudioOnly;
+            document.getElementById('audioOnlyCover').classList.toggle('hidden', !isAudioOnly);
+            document.getElementById('audioOnlyText').innerText = isAudioOnly ? "Audio" : "AV";
+            showToast(isAudioOnly ? "Data Saver: Audio-Only Enabled" : "Video Display Restored");
+        }
+
+        function openSpeedMenu() { document.getElementById('speedModal').classList.remove('hidden'); }
+        function setPlaybackSpeed(rate) {
+            if (ytPlayer && ytPlayer.setPlaybackRate) {
+                ytPlayer.setPlaybackRate(rate);
+                document.getElementById('speedLabel').innerText = rate + 'x';
+            }
+            document.getElementById('speedModal').classList.add('hidden');
+            showToast(`Speed: ${rate}x`);
+        }
+
+        function openSleepMenu() { document.getElementById('sleepModal').classList.remove('hidden'); }
+        function setSleepTimer(minutes) {
+            clearTimeout(sleepTimerTimeout);
+            document.getElementById('sleepModal').classList.add('hidden');
+            if (minutes === 0) { showToast("Sleep timer cancelled"); return; }
+            showToast(`Stopping in ${minutes} minutes`);
+            sleepTimerTimeout = setTimeout(() => {
+                if (ytPlayer && ytPlayer.pauseVideo) { ytPlayer.pauseVideo(); updatePlayPauseUI(false); }
+                showToast("Bedtime timer paused playback");
+            }, minutes * 60 * 1000);
         }
 
         function toggleLike() {
@@ -860,6 +1363,7 @@
             if (idx > -1) {
                 likedVideos.splice(idx, 1);
                 document.getElementById('likeIcon').className = "fa-regular fa-thumbs-up";
+                showToast("Removed from Liked");
             } else {
                 likedVideos.push(video);
                 document.getElementById('likeIcon').className = "fa-solid fa-thumbs-up text-red-500";
@@ -876,11 +1380,11 @@
             if (idx > -1) {
                 subscribedChannels.splice(idx, 1);
                 btn.innerText = "Subscribe";
-                btn.className = "bg-white text-black hover:bg-zinc-200 px-4 py-1.5 rounded-full text-xs font-bold transition";
+                btn.className = "bg-white text-black hover:bg-zinc-200 px-4 py-2 rounded-full text-xs font-bold transition";
             } else {
                 subscribedChannels.push(channel);
                 btn.innerText = "Subscribed";
-                btn.className = "bg-[#272727] text-zinc-300 px-3.5 py-1.5 rounded-full text-xs font-semibold";
+                btn.className = "bg-ytPill text-zinc-300 px-4 py-2 rounded-full text-xs font-semibold";
                 showToast(`Subscribed to ${channel}`);
             }
             localStorage.setItem('sk_subs', JSON.stringify(subscribedChannels));
@@ -890,51 +1394,23 @@
             if (currentPlayingIndex === -1) return;
             const url = `https://youtu.be/${loadedVideosList[currentPlayingIndex].id}`;
             if (navigator.share) navigator.share({ title: loadedVideosList[currentPlayingIndex].title, url });
-            else { navigator.clipboard.writeText(url); showToast("Link copied!"); }
+            else { navigator.clipboard.writeText(url); showToast("Link copied to clipboard!"); }
         }
 
-        function switchTab(tab) {
-            document.querySelectorAll('.nav-tab').forEach(b => {
-                b.classList.remove('text-white');
-                b.classList.add('text-zinc-400');
-            });
-            document.getElementById('homeView').classList.add('hidden');
-            document.getElementById('libraryView').classList.add('hidden');
-            document.getElementById('categoryChipsNav').classList.remove('hidden');
-
-            if (tab === 'home') {
-                document.getElementById('navHomeBtn').classList.add('text-white');
-                document.getElementById('homeView').classList.remove('hidden');
-                quickFilter('Trending Songs India');
-            } else if (tab === 'trending') {
-                document.getElementById('navTrendingBtn').classList.add('text-white');
-                document.getElementById('homeView').classList.remove('hidden');
-                quickFilter('Top Music Videos India 2026');
-            } else if (tab === 'library') {
-                document.getElementById('navLibraryBtn').classList.add('text-white');
-                document.getElementById('categoryChipsNav').classList.add('hidden');
-                document.getElementById('libraryView').classList.remove('hidden');
-                document.getElementById('savedCount').innerText = savedVideos.length;
-                document.getElementById('likedCount').innerText = likedVideos.length;
-                document.getElementById('likedList').innerHTML = likedVideos.map(v => `
-                    <div onclick="playSaved('${v.id}','${encodeURIComponent(v.title)}','${encodeURIComponent(v.channel)}')" class="flex gap-3 bg-[#181818] p-2 rounded-xl cursor-pointer">
-                        <img src="${v.thumb}" class="w-24 aspect-video rounded-lg object-cover">
-                        <div class="flex-1 min-w-0"><h4 class="text-xs font-medium line-clamp-2">${v.title}</h4><p class="text-[10px] text-zinc-400 mt-1">${v.channel}</p></div>
-                    </div>
-                `).join('') || `<p class="text-zinc-500 text-xs">No liked videos</p>`;
+        function setupMediaSession(video) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: video.title,
+                    artist: video.channel,
+                    album: 'SKPlayer Platform',
+                    artwork: [{ src: video.thumb, sizes: '512x512', type: 'image/png' }]
+                });
+                navigator.mediaSession.setActionHandler('play', () => { ytPlayer?.playVideo(); updatePlayPauseUI(true); });
+                navigator.mediaSession.setActionHandler('pause', () => { ytPlayer?.pauseVideo(); updatePlayPauseUI(false); });
+                navigator.mediaSession.setActionHandler('seekforward', () => seekOffset(10));
+                navigator.mediaSession.setActionHandler('seekbackward', () => seekOffset(-10));
+                navigator.mediaSession.setActionHandler('nexttrack', () => playNextVideo());
             }
-        }
-
-        function playSaved(id, title, channel) {
-            loadedVideosList.unshift({ id, title: decodeURIComponent(title), channel: decodeURIComponent(channel), thumb: `https://i.ytimg.com/vi/${id}/hqdefault.jpg` });
-            switchTab('home');
-            playVideoByIndex(0);
-        }
-
-        function clearSavedVideos() {
-            savedVideos = [];
-            localStorage.removeItem('sk_saved');
-            switchTab('library');
         }
 
         function formatTimeAgo(iso) {
@@ -945,37 +1421,7 @@
             return `${Math.floor(s/86400)}d ago`;
         }
 
-        let recognition = null;
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRec();
-            recognition.continuous = false;
-            recognition.lang = 'hi-IN';
-            recognition.onstart = () => document.getElementById('voiceModal').classList.remove('hidden');
-            recognition.onresult = e => {
-                const text = e.results[0][0].transcript;
-                document.getElementById('voiceRecognizedText').innerText = `"${text}"`;
-                if (e.results[0].isFinal) {
-                    closeVoiceSearch();
-                    searchInput.value = text;
-                    handleSearch();
-                }
-            };
-            recognition.onend = () => closeVoiceSearch();
-        }
-
-        function startVoiceSearch() {
-            if (recognition) { try { recognition.start(); } catch(e) {} }
-            else alert("Voice recognition not supported on this device.");
-        }
-
-        function closeVoiceSearch() {
-            document.getElementById('voiceModal').classList.add('hidden');
-            recognition?.stop();
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
-            sessionStorage.clear(); // Purge any corrupt cache immediately
             launchAppWithSplash();
             fetchNextBatch();
         });
