@@ -323,16 +323,16 @@
         // 🛡️ SECURE MASKED API TOKEN VAULT (Base64 Anti-Inspect):
         const _SEC_VAULT = "QUl6YVN5QmVGUTlsZnhkcjVuQVkxRjR5TGx0LUdhUElBcnVEUEtZ";
 
-        // Dynamic Runtime Resolver (In-Memory Decoding - Source me plain key nahi dikhegi)
-        function getResolvedApiKey() {
-            try {
-                if (!_SEC_VAULT) return "";
-                return atob(_SEC_VAULT).trim();
-            } catch (e) {
-                console.error("Signature resolve failure:", e);
-                return "";
-            }
-        }
+function getResolvedApiKey() {
+    try {
+        if (!_SEC_VAULT) return "";
+        return atob(_SEC_VAULT).trim();
+    } catch (e) {
+        console.error("Signature resolve failure:", e);
+        return "";
+    }
+}
+
 
         const videoFeed = document.getElementById('videoFeed');
         const playerSec = document.getElementById('playerSection');
