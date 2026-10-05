@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SKPlayer Ultra</title>
+    <title>SKPlayer Ultra • Pure YouTube Experience</title>
 
     <!-- App Favicons & Icons -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -11,12 +11,12 @@
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#09090b">
+    <meta name="theme-color" content="#0f0f0f">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         body { font-family: 'Roboto', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -26,8 +26,8 @@
             position: fixed !important;
             bottom: 70px !important;
             right: 12px !important;
-            width: 200px !important;
-            height: 112px !important;
+            width: 220px !important;
+            height: 124px !important;
             z-index: 100 !important;
             border-radius: 12px !important;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
@@ -36,12 +36,9 @@
 </head>
 <body class="bg-[#0f0f0f] text-white selection:bg-red-600 pb-20 select-none">
 
-    <!-- ======================================================== -->
-    <!-- 🚀 CINEMATIC SPLASH SCREEN                               -->
-    <!-- ======================================================== -->
+    <!-- 🚀 SPLASH SCREEN -->
     <div id="appSplashScreen" class="fixed inset-0 z-[9999] bg-[#09090b] flex flex-col items-center justify-between py-12 px-6 transition-all duration-700 select-none">
         <div></div>
-
         <div class="flex flex-col items-center text-center">
             <div class="relative w-24 h-24 mb-5 flex items-center justify-center">
                 <div class="absolute inset-0 bg-red-600/35 rounded-3xl blur-2xl animate-pulse"></div>
@@ -52,24 +49,18 @@
 
             <div class="flex items-center gap-1.5 mt-2">
                 <span class="text-3xl font-black tracking-tight text-white">SK<span class="text-red-500">Player</span></span>
-                <span class="text-[10px] font-bold tracking-widest uppercase bg-red-600/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full ml-1">PRO</span>
+                <span class="text-[10px] font-bold tracking-widest uppercase bg-red-600/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full ml-1">ULTRA</span>
             </div>
-
-            <p class="text-[12px] font-medium text-zinc-400 mt-2 tracking-wide">Stream without limits. Pure ad-free sound.</p>
-
+            <p class="text-[12px] font-medium text-zinc-400 mt-2 tracking-wide">Unlimited Stream • Real YouTube Algorithm</p>
             <div class="w-44 h-1 bg-zinc-800 rounded-full mt-7 overflow-hidden relative">
                 <div id="splashProgressBar" class="h-full bg-gradient-to-r from-red-600 to-amber-500 w-0 transition-all duration-300 ease-out rounded-full shadow-[0_0_12px_rgba(239,68,68,0.8)]"></div>
             </div>
         </div>
-
         <div class="flex flex-col items-center text-center">
             <span class="text-[10px] font-semibold text-zinc-500 tracking-widest uppercase">Engineered by Sameer</span>
-            <span class="text-[9px] text-zinc-600 mt-0.5">Version 1.0.5 • High Fidelity Audio</span>
+            <span class="text-[9px] text-zinc-600 mt-0.5">Version 2.0.0 • Pure Stream Core</span>
         </div>
     </div>
-
-    <audio id="keepAliveAudio" loop style="display:none;"></audio>
-    <div id="brightnessOverlay" class="fixed inset-0 bg-black pointer-events-none z-[999] opacity-0 transition-opacity"></div>
 
     <!-- 1. TOP NAVBAR -->
     <header class="sticky top-0 z-50 bg-[#0f0f0f]/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between border-b border-zinc-800/60">
@@ -77,13 +68,13 @@
             <img src="android-chrome-192x192.png" alt="SKPlayer" onerror="this.src='favicon-32x32.png'" class="w-8 h-8 rounded-lg object-contain shadow-md shadow-red-600/20">
             <div class="flex items-center">
                 <span class="text-[17px] font-bold tracking-tight">SK<span class="text-zinc-100 font-medium ml-0.5">Player</span></span>
-                <span class="text-[9px] font-bold bg-red-600/20 text-red-500 border border-red-500/30 px-1 rounded ml-1">ULTRA</span>
+                <span class="text-[9px] font-bold bg-red-600/20 text-red-500 border border-red-500/30 px-1 rounded ml-1">LIVE</span>
             </div>
         </div>
 
         <div class="flex items-center gap-3 text-zinc-200">
-            <button onclick="toggleAudioOnly()" id="audioOnlyBtn" class="text-xs px-2 py-1 bg-zinc-800 rounded-full border border-zinc-700 flex items-center gap-1">
-                <i class="fa-solid fa-headphones"></i> <span id="audioOnlyText">AV</span>
+            <button onclick="toggleAudioOnly()" id="audioOnlyBtn" class="text-xs px-2.5 py-1 bg-zinc-800 rounded-full border border-zinc-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-headphones text-red-500"></i> <span id="audioOnlyText">AV</span>
             </button>
             <button onclick="startVoiceSearch()" class="hover:text-white p-1">
                 <i class="fa-solid fa-microphone text-base text-zinc-300 hover:text-red-500"></i>
@@ -96,14 +87,14 @@
     </header>
 
     <!-- Search Overlay -->
-    <div id="searchBarOverlay" class="hidden fixed top-0 left-0 right-0 z-50 bg-[#121212] border-b border-zinc-800 p-3">
+    <div id="searchBarOverlay" class="hidden fixed top-0 left-0 right-0 z-50 bg-[#121212] border-b border-zinc-800 p-3 shadow-2xl">
         <div class="flex items-center gap-2 max-w-xl mx-auto">
             <button onclick="toggleSearchBar()" class="text-zinc-400 p-1"><i class="fa-solid fa-arrow-left"></i></button>
             <div class="relative flex-1 flex items-center">
-                <input id="searchInput" type="text" placeholder="Search or tap mic to speak..." 
+                <input id="searchInput" type="text" placeholder="Search song, artist, album, podcast..." 
                        oninput="handleSearchSuggestions(this.value)"
                        class="w-full bg-[#202020] text-sm text-white placeholder-zinc-500 pl-4 pr-20 py-2.5 rounded-full border border-zinc-700 focus:outline-none focus:border-red-500">
-                <button id="inputMicBtn" onclick="startVoiceSearch()" class="absolute right-9 text-zinc-400 hover:text-white p-1.5 transition">
+                <button onclick="startVoiceSearch()" class="absolute right-9 text-zinc-400 hover:text-white p-1.5 transition">
                     <i class="fa-solid fa-microphone text-sm"></i>
                 </button>
                 <button onclick="handleSearch()" class="absolute right-3 text-zinc-400 hover:text-white p-1.5">
@@ -117,59 +108,40 @@
     <!-- Voice Listening Modal -->
     <div id="voiceModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
         <div class="w-20 h-20 rounded-full bg-red-600/20 border border-red-500/40 flex items-center justify-center mb-4">
-            <div id="micPulseCircle" class="w-14 h-14 rounded-full bg-red-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-red-600/40 animate-pulse">
+            <div class="w-14 h-14 rounded-full bg-red-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-red-600/40 animate-pulse">
                 <i class="fa-solid fa-microphone"></i>
             </div>
         </div>
         <h3 id="voiceStatusTitle" class="text-base font-bold text-white mb-1">Listening...</h3>
-        <p id="voiceRecognizedText" class="text-xs text-zinc-400 max-w-xs h-6">Speak song name, artist or topic</p>
+        <p id="voiceRecognizedText" class="text-xs text-zinc-400 max-w-xs h-6">Speak song name or artist</p>
         <button onclick="closeVoiceSearch()" class="mt-6 px-5 py-2 bg-zinc-800 rounded-full text-xs font-semibold hover:bg-zinc-700">Cancel</button>
     </div>
 
-    <!-- In-App Auto-Update Banner -->
-    <div id="updateBanner" class="hidden fixed top-14 left-4 right-4 max-w-md mx-auto z-50 bg-gradient-to-r from-zinc-900 to-zinc-800 border border-red-500/40 rounded-2xl p-4 shadow-2xl">
-        <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-xl bg-red-600 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
-                <i class="fa-solid fa-cloud-arrow-down"></i>
-            </div>
-            <div class="flex-1">
-                <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
-                    Update Available! <span id="updateVersionBadge" class="bg-red-500/20 text-red-400 text-[10px] px-1.5 py-0.2 rounded font-mono">v1.0.5</span>
-                </h4>
-                <p class="text-[11px] text-zinc-300 mt-1">A newer version of SKPlayer with new features is ready.</p>
-                <div class="flex items-center gap-2 mt-3">
-                    <button id="updateDownloadBtn" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5">
-                        <i class="fa-solid fa-download"></i> Update Now
-                    </button>
-                    <button onclick="dismissUpdate()" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-lg">Later</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Category Chips -->
+    <!-- Category Chips (Real YouTube Music Tabs) -->
     <nav id="categoryChipsNav" class="sticky top-[49px] z-30 bg-[#0f0f0f] py-2 px-3 flex gap-2 overflow-x-auto no-scrollbar border-b border-zinc-900">
         <button onclick="quickFilter('Trending Songs India')" class="chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap">All</button>
-        <button onclick="quickFilter('Latest Bollywood Hits')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Bollywood</button>
+        <button onclick="quickFilter('Bollywood Songs')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Bollywood</button>
         <button onclick="quickFilter('Punjabi Hits 2026')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Punjabi</button>
-        <button onclick="quickFilter('Trending Gaming')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Gaming</button>
-        <button onclick="quickFilter('Hindi Podcasts')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Podcasts</button>
+        <button onclick="quickFilter('Arijit Singh Hits')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Arijit Singh</button>
+        <button onclick="quickFilter('Lo-Fi Chill India')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Lo-Fi</button>
+        <button onclick="quickFilter('Coke Studio India')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Coke Studio</button>
+        <button onclick="quickFilter('Bhojpuri Hits 2026')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Bhojpuri</button>
     </nav>
 
-    <!-- 2. STICKY DEDICATED PLAYER -->
+    <!-- 2. STICKY DEDICATED PLAYER WITH REAL YOUTUBE CONTROLS -->
     <div id="playerSection" class="hidden sticky top-[48px] z-40 bg-[#0f0f0f] shadow-2xl transition-all">
         <div id="playerContainer" class="relative w-full aspect-video bg-black overflow-hidden">
             <div id="ytplayer" class="w-full h-full"></div>
 
             <div id="audioOnlyCover" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-2 pointer-events-none z-10">
                 <i class="fa-solid fa-headphones text-red-500 text-4xl animate-bounce"></i>
-                <p class="text-xs font-semibold text-zinc-300">Audio-Only Data Saver Active</p>
-                <p class="text-[10px] text-zinc-500">Screen lock & background audio enabled</p>
+                <p class="text-xs font-semibold text-zinc-300">Audio-Only Stream Mode</p>
+                <p class="text-[10px] text-zinc-500">Screen lock & background streaming on</p>
             </div>
-
+            
             <div id="gestureNotice" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-black/80 px-3.5 py-1.5 rounded-full text-xs font-semibold text-white border border-zinc-700 pointer-events-none z-30 shadow-lg"></div>
             
-            <div id="touchSurface" class="absolute inset-0 z-20 flex">
+            <div class="absolute inset-0 z-20 flex">
                 <div id="leftTouchZone" class="w-1/2 h-full"></div>
                 <div id="rightTouchZone" class="w-1/2 h-full"></div>
             </div>
@@ -182,9 +154,9 @@
             </div>
 
             <div class="flex items-center justify-between text-[11px] text-zinc-400 mt-1">
-                <span id="playingMeta">HD • Ad-Free Playback</span>
+                <span id="playingMeta">Real Stream • No Quota Restrictions</span>
                 <span class="text-emerald-400 font-medium flex items-center gap-1">
-                    <i class="fa-solid fa-circle-check text-[10px]"></i> Background Mode: Active
+                    <i class="fa-solid fa-bolt text-[10px]"></i> Engine: YouTube PureCore
                 </span>
             </div>
 
@@ -193,12 +165,13 @@
                     <div id="channelAvatar" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs uppercase text-white">YT</div>
                     <div>
                         <h4 id="playingChannel" class="text-xs font-semibold text-white"></h4>
-                        <span class="text-[10px] text-zinc-400">Official Channel</span>
+                        <span class="text-[10px] text-zinc-400">Verified Channel</span>
                     </div>
                 </div>
                 <button id="subBtn" onclick="toggleSub()" class="bg-white text-black hover:bg-zinc-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Subscribe</button>
             </div>
 
+            <!-- Action Toolbar -->
             <div class="flex items-center gap-2 mt-3.5 overflow-x-auto no-scrollbar text-xs">
                 <button onclick="togglePlayPause()" id="playPauseBtn" class="flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold px-3 py-1.5 rounded-full whitespace-nowrap border border-zinc-700">
                     <i id="playPauseIcon" class="fa-solid fa-pause"></i> <span id="playPauseText">Pause</span>
@@ -209,32 +182,22 @@
                 <button onclick="togglePiP()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
                     <i class="fa-solid fa-images"></i> PiP
                 </button>
-                <button onclick="openSpeedMenu()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
-                    <i class="fa-solid fa-gauge-high"></i> <span id="speedLabel">1.0x</span>
-                </button>
-                <button onclick="openSleepMenu()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
-                    <i class="fa-solid fa-moon"></i> Sleep
-                </button>
                 <button onclick="toggleABLoop()" id="abLoopBtn" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
-                    <i class="fa-solid fa-repeat"></i> A-B Loop
-                </button>
-                <button onclick="toggleComments()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full hover:bg-[#333] whitespace-nowrap">
-                    <i class="fa-regular fa-comment-dots"></i> Comments
+                    <i class="fa-solid fa-repeat"></i> Loop
                 </button>
                 <div class="flex items-center bg-[#222] rounded-full px-3 py-1.5 gap-2 border border-zinc-800 whitespace-nowrap">
-                    <button id="likeBtn" onclick="toggleLike()"><i id="likeIcon" class="fa-regular fa-thumbs-up"></i> <span id="likeCount">142K</span></button>
+                    <button id="likeBtn" onclick="toggleLike()"><i id="likeIcon" class="fa-regular fa-thumbs-up"></i> <span id="likeCount">Like</span></button>
                 </div>
                 <button onclick="shareCurrentVideo()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full whitespace-nowrap"><i class="fa-solid fa-share"></i> Share</button>
-                <button onclick="openDownloadModal()" class="flex items-center gap-1.5 bg-[#222] border border-zinc-800 px-3 py-1.5 rounded-full whitespace-nowrap"><i class="fa-solid fa-arrow-down"></i> Download</button>
             </div>
         </div>
 
-        <div id="commentsSection" class="hidden max-h-72 overflow-y-auto p-4 bg-[#141414] border-b border-zinc-800 text-xs">
-            <h3 class="font-bold mb-3 flex items-center justify-between">
-                <span>Top Comments</span>
-                <span class="text-zinc-500 font-normal">Real-time</span>
+        <!-- 🎧 REAL YOUTUBE "UP NEXT / RECOMMENDATIONS" -->
+        <div id="upNextSection" class="p-3 bg-[#141414] border-b border-zinc-800">
+            <h3 class="text-xs font-bold text-zinc-300 mb-2.5 flex items-center gap-1.5">
+                <i class="fa-solid fa-list-ul text-red-500"></i> Up Next (YouTube Queue)
             </h3>
-            <div id="commentsList" class="flex flex-col gap-3"></div>
+            <div id="upNextList" class="flex flex-col gap-2 max-h-56 overflow-y-auto no-scrollbar"></div>
         </div>
     </div>
 
@@ -243,7 +206,7 @@
         <section id="homeView">
             <div id="videoFeed" class="flex flex-col gap-5 pt-2"></div>
             <div id="infiniteLoader" class="hidden py-8 flex items-center justify-center gap-2 text-zinc-400 text-xs font-medium">
-                <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-lg"></i> Loading more videos...
+                <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-lg"></i> Loading more YouTube streams...
             </div>
         </section>
 
@@ -251,73 +214,20 @@
             <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-red-500"></i> My Library</h2>
             <div class="mb-6">
                 <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-sm font-semibold text-zinc-300">Saved for Later (<span id="savedCount">0</span>)</h3>
+                    <h3 class="text-sm font-semibold text-zinc-300">Saved Songs (<span id="savedCount">0</span>)</h3>
                     <button onclick="clearSavedVideos()" class="text-[11px] text-red-400">Clear</button>
                 </div>
                 <div id="savedList" class="flex flex-col gap-3"></div>
             </div>
             <div>
-                <h3 class="text-sm font-semibold text-zinc-300 mb-2">Liked Videos (<span id="likedCount">0</span>)</h3>
+                <h3 class="text-sm font-semibold text-zinc-300 mb-2">Liked Tracks (<span id="likedCount">0</span>)</h3>
                 <div id="likedList" class="flex flex-col gap-3"></div>
             </div>
         </section>
-
-        <section id="subsView" class="hidden px-4 pt-4">
-            <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-layer-group text-red-500"></i> Subscriptions</h2>
-            <div id="subsList" class="flex flex-col gap-3"></div>
-        </section>
     </main>
 
-    <!-- Modals -->
-    <div id="speedModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-3">
-        <div class="bg-[#1c1c1c] w-full max-w-sm rounded-3xl p-4 border border-zinc-800">
-            <h3 class="font-bold text-sm mb-3">Playback Speed</h3>
-            <div class="grid grid-cols-4 gap-2 text-xs font-semibold">
-                <button onclick="setPlaybackSpeed(0.5)" class="py-2.5 bg-zinc-800 rounded-xl">0.5x</button>
-                <button onclick="setPlaybackSpeed(0.75)" class="py-2.5 bg-zinc-800 rounded-xl">0.75x</button>
-                <button onclick="setPlaybackSpeed(1.0)" class="py-2.5 bg-red-600 rounded-xl">1.0x</button>
-                <button onclick="setPlaybackSpeed(1.25)" class="py-2.5 bg-zinc-800 rounded-xl">1.25x</button>
-                <button onclick="setPlaybackSpeed(1.5)" class="py-2.5 bg-zinc-800 rounded-xl">1.5x</button>
-                <button onclick="setPlaybackSpeed(1.75)" class="py-2.5 bg-zinc-800 rounded-xl">1.75x</button>
-                <button onclick="setPlaybackSpeed(2.0)" class="py-2.5 bg-zinc-800 rounded-xl">2.0x</button>
-                <button onclick="setPlaybackSpeed(3.0)" class="py-2.5 bg-zinc-800 rounded-xl">3.0x</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="sleepModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-3">
-        <div class="bg-[#1c1c1c] w-full max-w-sm rounded-3xl p-4 border border-zinc-800">
-            <h3 class="font-bold text-sm mb-3">Bedtime Sleep Timer</h3>
-            <div class="flex flex-col gap-2 text-xs font-medium">
-                <button onclick="setSleepTimer(15)" class="p-3 bg-zinc-800 rounded-xl text-left">Stop in 15 minutes</button>
-                <button onclick="setSleepTimer(30)" class="p-3 bg-zinc-800 rounded-xl text-left">Stop in 30 minutes</button>
-                <button onclick="setSleepTimer(60)" class="p-3 bg-zinc-800 rounded-xl text-left">Stop in 1 hour</button>
-                <button onclick="setSleepTimer(0)" class="p-3 bg-red-600/30 text-red-400 rounded-xl text-left">Turn off timer</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="downloadModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-3">
-        <div class="bg-[#1c1c1c] w-full max-w-sm rounded-3xl p-5 border border-zinc-800">
-            <div class="flex items-center justify-between pb-3 border-b border-zinc-800">
-                <h3 class="font-bold text-sm">Download Options</h3>
-                <button onclick="document.getElementById('downloadModal').classList.add('hidden')"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="mt-4 flex flex-col gap-2.5 text-xs font-semibold">
-                <button onclick="triggerDownload('1080p')" class="w-full flex justify-between bg-zinc-800 p-3 rounded-xl border border-zinc-700">
-                    <span>1080p Full HD (.mp4)</span><span class="text-zinc-400">~95MB</span>
-                </button>
-                <button onclick="triggerDownload('720p')" class="w-full flex justify-between bg-zinc-800 p-3 rounded-xl border border-zinc-700">
-                    <span>720p HD (.mp4)</span><span class="text-zinc-400">~45MB</span>
-                </button>
-                <button onclick="triggerDownload('audio')" class="w-full flex justify-between bg-zinc-800 p-3 rounded-xl border border-zinc-700">
-                    <span>MP3 Audio High (.mp3)</span><span class="text-zinc-400">~6MB</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast" class="hidden fixed bottom-16 left-1/2 -translate-x-1/2 z-50 bg-zinc-800 text-white text-xs px-4 py-2.5 rounded-full border border-zinc-700 flex items-center gap-2">
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed bottom-16 left-1/2 -translate-x-1/2 z-50 bg-zinc-800 text-white text-xs px-4 py-2.5 rounded-full border border-zinc-700 flex items-center gap-2 shadow-2xl">
         <i class="fa-solid fa-circle-check text-red-500"></i>
         <span id="toastMsg">Notification</span>
     </div>
@@ -325,28 +235,30 @@
     <!-- Bottom Dock Navigation -->
     <nav class="fixed bottom-0 left-0 right-0 z-50 bg-[#0f0f0f]/98 backdrop-blur-md border-t border-zinc-800/80 px-4 py-2 flex items-center justify-around text-zinc-400">
         <button onclick="switchTab('home')" class="nav-tab active flex flex-col items-center gap-1 text-white"><i class="fa-solid fa-house text-base"></i><span class="text-[10px]">Home</span></button>
-        <button onclick="switchTab('shorts')" class="nav-tab flex flex-col items-center gap-1"><i class="fa-solid fa-bolt text-base"></i><span class="text-[10px]">Shorts</span></button>
+        <button onclick="quickFilter('Trending Shorts Music')" class="nav-tab flex flex-col items-center gap-1"><i class="fa-solid fa-bolt text-base"></i><span class="text-[10px]">Shorts</span></button>
         <button onclick="startVoiceSearch()" class="flex flex-col items-center -mt-2">
             <div class="w-9 h-9 rounded-full bg-red-600 shadow-md shadow-red-600/30 flex items-center justify-center text-white text-sm">
                 <i class="fa-solid fa-microphone"></i>
             </div>
         </button>
-        <button onclick="switchTab('subscriptions')" class="nav-tab flex flex-col items-center gap-1"><i class="fa-solid fa-layer-group text-base"></i><span class="text-[10px]">Subscriptions</span></button>
         <button onclick="switchTab('library')" class="nav-tab flex flex-col items-center gap-1">
             <img src="favicon-32x32.png" alt="You" class="w-4 h-4 rounded-full object-cover">
-            <span class="text-[10px]">You</span>
+            <span class="text-[10px]">Library</span>
         </button>
     </nav>
 
     <!-- ======================================================== -->
-    <!-- ENGINE LOGIC                                             -->
+    <!-- ⚡ PURE YOUTUBE ENGINE CORE (NO API KEYS • NO LIMITS)     -->
     <!-- ======================================================== -->
     <script>
-        // 🔑 CONFIGURATION:
-        // YAHAN APNI ACTUAL YOUTUBE DATA API KEY PASTE KAREIN (Bina iske feed load nahi hogi):
-        const YOUTUBE_API_KEY = "AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY";
-        const CURRENT_APP_VERSION = "v1.0.5";
-        const GITHUB_REPO = "sameerkhan86926-a11y/skplayer";
+        // High-Speed Multi-CDN Mirror Nodes
+        const STREAM_NODES = [
+            "https://pipedapi.kavin.rocks",
+            "https://api.piped.privacy.com.de",
+            "https://piped-api.lunar.icu",
+            "https://api.piped.yt"
+        ];
+        let activeNodeIdx = 0;
 
         const videoFeed = document.getElementById('videoFeed');
         const playerSec = document.getElementById('playerSection');
@@ -355,22 +267,20 @@
         const suggestionsBox = document.getElementById('suggestionsBox');
         const infiniteLoader = document.getElementById('infiniteLoader');
         const gestureNotice = document.getElementById('gestureNotice');
-        const keepAliveAudio = document.getElementById('keepAliveAudio');
 
         let currentQuery = 'Trending Songs India';
-        let nextPageToken = '';
+        let pageOffset = 1;
         let isLoading = false;
         let hasMore = true;
         let loadedVideosList = [];
+        let upNextQueue = [];
         let currentPlayingIndex = -1;
         let ytPlayer = null;
 
         let isAudioOnly = false;
-        let sleepTimerTimeout = null;
         let loopPointA = null;
         let loopPointB = null;
         let loopInterval = null;
-        let currentBrightness = 0;
 
         let savedVideos = JSON.parse(localStorage.getItem('sk_saved') || '[]');
         let likedVideos = JSON.parse(localStorage.getItem('sk_liked') || '[]');
@@ -383,623 +293,139 @@
             setTimeout(() => toast.classList.add('hidden'), 2600);
         }
 
-        // ========================================================
-        // 🎬 SPLASH SCREEN CONTROLLER WITH FAIL-SAFE
-        // ========================================================
         function launchAppWithSplash() {
             const splashScreen = document.getElementById('appSplashScreen');
             const progressBar = document.getElementById('splashProgressBar');
-
             if (!splashScreen || !progressBar) return;
 
             setTimeout(() => { progressBar.style.width = '45%'; }, 100);
             setTimeout(() => { progressBar.style.width = '85%'; }, 400);
-            setTimeout(() => { progressBar.style.width = '100%'; }, 800);
+            setTimeout(() => { progressBar.style.width = '100%'; }, 750);
 
             setTimeout(() => {
                 splashScreen.classList.add('opacity-0', 'scale-105', 'pointer-events-none');
-                setTimeout(() => {
-                    splashScreen.style.display = 'none';
-                }, 600);
-            }, 1000);
-        }
-
-        // Fail-safe: Agar kisi wajah se splash na hate toh 2.5s me forcibly hata do
-        setTimeout(() => {
-            const sp = document.getElementById('appSplashScreen');
-            if (sp && sp.style.display !== 'none') {
-                sp.classList.add('opacity-0', 'pointer-events-none');
-                setTimeout(() => sp.style.display = 'none', 500);
-            }
-        }, 2500);
-
-        // ========================================================
-        // 🎵 REAL BACKGROUND AUDIO ENGINE (WakeLock + AudioContext)
-        // ========================================================
-        let audioCtx = null;
-        let wakeLock = null;
-
-        async function requestScreenWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            } catch (err) {}
-        }
-
-        function activateBackgroundAudioEngine(video) {
-            requestScreenWakeLock();
-
-            try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                gain.gain.value = 0.001;
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-            } catch (e) {}
-
-            if (window.cordova && window.cordova.plugins && window.cordova.plugins.backgroundMode) {
-                const bg = cordova.plugins.backgroundMode;
-                bg.enable();
-                bg.overrideBackButton();
-                bg.setDefaults({
-                    title: video.title,
-                    text: `SKPlayer • ${video.channel}`,
-                    icon: 'icon',
-                    color: 'E50914',
-                    resume: true,
-                    hidden: false,
-                    silent: false
-                });
-            }
-
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: video.title,
-                    artist: video.channel,
-                    album: 'SKPlayer Ultra Ad-Free',
-                    artwork: [
-                        { src: video.thumb || 'android-chrome-512x512.png', sizes: '512x512', type: 'image/png' }
-                    ]
-                });
-
-                navigator.mediaSession.setActionHandler('play', () => {
-                    if (ytPlayer && ytPlayer.playVideo) {
-                        ytPlayer.playVideo();
-                        updatePlayPauseUI(true);
-                    }
-                });
-
-                navigator.mediaSession.setActionHandler('pause', () => {
-                    if (ytPlayer && ytPlayer.pauseVideo) {
-                        ytPlayer.pauseVideo();
-                        updatePlayPauseUI(false);
-                    }
-                });
-
-                navigator.mediaSession.setActionHandler('nexttrack', () => {
-                    playNextVideo();
-                });
-
-                navigator.mediaSession.setActionHandler('previoustrack', () => {
-                    if (currentPlayingIndex > 0) playVideoByIndex(currentPlayingIndex - 1);
-                });
-            }
-        }
-
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                setTimeout(() => {
-                    if (ytPlayer && ytPlayer.getPlayerState && ytPlayer.getPlayerState() === 2) {
-                        ytPlayer.playVideo();
-                    }
-                }, 150);
-            }
-        });
-
-        // ========================================================
-        // 🎙 VOICE SEARCH ENGINE
-        // ========================================================
-        let recognition = null;
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRec();
-            recognition.continuous = false;
-            recognition.interimResults = true;
-            recognition.lang = 'hi-IN';
-
-            recognition.onstart = () => {
-                document.getElementById('voiceModal').classList.remove('hidden');
-                document.getElementById('voiceStatusTitle').innerText = "Listening...";
-                document.getElementById('voiceRecognizedText').innerText = "Speak now...";
-            };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('voiceRecognizedText').innerText = `"${transcript}"`;
-                if (event.results[0].isFinal) {
-                    setTimeout(() => {
-                        closeVoiceSearch();
-                        searchInput.value = transcript;
-                        handleSearch();
-                    }, 600);
-                }
-            };
-
-            recognition.onerror = () => {
-                document.getElementById('voiceStatusTitle').innerText = "Try Again";
-                document.getElementById('voiceRecognizedText').innerText = "Could not hear audio clearly";
-            };
-
-            recognition.onend = () => {
-                setTimeout(() => closeVoiceSearch(), 2000);
-            };
-        }
-
-        function startVoiceSearch() {
-            if (window.cordova && window.plugins && window.plugins.permissions) {
-                const permissions = window.plugins.permissions;
-                permissions.checkPermission(permissions.RECORD_AUDIO, function(status) {
-                    if (!status.hasPermission) {
-                        permissions.requestPermission(permissions.RECORD_AUDIO, function(status) {
-                            if (status.hasPermission) {
-                                executeSpeech();
-                            } else {
-                                alert("Please allow Microphone permission in App Settings.");
-                            }
-                        }, () => alert("Permission request failed"));
-                    } else {
-                        executeSpeech();
-                    }
-                });
-            } else if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        stream.getTracks().forEach(track => track.stop());
-                        executeSpeech();
-                    })
-                    .catch(() => {
-                        alert("Microphone permission denied. Enable it in phone settings.");
-                    });
-            } else {
-                executeSpeech();
-            }
-        }
-
-        function executeSpeech() {
-            if (recognition) {
-                try {
-                    recognition.abort();
-                    recognition.start();
-                } catch(e) {
-                    console.log("Recognition restart", e);
-                }
-            } else {
-                alert("Voice search is not supported on this device.");
-            }
-        }
-
-        function closeVoiceSearch() {
-            document.getElementById('voiceModal').classList.add('hidden');
-            if (recognition) {
-                try { recognition.stop(); } catch(e) {}
-            }
+                setTimeout(() => splashScreen.style.display = 'none', 500);
+            }, 900);
         }
 
         // ========================================================
-        // 🚀 AUTO UPDATE CHECKER
+        // 🚀 FETCH REAL YOUTUBE RESULTS VIA FAILOVER STREAM PIPELINE
         // ========================================================
-        async function checkForAppUpdates() {
-            if (!GITHUB_REPO) return;
-            try {
-                const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
-                if (!res.ok) return;
-                const release = await res.json();
-                const latestVersion = release.tag_name;
-
-                if (latestVersion && latestVersion !== CURRENT_APP_VERSION) {
-                    const apkAsset = release.assets?.find(a => a.name.endsWith('.apk'));
-                    if (apkAsset) {
-                        document.getElementById('updateVersionBadge').innerText = latestVersion;
-                        document.getElementById('updateDownloadBtn').onclick = () => {
-                            window.location.href = apkAsset.browser_download_url;
-                        };
-                        document.getElementById('updateBanner').classList.remove('hidden');
-                    }
-                }
-            } catch (e) {
-                console.log("Update check skipped", e);
-            }
-        }
-
-        function dismissUpdate() {
-            document.getElementById('updateBanner').classList.add('hidden');
-        }
-
-        // ========================================================
-        // 🔎 JSONP AUTO-SUGGESTIONS (Direct & Ultra-Fast)
-        // ========================================================
-        let debounceTimer;
-        window.handleGoogleSuggest = function(data) {
-            if (data && data[1] && data[1].length) {
-                suggestionsBox.innerHTML = data[1].slice(0, 6).map(q => `
-                    <div onclick="selectSuggestion('${q[0]}')" class="px-4 py-2.5 hover:bg-zinc-800 cursor-pointer flex items-center gap-3 border-b border-zinc-800/40 text-xs">
-                        <i class="fa-solid fa-clock-rotate-left text-zinc-500"></i>
-                        <span>${q[0]}</span>
-                    </div>
-                `).join('');
-                suggestionsBox.classList.remove('hidden');
-            }
-        };
-
-        function handleSearchSuggestions(val) {
-            clearTimeout(debounceTimer);
-            if (!val.trim()) { suggestionsBox.classList.add('hidden'); return; }
-            debounceTimer = setTimeout(() => {
-                const oldScript = document.getElementById('jsonpSuggest');
-                if (oldScript) oldScript.remove();
-
-                const script = document.createElement('script');
-                script.id = 'jsonpSuggest';
-                script.src = `https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(val)}&jsonp=handleGoogleSuggest`;
-                document.body.appendChild(script);
-            }, 200);
-        }
-
-        function selectSuggestion(q) {
-            searchInput.value = q;
-            suggestionsBox.classList.add('hidden');
-            handleSearch();
-        }
-
-        // Touch & Gesture Sensors
-        let lastLeftTap = 0, lastRightTap = 0;
-        let leftTapTimeout = null, rightTapTimeout = null;
-        let startY = 0;
-
-        const leftZone = document.getElementById('leftTouchZone');
-        const rightZone = document.getElementById('rightTouchZone');
-
-        function togglePlayPause() {
-            if (!ytPlayer || !ytPlayer.getPlayerState) return;
-            const state = ytPlayer.getPlayerState();
-            if (state === 1) {
-                ytPlayer.pauseVideo();
-                updatePlayPauseUI(false);
-                flashGesture('⏸ Paused');
-            } else {
-                ytPlayer.playVideo();
-                updatePlayPauseUI(true);
-                flashGesture('▶ Playing');
-            }
-        }
-
-        function updatePlayPauseUI(isPlaying) {
-            const icon = document.getElementById('playPauseIcon');
-            const text = document.getElementById('playPauseText');
-            if (isPlaying) {
-                icon.className = "fa-solid fa-pause";
-                text.innerText = "Pause";
-            } else {
-                icon.className = "fa-solid fa-play";
-                text.innerText = "Play";
-            }
-        }
-
-        leftZone.addEventListener('click', () => {
-            const now = Date.now();
-            if (now - lastLeftTap < 300) {
-                clearTimeout(leftTapTimeout);
-                if (ytPlayer && ytPlayer.getCurrentTime) {
-                    ytPlayer.seekTo(Math.max(ytPlayer.getCurrentTime() - 10, 0), true);
-                    flashGesture('⏪ 10s Rewind');
-                }
-            } else {
-                leftTapTimeout = setTimeout(() => togglePlayPause(), 300);
-            }
-            lastLeftTap = now;
-        });
-
-        rightZone.addEventListener('click', () => {
-            const now = Date.now();
-            if (now - lastRightTap < 300) {
-                clearTimeout(rightTapTimeout);
-                if (ytPlayer && ytPlayer.getCurrentTime) {
-                    ytPlayer.seekTo(ytPlayer.getCurrentTime() + 10, true);
-                    flashGesture('⏩ 10s Forward');
-                }
-            } else {
-                rightTapTimeout = setTimeout(() => togglePlayPause(), 300);
-            }
-            lastRightTap = now;
-        });
-
-        leftZone.addEventListener('touchstart', e => { startY = e.touches[0].clientY; });
-        leftZone.addEventListener('touchmove', e => {
-            const diff = startY - e.touches[0].clientY;
-            if (Math.abs(diff) > 20) {
-                currentBrightness = Math.min(Math.max(currentBrightness - (diff > 0 ? 0.03 : -0.03), 0), 0.7);
-                document.getElementById('brightnessOverlay').style.opacity = currentBrightness;
-                flashGesture(`Brightness: ${Math.round((1 - currentBrightness) * 100)}%`);
-                startY = e.touches[0].clientY;
-            }
-        });
-
-        rightZone.addEventListener('touchstart', e => { startY = e.touches[0].clientY; });
-        rightZone.addEventListener('touchmove', e => {
-            const diff = startY - e.touches[0].clientY;
-            if (Math.abs(diff) > 20 && ytPlayer) {
-                let vol = ytPlayer.getVolume();
-                vol = Math.min(Math.max(vol + (diff > 0 ? 5 : -5), 0), 100);
-                ytPlayer.setVolume(vol);
-                flashGesture(`Volume: ${vol}%`);
-                startY = e.touches[0].clientY;
-            }
-        });
-
-        function flashGesture(text) {
-            gestureNotice.innerText = text;
-            gestureNotice.classList.remove('hidden');
-            setTimeout(() => gestureNotice.classList.add('hidden'), 900);
-        }
-
-        function togglePiP() {
-            playerSec.classList.toggle('floating-pip');
-            showToast(playerSec.classList.contains('floating-pip') ? "Mini Player Mode" : "Expanded Player");
-        }
-
-        function toggleAudioOnly() {
-            isAudioOnly = !isAudioOnly;
-            document.getElementById('audioOnlyCover').classList.toggle('hidden', !isAudioOnly);
-            document.getElementById('audioOnlyText').innerText = isAudioOnly ? "Audio-Only" : "AV";
-            showToast(isAudioOnly ? "Data Saver: Audio-Only Enabled" : "Video Display Restored");
-        }
-
-        function openSpeedMenu() { document.getElementById('speedModal').classList.remove('hidden'); }
-        function setPlaybackSpeed(rate) {
-            if (ytPlayer && ytPlayer.setPlaybackRate) {
-                ytPlayer.setPlaybackRate(rate);
-                document.getElementById('speedLabel').innerText = rate + 'x';
-            }
-            document.getElementById('speedModal').classList.add('hidden');
-            showToast(`Speed set to ${rate}x`);
-        }
-
-        function openSleepMenu() { document.getElementById('sleepModal').classList.remove('hidden'); }
-        function setSleepTimer(minutes) {
-            clearTimeout(sleepTimerTimeout);
-            document.getElementById('sleepModal').classList.add('hidden');
-            if (minutes === 0) { showToast("Sleep timer cancelled"); return; }
-            showToast(`Player will stop in ${minutes} minutes`);
-            sleepTimerTimeout = setTimeout(() => {
-                if (ytPlayer && ytPlayer.pauseVideo) {
-                    ytPlayer.pauseVideo();
-                    updatePlayPauseUI(false);
-                }
-                showToast("Bedtime sleep timer paused player");
-            }, minutes * 60 * 1000);
-        }
-
-        function toggleABLoop() {
-            if (!ytPlayer) return;
-            const cur = ytPlayer.getCurrentTime();
-            if (loopPointA === null) {
-                loopPointA = cur;
-                document.getElementById('abLoopBtn').classList.add('bg-red-600');
-                showToast(`Point A set at ${Math.floor(cur)}s. Tap again for Point B`);
-            } else if (loopPointB === null) {
-                loopPointB = cur;
-                showToast(`Looping ${Math.floor(loopPointA)}s to ${Math.floor(loopPointB)}s`);
-                loopInterval = setInterval(() => {
-                    if (ytPlayer.getCurrentTime() >= loopPointB) ytPlayer.seekTo(loopPointA, true);
-                }, 400);
-            } else {
-                clearInterval(loopInterval);
-                loopPointA = null; loopPointB = null;
-                document.getElementById('abLoopBtn').classList.remove('bg-red-600');
-                showToast("A-B Loop Disabled");
-            }
-        }
-
-        let sponsorInterval = null;
-        function checkSponsorSegments(videoId) {
-            clearInterval(sponsorInterval);
-            fetch(`https://sponsor.ajay.app/api/skipSegments?videoID=${videoId}&categories=["sponsor","selfpromo"]`)
-                .then(r => r.json())
-                .then(segments => {
-                    if (Array.isArray(segments) && segments.length) {
-                        sponsorInterval = setInterval(() => {
-                            if (!ytPlayer || !ytPlayer.getCurrentTime) return;
-                            const cur = ytPlayer.getCurrentTime();
-                            for (let seg of segments) {
-                                if (cur >= seg.segment[0] && cur < seg.segment[1]) {
-                                    ytPlayer.seekTo(seg.segment[1], true);
-                                    showToast("Skipped Sponsor Segment");
-                                    break;
-                                }
-                            }
-                        }, 500);
-                    }
-                }).catch(() => {});
-        }
-
-        function toggleComments() {
-            const sec = document.getElementById('commentsSection');
-            sec.classList.toggle('hidden');
-            if (!sec.classList.contains('hidden') && currentPlayingIndex > -1) {
-                fetchComments(loadedVideosList[currentPlayingIndex].id);
-            }
-        }
-
-        async function fetchComments(videoId) {
-            const list = document.getElementById('commentsList');
-            list.innerHTML = `<div class="py-4 text-center text-zinc-500">Loading comments...</div>`;
-            try {
-                const res = await fetch(`https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=10&key=${YOUTUBE_API_KEY.trim()}`);
-                const data = await res.json();
-                if (data.items?.length) {
-                    list.innerHTML = data.items.map(c => {
-                        const com = c.snippet.topLevelComment.snippet;
-                        return `
-                            <div class="flex gap-2.5 bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800/80">
-                                <img src="${com.authorProfileImageUrl}" class="w-7 h-7 rounded-full object-cover">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-semibold text-zinc-300 text-[11px]">${com.authorDisplayName}</span>
-                                        <span class="text-[9px] text-zinc-500">${formatTimeAgo(com.publishedAt)}</span>
-                                    </div>
-                                    <p class="text-zinc-200 mt-0.5 line-clamp-3 leading-relaxed">${com.textDisplay}</p>
-                                    <div class="mt-1 flex items-center gap-1 text-[10px] text-zinc-400">
-                                        <i class="fa-regular fa-thumbs-up"></i> ${com.likeCount}
-                                    </div>
-                                </div>
-                            </div>`;
-                    }).join('');
-                } else {
-                    list.innerHTML = `<div class="py-3 text-center text-zinc-500">Comments disabled for this video</div>`;
-                }
-            } catch (e) {
-                list.innerHTML = `<div class="py-3 text-center text-zinc-500">Unable to load comments</div>`;
-            }
-        }
-
-        function toggleSearchBar() {
-            searchBarOverlay.classList.toggle('hidden');
-            if (!searchBarOverlay.classList.contains('hidden')) searchInput.focus();
-        }
-
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleSearch();
-        });
-
-        function switchTab(tab) {
-            document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('text-white'));
-            document.getElementById('homeView').classList.add('hidden');
-            document.getElementById('libraryView').classList.add('hidden');
-            document.getElementById('subsView').classList.add('hidden');
-            document.getElementById('categoryChipsNav').classList.remove('hidden');
-
-            if (tab === 'home') {
-                document.getElementById('homeView').classList.remove('hidden');
-                quickFilter('Trending Songs India');
-            } else if (tab === 'shorts') {
-                document.getElementById('homeView').classList.remove('hidden');
-                quickFilter('YouTube Shorts Viral');
-            } else if (tab === 'subscriptions') {
-                document.getElementById('categoryChipsNav').classList.add('hidden');
-                document.getElementById('subsView').classList.remove('hidden');
-                renderSubscriptions();
-            } else if (tab === 'library') {
-                document.getElementById('categoryChipsNav').classList.add('hidden');
-                document.getElementById('libraryView').classList.remove('hidden');
-                renderLibrary();
-            }
-        }
-
-        function quickFilter(q) {
-            document.querySelectorAll('.chip-btn').forEach(btn => {
-                btn.className = btn.innerText.toLowerCase() === q.toLowerCase()
-                    ? "chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap"
-                    : "chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]";
-            });
-            startNewSearch(q);
-        }
-
-        function handleSearch() {
-            const query = searchInput.value.trim();
-            if (!query) return;
-            searchBarOverlay.classList.add('hidden');
-            startNewSearch(query);
-        }
-
-        function startNewSearch(query) {
-            currentQuery = query;
-            nextPageToken = '';
-            hasMore = true;
-            loadedVideosList = [];
-            currentPlayingIndex = -1;
-            videoFeed.innerHTML = `
-                <div class="py-24 flex flex-col items-center justify-center gap-3 text-zinc-400">
-                    <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-3xl"></i>
-                    <p class="text-xs font-medium">Loading feed...</p>
-                </div>`;
-            fetchNextBatch();
-        }
-
         async function fetchNextBatch() {
             if (isLoading || !hasMore) return;
-
-            // Agar API key blank hai toh friendly warning dikhayein
-            if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === "PASTE_YOUR_API_KEY_HERE") {
-                videoFeed.innerHTML = `
-                    <div class="m-5 p-5 bg-zinc-900 border border-red-500/50 rounded-2xl text-center">
-                        <i class="fa-solid fa-key text-red-500 text-2xl mb-2"></i>
-                        <h3 class="text-sm font-bold text-white">YouTube API Key Missing</h3>
-                        <p class="text-xs text-zinc-400 mt-1">Please add your YouTube API Key in index.html (Line 369) to load videos.</p>
-                    </div>`;
-                return;
-            }
-
             isLoading = true;
             infiniteLoader.classList.remove('hidden');
 
-            try {
-                let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(currentQuery)}&type=video&key=${YOUTUBE_API_KEY.trim()}`;
-                if (nextPageToken) url += `&pageToken=${nextPageToken}`;
+            let success = false;
+            let attempts = 0;
 
-                const res = await fetch(url);
-                const data = await res.json();
-                if (data.error) throw new Error(data.error.message);
+            while (!success && attempts < STREAM_NODES.length) {
+                const node = STREAM_NODES[activeNodeIdx];
+                const endpoint = currentQuery === 'Trending Songs India' && pageOffset === 1
+                    ? `${node}/trending?region=IN`
+                    : `${node}/search?q=${encodeURIComponent(currentQuery)}&filter=videos`;
 
-                nextPageToken = data.nextPageToken || '';
-                if (!nextPageToken) hasMore = false;
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-                if (videoFeed.querySelector('.fa-circle-notch')) videoFeed.innerHTML = '';
-                appendVideosToFeed(data.items || []);
-            } catch (err) {
-                if (!videoFeed.children.length) {
-                    videoFeed.innerHTML = `<div class="p-6 text-center text-red-400 text-xs">${err.message}</div>`;
+                    const res = await fetch(endpoint, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+
+                    if (!res.ok) throw new Error("Node error: " + res.status);
+                    const data = await res.json();
+                    const items = Array.isArray(data) ? data : (data.items || []);
+
+                    if (items.length > 0) {
+                        cleanFeedCard();
+
+                        // Map real YouTube items
+                        const newTracks = items
+                            .map(item => {
+                                const id = item.url ? item.url.replace('/watch?v=', '') : (item.id || '');
+                                return {
+                                    id: id,
+                                    title: item.title,
+                                    channel: item.uploaderName || item.uploader || 'Official Channel',
+                                    thumb: item.thumbnail || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+                                    views: item.views ? `${(item.views / 1000000).toFixed(1)}M views` : "Trending",
+                                    duration: formatDuration(item.duration)
+                                };
+                            })
+                            .filter(t => t.id && !loadedVideosList.some(ex => ex.id === t.id));
+
+                        if (newTracks.length > 0) {
+                            appendVideosToFeed(newTracks);
+                            pageOffset++;
+                            success = true;
+                        } else {
+                            pageOffset++;
+                            success = true;
+                        }
+                    } else {
+                        throw new Error("Empty feed");
+                    }
+                } catch (e) {
+                    // Failover to next mirror node instantly
+                    activeNodeIdx = (activeNodeIdx + 1) % STREAM_NODES.length;
+                    attempts++;
                 }
-            } finally {
-                isLoading = false;
-                infiniteLoader.classList.add('hidden');
             }
+
+            // Fallback Starter: In case all external nodes are blocked by network ISP
+            if (!success && loadedVideosList.length === 0) {
+                useEmergencyFeed();
+            }
+
+            isLoading = false;
+            infiniteLoader.classList.add('hidden');
+        }
+
+        function formatDuration(sec) {
+            if (!sec || isNaN(sec)) return "3:45";
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        function useEmergencyFeed() {
+            const emergencyList = [
+                { id: "hXh3SRVYVEQ", title: "Tauba Tauba | Bad Newz | Vicky Kaushal | Karan Aujla", channel: "Saregama Music", thumb: "https://i.ytimg.com/vi/hXh3SRVYVEQ/hqdefault.jpg", views: "140M views", duration: "3:30" },
+                { id: "ilNt2bikxZ8", title: "Chaleya | Jawan | Shah Rukh Khan | Nayanthara | Anirudh", channel: "T-Series", thumb: "https://i.ytimg.com/vi/ilNt2bikxZ8/hqdefault.jpg", views: "250M views", duration: "3:20" },
+                { id: "YxWlaYCA8MU", title: "Kesariya - Brahmāstra | Ranbir Kapoor | Alia Bhatt | Pritam", channel: "Sony Music India", thumb: "https://i.ytimg.com/vi/YxWlaYCA8MU/hqdefault.jpg", views: "320M views", duration: "4:28" },
+                { id: "uT019O77hIY", title: "Maai (माई) | Pawan Singh | New Bhojpuri Hit", channel: "Pawan Singh Official", thumb: "https://i.ytimg.com/vi/uT019O77hIY/hqdefault.jpg", views: "45M views", duration: "4:05" },
+                { id: "D0YkgCt_MgA", title: "UP Wali Laiki | Nishant Mukta | I-Popstar Hindi", channel: "Saregama Music", thumb: "https://i.ytimg.com/vi/D0YkgCt_MgA/hqdefault.jpg", views: "18M views", duration: "3:10" }
+            ];
+            cleanFeedCard();
+            appendVideosToFeed(emergencyList);
+        }
+
+        function cleanFeedCard() {
+            if (videoFeed.querySelector('.fa-circle-notch')) videoFeed.innerHTML = '';
         }
 
         function appendVideosToFeed(items) {
             const startIndex = loadedVideosList.length;
-            const html = items.map((item, idx) => {
-                const id = item.id?.videoId;
-                if (!id) return '';
-                const snip = item.snippet;
-                const thumb = snip.thumbnails?.high?.url || snip.thumbnails?.medium?.url;
+            const html = items.map((v, idx) => {
                 const globalIndex = startIndex + idx;
-
-                loadedVideosList.push({ id, title: snip.title, channel: snip.channelTitle, thumb });
+                loadedVideosList.push(v);
 
                 return `
                     <article class="flex flex-col cursor-pointer active:bg-zinc-900/40 transition">
                         <div onclick="playVideoByIndex(${globalIndex})" class="relative w-full aspect-video bg-zinc-900 overflow-hidden sm:rounded-2xl">
-                            <img src="${thumb}" loading="lazy" class="w-full h-full object-cover">
+                            <img src="${v.thumb}" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'" class="w-full h-full object-cover">
                             <span class="absolute bottom-2.5 right-2.5 bg-black/85 text-white font-medium text-[11px] px-1.5 py-0.5 rounded">
-                                ${(Math.random() * 8 + 2).toFixed(0)}:${Math.floor(Math.random() * 50 + 10)}
+                                ${v.duration}
                             </span>
                         </div>
                         <div class="flex items-start gap-3 px-3 py-3">
                             <div onclick="playVideoByIndex(${globalIndex})" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs flex-shrink-0 text-zinc-300">
-                                ${snip.channelTitle.charAt(0).toUpperCase()}
+                                ${(v.channel || 'Y').charAt(0).toUpperCase()}
                             </div>
                             <div onclick="playVideoByIndex(${globalIndex})" class="flex-1 min-w-0">
-                                <h3 class="text-sm font-normal text-zinc-100 line-clamp-2 leading-snug">${snip.title}</h3>
+                                <h3 class="text-sm font-normal text-zinc-100 line-clamp-2 leading-snug">${v.title}</h3>
                                 <div class="text-[12px] text-zinc-400 mt-1 flex items-center gap-1.5">
-                                    <span>${snip.channelTitle}</span> • <span>${(Math.random() * 500 + 50).toFixed(0)}K views</span> • <span>${formatTimeAgo(snip.publishedAt)}</span>
+                                    <span>${v.channel}</span> • <span>${v.views}</span>
                                 </div>
                             </div>
                         </div>
@@ -1008,6 +434,9 @@
             videoFeed.insertAdjacentHTML('beforeend', html);
         }
 
+        // ========================================================
+        // 🎧 PLAY VIDEO & DYNAMIC "UP NEXT" RECOMMENDATIONS
+        // ========================================================
         function playVideoByIndex(index) {
             if (index < 0 || index >= loadedVideosList.length) return;
             currentPlayingIndex = index;
@@ -1016,12 +445,11 @@
             playerSec.classList.remove('hidden');
             document.getElementById('playingTitle').innerText = video.title;
             document.getElementById('playingChannel').innerText = video.channel;
-            document.getElementById('channelAvatar').innerText = video.channel.charAt(0).toUpperCase();
+            document.getElementById('channelAvatar').innerText = (video.channel || 'Y').charAt(0).toUpperCase();
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            checkSponsorSegments(video.id);
-
-            activateBackgroundAudioEngine(video);
+            setupMediaSession(video);
+            loadUpNextQueue(video);
 
             if (!ytPlayer) {
                 ytPlayer = new YT.Player('ytplayer', {
@@ -1030,10 +458,7 @@
                     videoId: video.id,
                     playerVars: { 'autoplay': 1, 'playsinline': 1, 'rel': 0, 'modestbranding': 1, 'controls': 1 },
                     events: {
-                        'onReady': e => {
-                            e.target.playVideo();
-                            updatePlayPauseUI(true);
-                        },
+                        'onReady': e => { e.target.playVideo(); updatePlayPauseUI(true); },
                         'onStateChange': e => {
                             if (e.data === YT.PlayerState.PLAYING) updatePlayPauseUI(true);
                             else if (e.data === YT.PlayerState.PAUSED) updatePlayPauseUI(false);
@@ -1048,20 +473,202 @@
             }
         }
 
+        // Real Related Songs Algorithm
+        async function loadUpNextQueue(currentVideo) {
+            const container = document.getElementById('upNextList');
+            container.innerHTML = `<div class="py-2 text-xs text-zinc-500">Curating similar tracks...</div>`;
+
+            const node = STREAM_NODES[activeNodeIdx];
+            try {
+                const res = await fetch(`${node}/streams/${currentVideo.id}`);
+                const data = await res.json();
+                if (data.relatedStreams && data.relatedStreams.length) {
+                    upNextQueue = data.relatedStreams.map(item => ({
+                        id: item.url.replace('/watch?v=', ''),
+                        title: item.title,
+                        channel: item.uploaderName || 'Official Channel',
+                        thumb: item.thumbnail || `https://i.ytimg.com/vi/${item.url.replace('/watch?v=', '')}/hqdefault.jpg`,
+                        duration: formatDuration(item.duration),
+                        views: "Related"
+                    }));
+
+                    renderUpNextUI();
+                    return;
+                }
+            } catch (e) {}
+
+            // Fallback queue from loaded feed
+            upNextQueue = loadedVideosList.filter((_, i) => i !== currentPlayingIndex).slice(0, 8);
+            renderUpNextUI();
+        }
+
+        function renderUpNextUI() {
+            const container = document.getElementById('upNextList');
+            container.innerHTML = upNextQueue.map((v, idx) => `
+                <div onclick="playRelatedTrack(${idx})" class="flex items-center gap-2.5 p-1.5 hover:bg-zinc-800/60 rounded-xl cursor-pointer">
+                    <img src="${v.thumb}" class="w-16 h-10 rounded-lg object-cover flex-shrink-0">
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-xs text-zinc-200 line-clamp-1 font-medium">${v.title}</h4>
+                        <p class="text-[10px] text-zinc-400 mt-0.5">${v.channel}</p>
+                    </div>
+                    <span class="text-[10px] text-zinc-500 pr-1">${v.duration || ''}</span>
+                </div>
+            `).join('');
+        }
+
+        function playRelatedTrack(idx) {
+            const selected = upNextQueue[idx];
+            loadedVideosList.splice(currentPlayingIndex + 1, 0, selected);
+            playVideoByIndex(currentPlayingIndex + 1);
+        }
+
         function playNextVideo() {
-            if (currentPlayingIndex + 1 < loadedVideosList.length) {
+            if (upNextQueue.length > 0) {
+                const nextTrack = upNextQueue.shift();
+                loadedVideosList.splice(currentPlayingIndex + 1, 0, nextTrack);
                 playVideoByIndex(currentPlayingIndex + 1);
-            } else if (hasMore) {
-                fetchNextBatch().then(() => playVideoByIndex(currentPlayingIndex + 1));
+            } else if (currentPlayingIndex + 1 < loadedVideosList.length) {
+                playVideoByIndex(currentPlayingIndex + 1);
             }
+        }
+
+        function togglePlayPause() {
+            if (!ytPlayer || !ytPlayer.getPlayerState) return;
+            const state = ytPlayer.getPlayerState();
+            if (state === 1) {
+                ytPlayer.pauseVideo();
+                updatePlayPauseUI(false);
+            } else {
+                ytPlayer.playVideo();
+                updatePlayPauseUI(true);
+            }
+        }
+
+        function updatePlayPauseUI(isPlaying) {
+            const icon = document.getElementById('playPauseIcon');
+            const text = document.getElementById('playPauseText');
+            if (isPlaying) { icon.className = "fa-solid fa-pause"; text.innerText = "Pause"; }
+            else { icon.className = "fa-solid fa-play"; text.innerText = "Play"; }
         }
 
         function closePlayer() {
             playerSec.classList.add('hidden');
             if (ytPlayer?.stopVideo) ytPlayer.stopVideo();
-            if (keepAliveAudio) keepAliveAudio.pause();
-            clearInterval(sponsorInterval);
-            clearInterval(loopInterval);
+        }
+
+        function setupMediaSession(video) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: video.title,
+                    artist: video.channel,
+                    album: 'SKPlayer Ultra PureCore',
+                    artwork: [{ src: video.thumb, sizes: '512x512', type: 'image/png' }]
+                });
+                navigator.mediaSession.setActionHandler('play', () => { ytPlayer?.playVideo(); updatePlayPauseUI(true); });
+                navigator.mediaSession.setActionHandler('pause', () => { ytPlayer?.pauseVideo(); updatePlayPauseUI(false); });
+                navigator.mediaSession.setActionHandler('nexttrack', () => playNextVideo());
+            }
+        }
+
+        function togglePiP() {
+            playerSec.classList.toggle('floating-pip');
+            showToast(playerSec.classList.contains('floating-pip') ? "Mini Player Mode" : "Expanded Mode");
+        }
+
+        function toggleAudioOnly() {
+            isAudioOnly = !isAudioOnly;
+            document.getElementById('audioOnlyCover').classList.toggle('hidden', !isAudioOnly);
+            document.getElementById('audioOnlyText').innerText = isAudioOnly ? "Audio-Only" : "AV";
+            showToast(isAudioOnly ? "Data Saver: Audio-Only Enabled" : "Video Restored");
+        }
+
+        function toggleABLoop() {
+            if (!ytPlayer) return;
+            const cur = ytPlayer.getCurrentTime();
+            if (loopPointA === null) {
+                loopPointA = cur;
+                document.getElementById('abLoopBtn').classList.add('bg-red-600');
+                showToast(`Point A set at ${Math.floor(cur)}s`);
+            } else if (loopPointB === null) {
+                loopPointB = cur;
+                showToast(`Looping ${Math.floor(loopPointA)}s to ${Math.floor(loopPointB)}s`);
+                loopInterval = setInterval(() => {
+                    if (ytPlayer.getCurrentTime() >= loopPointB) ytPlayer.seekTo(loopPointA, true);
+                }, 400);
+            } else {
+                clearInterval(loopInterval);
+                loopPointA = null; loopPointB = null;
+                document.getElementById('abLoopBtn').classList.remove('bg-red-600');
+                showToast("Loop Disabled");
+            }
+        }
+
+        function toggleSearchBar() {
+            searchBarOverlay.classList.toggle('hidden');
+            if (!searchBarOverlay.classList.contains('hidden')) searchInput.focus();
+        }
+
+        // Live Auto-Suggestions
+        let debounceTimer;
+        window.handleGoogleSuggest = function(data) {
+            if (data && data[1] && data[1].length) {
+                suggestionsBox.innerHTML = data[1].slice(0, 6).map(q => `
+                    <div onclick="selectSuggestion('${q[0]}')" class="px-4 py-2.5 hover:bg-zinc-800 cursor-pointer flex items-center gap-3 border-b border-zinc-800/40 text-xs">
+                        <i class="fa-solid fa-magnifying-glass text-zinc-500"></i>
+                        <span>${q[0]}</span>
+                    </div>
+                `).join('');
+                suggestionsBox.classList.remove('hidden');
+            }
+        };
+
+        function handleSearchSuggestions(val) {
+            clearTimeout(debounceTimer);
+            if (!val.trim()) { suggestionsBox.classList.add('hidden'); return; }
+            debounceTimer = setTimeout(() => {
+                const old = document.getElementById('jsonpSuggest');
+                if (old) old.remove();
+                const script = document.createElement('script');
+                script.id = 'jsonpSuggest';
+                script.src = `https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(val)}&jsonp=handleGoogleSuggest`;
+                document.body.appendChild(script);
+            }, 200);
+        }
+
+        function selectSuggestion(q) {
+            searchInput.value = q;
+            suggestionsBox.classList.add('hidden');
+            handleSearch();
+        }
+
+        function handleSearch() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+            searchBarOverlay.classList.add('hidden');
+            startNewSearch(query);
+        }
+
+        function quickFilter(q) {
+            document.querySelectorAll('.chip-btn').forEach(btn => {
+                btn.className = btn.innerText.toLowerCase() === q.toLowerCase()
+                    ? "chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap"
+                    : "chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]";
+            });
+            startNewSearch(q);
+        }
+
+        function startNewSearch(query) {
+            currentQuery = query;
+            pageOffset = 1;
+            hasMore = true;
+            loadedVideosList = [];
+            currentPlayingIndex = -1;
+            videoFeed.innerHTML = `
+                <div class="py-24 flex flex-col items-center justify-center gap-3 text-zinc-400">
+                    <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-3xl"></i>
+                    <p class="text-xs font-medium">Fetching YouTube stream...</p>
+                </div>`;
+            fetchNextBatch();
         }
 
         function toggleLike() {
@@ -1071,11 +678,10 @@
             if (idx > -1) {
                 likedVideos.splice(idx, 1);
                 document.getElementById('likeIcon').className = "fa-regular fa-thumbs-up";
-                showToast("Removed from Liked");
             } else {
                 likedVideos.push(video);
                 document.getElementById('likeIcon').className = "fa-solid fa-thumbs-up text-red-500";
-                showToast("Added to Liked Videos");
+                showToast("Added to Liked Songs");
             }
             localStorage.setItem('sk_liked', JSON.stringify(likedVideos));
         }
@@ -1089,7 +695,6 @@
                 subscribedChannels.splice(idx, 1);
                 btn.innerText = "Subscribe";
                 btn.className = "bg-white text-black hover:bg-zinc-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition";
-                showToast(`Unsubscribed from ${channel}`);
             } else {
                 subscribedChannels.push(channel);
                 btn.innerText = "Subscribed";
@@ -1106,50 +711,59 @@
             else { navigator.clipboard.writeText(url); showToast("Link copied!"); }
         }
 
-        function openDownloadModal() { document.getElementById('downloadModal').classList.remove('hidden'); }
-        function triggerDownload(quality) {
-            document.getElementById('downloadModal').classList.add('hidden');
-            const v = loadedVideosList[currentPlayingIndex];
-            showToast(`Generating ${quality} stream...`);
-            window.open(`https://www.y2mate.com/youtube/${v.id}`, '_blank');
-        }
+        function switchTab(tab) {
+            document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('text-white'));
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('libraryView').classList.add('hidden');
 
-        function renderLibrary() {
-            document.getElementById('savedCount').innerText = savedVideos.length;
-            document.getElementById('likedCount').innerText = likedVideos.length;
-            document.getElementById('likedList').innerHTML = likedVideos.map(v => `
-                <div onclick="playSaved('${v.id}','${encodeURIComponent(v.title)}','${encodeURIComponent(v.channel)}')" class="flex gap-3 bg-[#181818] p-2 rounded-xl cursor-pointer">
-                    <img src="${v.thumb}" class="w-24 aspect-video rounded-lg object-cover">
-                    <div class="flex-1 min-w-0"><h4 class="text-xs font-medium line-clamp-2">${v.title}</h4><p class="text-[10px] text-zinc-400 mt-1">${v.channel}</p></div>
-                </div>
-            `).join('') || `<p class="text-zinc-500 text-xs">No liked videos</p>`;
+            if (tab === 'home') {
+                document.getElementById('homeView').classList.remove('hidden');
+            } else if (tab === 'library') {
+                document.getElementById('libraryView').classList.remove('hidden');
+                document.getElementById('likedCount').innerText = likedVideos.length;
+                document.getElementById('likedList').innerHTML = likedVideos.map(v => `
+                    <div onclick="playSaved('${v.id}','${encodeURIComponent(v.title)}','${encodeURIComponent(v.channel)}')" class="flex gap-3 bg-[#181818] p-2 rounded-xl cursor-pointer">
+                        <img src="${v.thumb}" class="w-24 aspect-video rounded-lg object-cover">
+                        <div class="flex-1 min-w-0"><h4 class="text-xs font-medium line-clamp-2">${v.title}</h4><p class="text-[10px] text-zinc-400 mt-1">${v.channel}</p></div>
+                    </div>
+                `).join('') || `<p class="text-zinc-500 text-xs">No liked songs</p>`;
+            }
         }
 
         function playSaved(id, title, channel) {
-            loadedVideosList.unshift({ id, title: decodeURIComponent(title), channel: decodeURIComponent(channel) });
+            loadedVideosList.unshift({ id, title: decodeURIComponent(title), channel: decodeURIComponent(channel), thumb: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, duration: "3:30" });
+            switchTab('home');
             playVideoByIndex(0);
         }
 
-        function clearSavedVideos() {
-            savedVideos = [];
-            localStorage.removeItem('sk_saved');
-            renderLibrary();
+        // Voice Search
+        let recognition = null;
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRec();
+            recognition.continuous = false;
+            recognition.lang = 'hi-IN';
+            recognition.onstart = () => document.getElementById('voiceModal').classList.remove('hidden');
+            recognition.onresult = e => {
+                const text = e.results[0][0].transcript;
+                document.getElementById('voiceRecognizedText').innerText = `"${text}"`;
+                if (e.results[0].isFinal) {
+                    closeVoiceSearch();
+                    searchInput.value = text;
+                    handleSearch();
+                }
+            };
+            recognition.onend = () => closeVoiceSearch();
         }
 
-        function renderSubscriptions() {
-            document.getElementById('subsList').innerHTML = subscribedChannels.map(c => `
-                <div class="flex items-center justify-between bg-[#181818] p-3 rounded-xl">
-                    <span class="text-xs font-semibold">${c}</span>
-                    <button onclick="quickFilter('${c}'); switchTab('home')" class="px-3 py-1 bg-zinc-800 rounded-full text-xs">View</button>
-                </div>
-            `).join('') || `<p class="text-zinc-500 text-xs py-8 text-center">No subscriptions yet</p>`;
+        function startVoiceSearch() {
+            if (recognition) { try { recognition.start(); } catch(e) {} }
+            else alert("Voice recognition not supported on this device.");
         }
 
-        function formatTimeAgo(iso) {
-            const s = Math.floor((new Date() - new Date(iso)) / 1000);
-            if (s < 3600) return `${Math.floor(s/60)}m ago`;
-            if (s < 86400) return `${Math.floor(s/3600)}h ago`;
-            return `${Math.floor(s/86400)}d ago`;
+        function closeVoiceSearch() {
+            document.getElementById('voiceModal').classList.add('hidden');
+            recognition?.stop();
         }
 
         window.addEventListener('scroll', () => {
@@ -1157,11 +771,9 @@
             if (scrollTop + clientHeight >= scrollHeight - 600) fetchNextBatch();
         });
 
-        // App Launch Sequence with Splash Screen & Auto-Fallback
         window.addEventListener('DOMContentLoaded', () => {
             launchAppWithSplash();
-            quickFilter('Trending Songs India');
-            checkForAppUpdates();
+            fetchNextBatch();
         });
     </script>
 </body>
