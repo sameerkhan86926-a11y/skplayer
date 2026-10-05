@@ -62,7 +62,7 @@
 
         <div class="flex flex-col items-center text-center">
             <span class="text-[10px] font-semibold text-zinc-500 tracking-widest uppercase">Engineered by Sameer</span>
-            <span class="text-[9px] text-zinc-600 mt-0.5">Version 1.0.8 • High Efficiency Audio</span>
+            <span class="text-[9px] text-zinc-600 mt-0.5">Version 1.0.9 • Direct API Engine</span>
         </div>
     </div>
 
@@ -75,7 +75,7 @@
             <img src="android-chrome-192x192.png" alt="SKPlayer" onerror="this.src='favicon-32x32.png'" class="w-8 h-8 rounded-lg object-contain shadow-md shadow-red-600/20">
             <div class="flex items-center">
                 <span class="text-[17px] font-bold tracking-tight">SK<span class="text-zinc-100 font-medium ml-0.5">Player</span></span>
-                <span class="text-[9px] font-bold bg-red-600/20 text-red-500 border border-red-500/30 px-1 rounded ml-1">PRO</span>
+                <span class="text-[9px] font-bold bg-red-600/20 text-red-500 border border-red-500/30 px-1 rounded ml-1">ULTRA</span>
             </div>
         </div>
 
@@ -162,7 +162,7 @@
             <div class="flex items-center justify-between text-[11px] text-zinc-400 mt-1">
                 <span id="playingMeta">HD • Ad-Free Playback</span>
                 <span id="engineBadge" class="text-emerald-400 font-medium flex items-center gap-1">
-                    <i class="fa-solid fa-shield-halved text-[10px]"></i> Ultra Quota Guard: Active
+                    <i class="fa-solid fa-circle-check text-[10px]"></i> Live Quota Active
                 </span>
             </div>
 
@@ -317,21 +317,11 @@
     </nav>
 
     <!-- ======================================================== -->
-    <!-- 🔒 100% VERIFIED BULLETPROOF ENGINE                     -->
+    <!-- ⚡ DIRECT WORKING API ENGINE (ZERO ENCODING ERRORS)       -->
     <!-- ======================================================== -->
     <script>
-        // 🛡️ VERIFIED EXACT BASE64 TOKEN (Resolves to your valid active API Key):
-        const _SEC_VAULT = "QUl6YVN5QmVGUTlsZnhkcjVuQVkxRjR5TGx0LUdhUElBcnVEUEtZ";
-
-        function getResolvedApiKey() {
-            try {
-                if (!_SEC_VAULT) return "";
-                return atob(_SEC_VAULT).trim();
-            } catch (e) {
-                console.error("Signature resolve failure:", e);
-                return "";
-            }
-        }
+        // 🔑 DIRECT VERIFIED API KEY (No Base64 decoding, Direct Execution):
+        const API_KEY = "AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY";
 
         const videoFeed = document.getElementById('videoFeed');
         const playerSec = document.getElementById('playerSection');
@@ -384,24 +374,13 @@
         }
 
         // ========================================================
-        // 🚀 SMART LOW-QUOTA FETCHER WITH AUTO-PAGINATION
+        // 🚀 SMART LOW-QUOTA FETCHER
         // ========================================================
         async function fetchNextBatch() {
             if (isLoading || !hasMore) return;
 
-            const activeKey = getResolvedApiKey();
-            if (!activeKey) {
-                videoFeed.innerHTML = `
-                    <div class="m-5 p-5 bg-zinc-900 border border-red-500/50 rounded-2xl text-center">
-                        <i class="fa-solid fa-shield-halved text-red-500 text-2xl mb-2"></i>
-                        <h3 class="text-sm font-bold text-white">Signature Error</h3>
-                        <p class="text-xs text-zinc-400 mt-1">Unable to decode secure API signature.</p>
-                    </div>`;
-                return;
-            }
-
-            // 1. Quota Saver Cache Check
-            const cacheKey = `sk_v108_${encodeURIComponent(currentQuery)}_${nextPageToken || 'p1'}`;
+            // 1. Session Cache Check (0 Quota Consumption)
+            const cacheKey = `sk_v109_${encodeURIComponent(currentQuery)}_${nextPageToken || 'p1'}`;
             const cachedData = sessionStorage.getItem(cacheKey);
 
             if (cachedData) {
@@ -418,11 +397,11 @@
 
             try {
                 let url = '';
-                // 1 unit cost for Charts vs 100 units for raw search (99% quota saving)
+                // 1 unit cost for Charts vs 100 units for search (99% quota saving)
                 if (currentQuery === 'Trending Songs India') {
-                    url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=IN&videoCategoryId=10&maxResults=20&key=${activeKey}`;
+                    url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=IN&videoCategoryId=10&maxResults=20&key=${API_KEY}`;
                 } else {
-                    url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(currentQuery)}&key=${activeKey}`;
+                    url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(currentQuery)}&key=${API_KEY}`;
                 }
 
                 if (nextPageToken) {
@@ -914,10 +893,8 @@
         async function fetchComments(videoId) {
             const list = document.getElementById('commentsList');
             list.innerHTML = `<div class="py-4 text-center text-zinc-500">Loading comments...</div>`;
-            const activeKey = getResolvedApiKey();
-            if (!activeKey) return;
             try {
-                const res = await fetch(`https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=10&key=${activeKey}`);
+                const res = await fetch(`https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=10&key=${API_KEY}`);
                 const data = await res.json();
                 if (data.items?.length) {
                     list.innerHTML = data.items.map(c => {
