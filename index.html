@@ -36,7 +36,9 @@
 </head>
 <body class="bg-[#0f0f0f] text-white selection:bg-red-600 pb-20 select-none">
 
-    <!-- 🚀 CINEMATIC SPLASH SCREEN -->
+    <!-- ======================================================== -->
+    <!-- 🚀 CINEMATIC SPLASH SCREEN                               -->
+    <!-- ======================================================== -->
     <div id="appSplashScreen" class="fixed inset-0 z-[9999] bg-[#09090b] flex flex-col items-center justify-between py-12 px-6 transition-all duration-700 select-none">
         <div></div>
 
@@ -62,7 +64,7 @@
 
         <div class="flex flex-col items-center text-center">
             <span class="text-[10px] font-semibold text-zinc-500 tracking-widest uppercase">Engineered by Sameer</span>
-            <span class="text-[9px] text-zinc-600 mt-0.5">Version 1.0.9 • Direct API Engine</span>
+            <span class="text-[9px] text-zinc-600 mt-0.5">Version 1.0.5 • High Fidelity Audio</span>
         </div>
     </div>
 
@@ -98,7 +100,7 @@
         <div class="flex items-center gap-2 max-w-xl mx-auto">
             <button onclick="toggleSearchBar()" class="text-zinc-400 p-1"><i class="fa-solid fa-arrow-left"></i></button>
             <div class="relative flex-1 flex items-center">
-                <input id="searchInput" type="text" placeholder="Search any song, artist, album..." 
+                <input id="searchInput" type="text" placeholder="Search or tap mic to speak..." 
                        oninput="handleSearchSuggestions(this.value)"
                        class="w-full bg-[#202020] text-sm text-white placeholder-zinc-500 pl-4 pr-20 py-2.5 rounded-full border border-zinc-700 focus:outline-none focus:border-red-500">
                 <button id="inputMicBtn" onclick="startVoiceSearch()" class="absolute right-9 text-zinc-400 hover:text-white p-1.5 transition">
@@ -124,13 +126,33 @@
         <button onclick="closeVoiceSearch()" class="mt-6 px-5 py-2 bg-zinc-800 rounded-full text-xs font-semibold hover:bg-zinc-700">Cancel</button>
     </div>
 
+    <!-- In-App Auto-Update Banner -->
+    <div id="updateBanner" class="hidden fixed top-14 left-4 right-4 max-w-md mx-auto z-50 bg-gradient-to-r from-zinc-900 to-zinc-800 border border-red-500/40 rounded-2xl p-4 shadow-2xl">
+        <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-red-600 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
+                <i class="fa-solid fa-cloud-arrow-down"></i>
+            </div>
+            <div class="flex-1">
+                <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                    Update Available! <span id="updateVersionBadge" class="bg-red-500/20 text-red-400 text-[10px] px-1.5 py-0.2 rounded font-mono">v1.0.5</span>
+                </h4>
+                <p class="text-[11px] text-zinc-300 mt-1">A newer version of SKPlayer with new features is ready.</p>
+                <div class="flex items-center gap-2 mt-3">
+                    <button id="updateDownloadBtn" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5">
+                        <i class="fa-solid fa-download"></i> Update Now
+                    </button>
+                    <button onclick="dismissUpdate()" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-lg">Later</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Category Chips -->
     <nav id="categoryChipsNav" class="sticky top-[49px] z-30 bg-[#0f0f0f] py-2 px-3 flex gap-2 overflow-x-auto no-scrollbar border-b border-zinc-900">
         <button onclick="quickFilter('Trending Songs India')" class="chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap">All</button>
         <button onclick="quickFilter('Latest Bollywood Hits')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Bollywood</button>
         <button onclick="quickFilter('Punjabi Hits 2026')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Punjabi</button>
-        <button onclick="quickFilter('Arijit Singh Hits')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Arijit Singh</button>
-        <button onclick="quickFilter('Trending Gaming India')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Gaming</button>
+        <button onclick="quickFilter('Trending Gaming')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Gaming</button>
         <button onclick="quickFilter('Hindi Podcasts')" class="chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]">Podcasts</button>
     </nav>
 
@@ -161,8 +183,8 @@
 
             <div class="flex items-center justify-between text-[11px] text-zinc-400 mt-1">
                 <span id="playingMeta">HD • Ad-Free Playback</span>
-                <span id="engineBadge" class="text-emerald-400 font-medium flex items-center gap-1">
-                    <i class="fa-solid fa-circle-check text-[10px]"></i> Live Quota Active
+                <span class="text-emerald-400 font-medium flex items-center gap-1">
+                    <i class="fa-solid fa-circle-check text-[10px]"></i> Background Mode: Active
                 </span>
             </div>
 
@@ -221,7 +243,7 @@
         <section id="homeView">
             <div id="videoFeed" class="flex flex-col gap-5 pt-2"></div>
             <div id="infiniteLoader" class="hidden py-8 flex items-center justify-center gap-2 text-zinc-400 text-xs font-medium">
-                <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-lg"></i> Loading fresh videos...
+                <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-lg"></i> Loading more videos...
             </div>
         </section>
 
@@ -317,11 +339,14 @@
     </nav>
 
     <!-- ======================================================== -->
-    <!-- ⚡ DIRECT WORKING API ENGINE (ZERO ENCODING ERRORS)       -->
+    <!-- ENGINE LOGIC                                             -->
     <!-- ======================================================== -->
     <script>
-        // 🔑 DIRECT VERIFIED API KEY (No Base64 decoding, Direct Execution):
-        const API_KEY = "AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY";
+        // 🔑 CONFIGURATION:
+        // YAHAN APNI ACTUAL YOUTUBE DATA API KEY PASTE KAREIN (Bina iske feed load nahi hogi):
+        const YOUTUBE_API_KEY = "AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY";
+        const CURRENT_APP_VERSION = "v1.0.5";
+        const GITHUB_REPO = "sameerkhan86926-a11y/skplayer";
 
         const videoFeed = document.getElementById('videoFeed');
         const playerSec = document.getElementById('playerSection');
@@ -358,185 +383,35 @@
             setTimeout(() => toast.classList.add('hidden'), 2600);
         }
 
+        // ========================================================
+        // 🎬 SPLASH SCREEN CONTROLLER WITH FAIL-SAFE
+        // ========================================================
         function launchAppWithSplash() {
             const splashScreen = document.getElementById('appSplashScreen');
             const progressBar = document.getElementById('splashProgressBar');
+
             if (!splashScreen || !progressBar) return;
 
             setTimeout(() => { progressBar.style.width = '45%'; }, 100);
-            setTimeout(() => { progressBar.style.width = '85%'; }, 350);
-            setTimeout(() => { progressBar.style.width = '100%'; }, 650);
+            setTimeout(() => { progressBar.style.width = '85%'; }, 400);
+            setTimeout(() => { progressBar.style.width = '100%'; }, 800);
 
             setTimeout(() => {
                 splashScreen.classList.add('opacity-0', 'scale-105', 'pointer-events-none');
-                setTimeout(() => splashScreen.style.display = 'none', 450);
-            }, 850);
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                }, 600);
+            }, 1000);
         }
 
-        // ========================================================
-        // 🚀 SMART LOW-QUOTA FETCHER
-        // ========================================================
-        async function fetchNextBatch() {
-            if (isLoading || !hasMore) return;
-
-            // 1. Session Cache Check (0 Quota Consumption)
-            const cacheKey = `sk_v109_${encodeURIComponent(currentQuery)}_${nextPageToken || 'p1'}`;
-            const cachedData = sessionStorage.getItem(cacheKey);
-
-            if (cachedData) {
-                const parsed = JSON.parse(cachedData);
-                cleanFeedCard();
-                appendVideosToFeed(parsed.items || []);
-                nextPageToken = parsed.nextPageToken || '';
-                if (!nextPageToken) hasMore = false;
-                return;
+        // Fail-safe: Agar kisi wajah se splash na hate toh 2.5s me forcibly hata do
+        setTimeout(() => {
+            const sp = document.getElementById('appSplashScreen');
+            if (sp && sp.style.display !== 'none') {
+                sp.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => sp.style.display = 'none', 500);
             }
-
-            isLoading = true;
-            infiniteLoader.classList.remove('hidden');
-
-            try {
-                let url = '';
-                // 1 unit cost for Charts vs 100 units for search (99% quota saving)
-                if (currentQuery === 'Trending Songs India') {
-                    url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=IN&videoCategoryId=10&maxResults=20&key=${API_KEY}`;
-                } else {
-                    url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(currentQuery)}&key=${API_KEY}`;
-                }
-
-                if (nextPageToken) {
-                    url += `&pageToken=${encodeURIComponent(nextPageToken)}`;
-                }
-
-                const res = await fetch(url);
-                const data = await res.json();
-
-                if (data.error) throw new Error(data.error.message);
-
-                try {
-                    sessionStorage.setItem(cacheKey, JSON.stringify(data));
-                } catch(e) {}
-
-                nextPageToken = data.nextPageToken || '';
-                if (!nextPageToken) hasMore = false;
-
-                cleanFeedCard();
-                appendVideosToFeed(data.items || []);
-            } catch (err) {
-                console.error("Fetch error:", err);
-                if (!loadedVideosList.length) {
-                    videoFeed.innerHTML = `
-                        <div class="m-5 p-5 bg-zinc-900 border border-red-500/50 rounded-2xl text-center">
-                            <i class="fa-solid fa-triangle-exclamation text-red-500 text-2xl mb-2"></i>
-                            <h3 class="text-sm font-bold text-white">Stream Notice</h3>
-                            <p class="text-xs text-zinc-400 mt-1">${err.message || 'Network issue or quota exceeded'}</p>
-                            <button onclick="startNewSearch('${currentQuery}')" class="mt-4 px-4 py-2 bg-red-600 rounded-xl text-xs font-semibold">Retry</button>
-                        </div>`;
-                }
-            } finally {
-                isLoading = false;
-                infiniteLoader.classList.add('hidden');
-            }
-        }
-
-        function cleanFeedCard() {
-            if (videoFeed.querySelector('.fa-circle-notch') || videoFeed.querySelector('.bg-zinc-900')) {
-                videoFeed.innerHTML = '';
-            }
-        }
-
-        function appendVideosToFeed(items) {
-            const startIndex = loadedVideosList.length;
-            const html = items.map((item, idx) => {
-                const id = item.id?.videoId || (typeof item.id === 'string' ? item.id : '');
-                if (!id) return '';
-                if (loadedVideosList.some(ex => ex.id === id)) return '';
-
-                const snip = item.snippet || {};
-                const thumb = snip.thumbnails?.high?.url || snip.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-                const title = snip.title || "YouTube Track";
-                const channel = snip.channelTitle || "Official Channel";
-                const globalIndex = startIndex + idx;
-
-                loadedVideosList.push({ id, title, channel, thumb });
-
-                return `
-                    <article class="flex flex-col cursor-pointer active:bg-zinc-900/40 transition">
-                        <div onclick="playVideoByIndex(${globalIndex})" class="relative w-full aspect-video bg-zinc-900 overflow-hidden sm:rounded-2xl">
-                            <img src="${thumb}" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'" class="w-full h-full object-cover">
-                            <span class="absolute bottom-2.5 right-2.5 bg-black/85 text-white font-medium text-[11px] px-1.5 py-0.5 rounded">
-                                ${(Math.random() * 4 + 3).toFixed(0)}:${Math.floor(Math.random() * 50 + 10)}
-                            </span>
-                        </div>
-                        <div class="flex items-start gap-3 px-3 py-3">
-                            <div onclick="playVideoByIndex(${globalIndex})" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs flex-shrink-0 text-zinc-300">
-                                ${(channel || 'Y').charAt(0).toUpperCase()}
-                            </div>
-                            <div onclick="playVideoByIndex(${globalIndex})" class="flex-1 min-w-0">
-                                <h3 class="text-sm font-normal text-zinc-100 line-clamp-2 leading-snug">${title}</h3>
-                                <div class="text-[12px] text-zinc-400 mt-1 flex items-center gap-1.5">
-                                    <span>${channel}</span> • <span>Trending</span> • <span>${formatTimeAgo(snip.publishedAt)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </article>`;
-            }).join('');
-            videoFeed.insertAdjacentHTML('beforeend', html);
-        }
-
-        function playVideoByIndex(index) {
-            if (index < 0 || index >= loadedVideosList.length) return;
-            currentPlayingIndex = index;
-            const video = loadedVideosList[index];
-
-            playerSec.classList.remove('hidden');
-            document.getElementById('playingTitle').innerText = video.title;
-            document.getElementById('playingChannel').innerText = video.channel;
-            document.getElementById('channelAvatar').innerText = (video.channel || 'Y').charAt(0).toUpperCase();
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            activateBackgroundAudioEngine(video);
-
-            if (!ytPlayer) {
-                ytPlayer = new YT.Player('ytplayer', {
-                    height: '100%',
-                    width: '100%',
-                    videoId: video.id,
-                    playerVars: { 'autoplay': 1, 'playsinline': 1, 'rel': 0, 'modestbranding': 1, 'controls': 1 },
-                    events: {
-                        'onReady': e => { e.target.playVideo(); updatePlayPauseUI(true); },
-                        'onStateChange': e => {
-                            if (e.data === YT.PlayerState.PLAYING) updatePlayPauseUI(true);
-                            else if (e.data === YT.PlayerState.PAUSED) updatePlayPauseUI(false);
-                            else if (e.data === YT.PlayerState.ENDED) playNextVideo();
-                        }
-                    }
-                });
-            } else {
-                ytPlayer.loadVideoById(video.id);
-                ytPlayer.playVideo();
-                updatePlayPauseUI(true);
-            }
-        }
-
-        function playNextVideo() {
-            if (currentPlayingIndex + 1 < loadedVideosList.length) {
-                playVideoByIndex(currentPlayingIndex + 1);
-            } else if (hasMore) {
-                fetchNextBatch().then(() => {
-                    if (currentPlayingIndex + 1 < loadedVideosList.length) {
-                        playVideoByIndex(currentPlayingIndex + 1);
-                    }
-                });
-            }
-        }
-
-        function closePlayer() {
-            playerSec.classList.add('hidden');
-            if (ytPlayer?.stopVideo) ytPlayer.stopVideo();
-            if (keepAliveAudio) keepAliveAudio.pause();
-            clearInterval(loopInterval);
-        }
+        }, 2500);
 
         // ========================================================
         // 🎵 REAL BACKGROUND AUDIO ENGINE (WakeLock + AudioContext)
@@ -546,7 +421,9 @@
 
         async function requestScreenWakeLock() {
             try {
-                if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
             } catch (err) {}
         }
 
@@ -554,8 +431,12 @@
             requestScreenWakeLock();
 
             try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 gain.gain.value = 0.001;
@@ -584,16 +465,29 @@
                     title: video.title,
                     artist: video.channel,
                     album: 'SKPlayer Ultra Ad-Free',
-                    artwork: [{ src: video.thumb || 'android-chrome-512x512.png', sizes: '512x512', type: 'image/png' }]
+                    artwork: [
+                        { src: video.thumb || 'android-chrome-512x512.png', sizes: '512x512', type: 'image/png' }
+                    ]
                 });
 
                 navigator.mediaSession.setActionHandler('play', () => {
-                    if (ytPlayer && ytPlayer.playVideo) { ytPlayer.playVideo(); updatePlayPauseUI(true); }
+                    if (ytPlayer && ytPlayer.playVideo) {
+                        ytPlayer.playVideo();
+                        updatePlayPauseUI(true);
+                    }
                 });
+
                 navigator.mediaSession.setActionHandler('pause', () => {
-                    if (ytPlayer && ytPlayer.pauseVideo) { ytPlayer.pauseVideo(); updatePlayPauseUI(false); }
+                    if (ytPlayer && ytPlayer.pauseVideo) {
+                        ytPlayer.pauseVideo();
+                        updatePlayPauseUI(false);
+                    }
                 });
-                navigator.mediaSession.setActionHandler('nexttrack', () => playNextVideo());
+
+                navigator.mediaSession.setActionHandler('nexttrack', () => {
+                    playNextVideo();
+                });
+
                 navigator.mediaSession.setActionHandler('previoustrack', () => {
                     if (currentPlayingIndex > 0) playVideoByIndex(currentPlayingIndex - 1);
                 });
@@ -655,30 +549,83 @@
                 permissions.checkPermission(permissions.RECORD_AUDIO, function(status) {
                     if (!status.hasPermission) {
                         permissions.requestPermission(permissions.RECORD_AUDIO, function(status) {
-                            if (status.hasPermission) executeSpeech();
-                            else alert("Please allow Microphone permission in App Settings.");
+                            if (status.hasPermission) {
+                                executeSpeech();
+                            } else {
+                                alert("Please allow Microphone permission in App Settings.");
+                            }
                         }, () => alert("Permission request failed"));
-                    } else executeSpeech();
+                    } else {
+                        executeSpeech();
+                    }
                 });
             } else if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => { stream.getTracks().forEach(t => t.stop()); executeSpeech(); })
-                    .catch(() => alert("Microphone permission denied."));
-            } else executeSpeech();
+                    .then(stream => {
+                        stream.getTracks().forEach(track => track.stop());
+                        executeSpeech();
+                    })
+                    .catch(() => {
+                        alert("Microphone permission denied. Enable it in phone settings.");
+                    });
+            } else {
+                executeSpeech();
+            }
         }
 
         function executeSpeech() {
             if (recognition) {
-                try { recognition.abort(); recognition.start(); } catch(e) {}
-            } else alert("Voice search is not supported on this device.");
+                try {
+                    recognition.abort();
+                    recognition.start();
+                } catch(e) {
+                    console.log("Recognition restart", e);
+                }
+            } else {
+                alert("Voice search is not supported on this device.");
+            }
         }
 
         function closeVoiceSearch() {
             document.getElementById('voiceModal').classList.add('hidden');
-            if (recognition) { try { recognition.stop(); } catch(e) {} }
+            if (recognition) {
+                try { recognition.stop(); } catch(e) {}
+            }
         }
 
-        // Live JSONP Suggestions
+        // ========================================================
+        // 🚀 AUTO UPDATE CHECKER
+        // ========================================================
+        async function checkForAppUpdates() {
+            if (!GITHUB_REPO) return;
+            try {
+                const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
+                if (!res.ok) return;
+                const release = await res.json();
+                const latestVersion = release.tag_name;
+
+                if (latestVersion && latestVersion !== CURRENT_APP_VERSION) {
+                    const apkAsset = release.assets?.find(a => a.name.endsWith('.apk'));
+                    if (apkAsset) {
+                        document.getElementById('updateVersionBadge').innerText = latestVersion;
+                        document.getElementById('updateDownloadBtn').onclick = () => {
+                            window.location.href = apkAsset.browser_download_url;
+                        };
+                        document.getElementById('updateBanner').classList.remove('hidden');
+                    }
+                }
+            } catch (e) {
+                console.log("Update check skipped", e);
+            }
+        }
+
+        function dismissUpdate() {
+            document.getElementById('updateBanner').classList.add('hidden');
+        }
+
+        // ========================================================
+        // 🔎 JSONP AUTO-SUGGESTIONS (Direct & Ultra-Fast)
+        // ========================================================
         let debounceTimer;
         window.handleGoogleSuggest = function(data) {
             if (data && data[1] && data[1].length) {
@@ -698,6 +645,7 @@
             debounceTimer = setTimeout(() => {
                 const oldScript = document.getElementById('jsonpSuggest');
                 if (oldScript) oldScript.remove();
+
                 const script = document.createElement('script');
                 script.id = 'jsonpSuggest';
                 script.src = `https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(val)}&jsonp=handleGoogleSuggest`;
@@ -711,37 +659,7 @@
             handleSearch();
         }
 
-        function handleSearch() {
-            const query = searchInput.value.trim();
-            if (!query) return;
-            searchBarOverlay.classList.add('hidden');
-            startNewSearch(query);
-        }
-
-        function quickFilter(q) {
-            document.querySelectorAll('.chip-btn').forEach(btn => {
-                btn.className = btn.innerText.toLowerCase() === q.toLowerCase()
-                    ? "chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap"
-                    : "chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]";
-            });
-            startNewSearch(q);
-        }
-
-        function startNewSearch(query) {
-            currentQuery = query;
-            nextPageToken = '';
-            hasMore = true;
-            loadedVideosList = [];
-            currentPlayingIndex = -1;
-            videoFeed.innerHTML = `
-                <div class="py-24 flex flex-col items-center justify-center gap-3 text-zinc-400">
-                    <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-3xl"></i>
-                    <p class="text-xs font-medium">Loading feed...</p>
-                </div>`;
-            fetchNextBatch();
-        }
-
-        // Touch & Gesture Controls
+        // Touch & Gesture Sensors
         let lastLeftTap = 0, lastRightTap = 0;
         let leftTapTimeout = null, rightTapTimeout = null;
         let startY = 0;
@@ -766,8 +684,13 @@
         function updatePlayPauseUI(isPlaying) {
             const icon = document.getElementById('playPauseIcon');
             const text = document.getElementById('playPauseText');
-            if (isPlaying) { icon.className = "fa-solid fa-pause"; text.innerText = "Pause"; }
-            else { icon.className = "fa-solid fa-play"; text.innerText = "Play"; }
+            if (isPlaying) {
+                icon.className = "fa-solid fa-pause";
+                text.innerText = "Pause";
+            } else {
+                icon.className = "fa-solid fa-play";
+                text.innerText = "Play";
+            }
         }
 
         leftZone.addEventListener('click', () => {
@@ -856,7 +779,10 @@
             if (minutes === 0) { showToast("Sleep timer cancelled"); return; }
             showToast(`Player will stop in ${minutes} minutes`);
             sleepTimerTimeout = setTimeout(() => {
-                if (ytPlayer && ytPlayer.pauseVideo) { ytPlayer.pauseVideo(); updatePlayPauseUI(false); }
+                if (ytPlayer && ytPlayer.pauseVideo) {
+                    ytPlayer.pauseVideo();
+                    updatePlayPauseUI(false);
+                }
                 showToast("Bedtime sleep timer paused player");
             }, minutes * 60 * 1000);
         }
@@ -882,6 +808,28 @@
             }
         }
 
+        let sponsorInterval = null;
+        function checkSponsorSegments(videoId) {
+            clearInterval(sponsorInterval);
+            fetch(`https://sponsor.ajay.app/api/skipSegments?videoID=${videoId}&categories=["sponsor","selfpromo"]`)
+                .then(r => r.json())
+                .then(segments => {
+                    if (Array.isArray(segments) && segments.length) {
+                        sponsorInterval = setInterval(() => {
+                            if (!ytPlayer || !ytPlayer.getCurrentTime) return;
+                            const cur = ytPlayer.getCurrentTime();
+                            for (let seg of segments) {
+                                if (cur >= seg.segment[0] && cur < seg.segment[1]) {
+                                    ytPlayer.seekTo(seg.segment[1], true);
+                                    showToast("Skipped Sponsor Segment");
+                                    break;
+                                }
+                            }
+                        }, 500);
+                    }
+                }).catch(() => {});
+        }
+
         function toggleComments() {
             const sec = document.getElementById('commentsSection');
             sec.classList.toggle('hidden');
@@ -894,7 +842,7 @@
             const list = document.getElementById('commentsList');
             list.innerHTML = `<div class="py-4 text-center text-zinc-500">Loading comments...</div>`;
             try {
-                const res = await fetch(`https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=10&key=${API_KEY}`);
+                const res = await fetch(`https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=10&key=${YOUTUBE_API_KEY.trim()}`);
                 const data = await res.json();
                 if (data.items?.length) {
                     list.innerHTML = data.items.map(c => {
@@ -908,6 +856,9 @@
                                         <span class="text-[9px] text-zinc-500">${formatTimeAgo(com.publishedAt)}</span>
                                     </div>
                                     <p class="text-zinc-200 mt-0.5 line-clamp-3 leading-relaxed">${com.textDisplay}</p>
+                                    <div class="mt-1 flex items-center gap-1 text-[10px] text-zinc-400">
+                                        <i class="fa-regular fa-thumbs-up"></i> ${com.likeCount}
+                                    </div>
                                 </div>
                             </div>`;
                     }).join('');
@@ -950,6 +901,167 @@
                 document.getElementById('libraryView').classList.remove('hidden');
                 renderLibrary();
             }
+        }
+
+        function quickFilter(q) {
+            document.querySelectorAll('.chip-btn').forEach(btn => {
+                btn.className = btn.innerText.toLowerCase() === q.toLowerCase()
+                    ? "chip-btn active px-3.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg whitespace-nowrap"
+                    : "chip-btn px-3.5 py-1.5 bg-[#272727] text-zinc-200 text-xs font-medium rounded-lg whitespace-nowrap hover:bg-[#383838]";
+            });
+            startNewSearch(q);
+        }
+
+        function handleSearch() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+            searchBarOverlay.classList.add('hidden');
+            startNewSearch(query);
+        }
+
+        function startNewSearch(query) {
+            currentQuery = query;
+            nextPageToken = '';
+            hasMore = true;
+            loadedVideosList = [];
+            currentPlayingIndex = -1;
+            videoFeed.innerHTML = `
+                <div class="py-24 flex flex-col items-center justify-center gap-3 text-zinc-400">
+                    <i class="fa-solid fa-circle-notch fa-spin text-red-600 text-3xl"></i>
+                    <p class="text-xs font-medium">Loading feed...</p>
+                </div>`;
+            fetchNextBatch();
+        }
+
+        async function fetchNextBatch() {
+            if (isLoading || !hasMore) return;
+
+            // Agar API key blank hai toh friendly warning dikhayein
+            if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === "PASTE_YOUR_API_KEY_HERE") {
+                videoFeed.innerHTML = `
+                    <div class="m-5 p-5 bg-zinc-900 border border-red-500/50 rounded-2xl text-center">
+                        <i class="fa-solid fa-key text-red-500 text-2xl mb-2"></i>
+                        <h3 class="text-sm font-bold text-white">YouTube API Key Missing</h3>
+                        <p class="text-xs text-zinc-400 mt-1">Please add your YouTube API Key in index.html (Line 369) to load videos.</p>
+                    </div>`;
+                return;
+            }
+
+            isLoading = true;
+            infiniteLoader.classList.remove('hidden');
+
+            try {
+                let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(currentQuery)}&type=video&key=${YOUTUBE_API_KEY.trim()}`;
+                if (nextPageToken) url += `&pageToken=${nextPageToken}`;
+
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.error) throw new Error(data.error.message);
+
+                nextPageToken = data.nextPageToken || '';
+                if (!nextPageToken) hasMore = false;
+
+                if (videoFeed.querySelector('.fa-circle-notch')) videoFeed.innerHTML = '';
+                appendVideosToFeed(data.items || []);
+            } catch (err) {
+                if (!videoFeed.children.length) {
+                    videoFeed.innerHTML = `<div class="p-6 text-center text-red-400 text-xs">${err.message}</div>`;
+                }
+            } finally {
+                isLoading = false;
+                infiniteLoader.classList.add('hidden');
+            }
+        }
+
+        function appendVideosToFeed(items) {
+            const startIndex = loadedVideosList.length;
+            const html = items.map((item, idx) => {
+                const id = item.id?.videoId;
+                if (!id) return '';
+                const snip = item.snippet;
+                const thumb = snip.thumbnails?.high?.url || snip.thumbnails?.medium?.url;
+                const globalIndex = startIndex + idx;
+
+                loadedVideosList.push({ id, title: snip.title, channel: snip.channelTitle, thumb });
+
+                return `
+                    <article class="flex flex-col cursor-pointer active:bg-zinc-900/40 transition">
+                        <div onclick="playVideoByIndex(${globalIndex})" class="relative w-full aspect-video bg-zinc-900 overflow-hidden sm:rounded-2xl">
+                            <img src="${thumb}" loading="lazy" class="w-full h-full object-cover">
+                            <span class="absolute bottom-2.5 right-2.5 bg-black/85 text-white font-medium text-[11px] px-1.5 py-0.5 rounded">
+                                ${(Math.random() * 8 + 2).toFixed(0)}:${Math.floor(Math.random() * 50 + 10)}
+                            </span>
+                        </div>
+                        <div class="flex items-start gap-3 px-3 py-3">
+                            <div onclick="playVideoByIndex(${globalIndex})" class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs flex-shrink-0 text-zinc-300">
+                                ${snip.channelTitle.charAt(0).toUpperCase()}
+                            </div>
+                            <div onclick="playVideoByIndex(${globalIndex})" class="flex-1 min-w-0">
+                                <h3 class="text-sm font-normal text-zinc-100 line-clamp-2 leading-snug">${snip.title}</h3>
+                                <div class="text-[12px] text-zinc-400 mt-1 flex items-center gap-1.5">
+                                    <span>${snip.channelTitle}</span> • <span>${(Math.random() * 500 + 50).toFixed(0)}K views</span> • <span>${formatTimeAgo(snip.publishedAt)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </article>`;
+            }).join('');
+            videoFeed.insertAdjacentHTML('beforeend', html);
+        }
+
+        function playVideoByIndex(index) {
+            if (index < 0 || index >= loadedVideosList.length) return;
+            currentPlayingIndex = index;
+            const video = loadedVideosList[index];
+
+            playerSec.classList.remove('hidden');
+            document.getElementById('playingTitle').innerText = video.title;
+            document.getElementById('playingChannel').innerText = video.channel;
+            document.getElementById('channelAvatar').innerText = video.channel.charAt(0).toUpperCase();
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            checkSponsorSegments(video.id);
+
+            activateBackgroundAudioEngine(video);
+
+            if (!ytPlayer) {
+                ytPlayer = new YT.Player('ytplayer', {
+                    height: '100%',
+                    width: '100%',
+                    videoId: video.id,
+                    playerVars: { 'autoplay': 1, 'playsinline': 1, 'rel': 0, 'modestbranding': 1, 'controls': 1 },
+                    events: {
+                        'onReady': e => {
+                            e.target.playVideo();
+                            updatePlayPauseUI(true);
+                        },
+                        'onStateChange': e => {
+                            if (e.data === YT.PlayerState.PLAYING) updatePlayPauseUI(true);
+                            else if (e.data === YT.PlayerState.PAUSED) updatePlayPauseUI(false);
+                            else if (e.data === YT.PlayerState.ENDED) playNextVideo();
+                        }
+                    }
+                });
+            } else {
+                ytPlayer.loadVideoById(video.id);
+                ytPlayer.playVideo();
+                updatePlayPauseUI(true);
+            }
+        }
+
+        function playNextVideo() {
+            if (currentPlayingIndex + 1 < loadedVideosList.length) {
+                playVideoByIndex(currentPlayingIndex + 1);
+            } else if (hasMore) {
+                fetchNextBatch().then(() => playVideoByIndex(currentPlayingIndex + 1));
+            }
+        }
+
+        function closePlayer() {
+            playerSec.classList.add('hidden');
+            if (ytPlayer?.stopVideo) ytPlayer.stopVideo();
+            if (keepAliveAudio) keepAliveAudio.pause();
+            clearInterval(sponsorInterval);
+            clearInterval(loopInterval);
         }
 
         function toggleLike() {
@@ -1014,7 +1126,7 @@
         }
 
         function playSaved(id, title, channel) {
-            loadedVideosList.unshift({ id, title: decodeURIComponent(title), channel: decodeURIComponent(channel), thumb: `https://i.ytimg.com/vi/${id}/hqdefault.jpg` });
+            loadedVideosList.unshift({ id, title: decodeURIComponent(title), channel: decodeURIComponent(channel) });
             playVideoByIndex(0);
         }
 
@@ -1034,7 +1146,6 @@
         }
 
         function formatTimeAgo(iso) {
-            if (!iso) return 'Recent';
             const s = Math.floor((new Date() - new Date(iso)) / 1000);
             if (s < 3600) return `${Math.floor(s/60)}m ago`;
             if (s < 86400) return `${Math.floor(s/3600)}h ago`;
@@ -1046,9 +1157,11 @@
             if (scrollTop + clientHeight >= scrollHeight - 600) fetchNextBatch();
         });
 
+        // App Launch Sequence with Splash Screen & Auto-Fallback
         window.addEventListener('DOMContentLoaded', () => {
             launchAppWithSplash();
             quickFilter('Trending Songs India');
+            checkForAppUpdates();
         });
     </script>
 </body>
