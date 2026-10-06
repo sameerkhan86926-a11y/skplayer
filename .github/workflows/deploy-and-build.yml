@@ -53,16 +53,11 @@ jobs:
       - name: Build Android APK via Cordova
         run: |
           npm install -g cordova
-          rm -rf skplayer_app
           cordova create skplayer_app com.skplayer.app SKPlayer
-          
-          # Clean default template
-          rm -rf skplayer_app/www/*
-          
-          # Safe copy: copy files without recursive self-nesting
-          find . -maxdepth 1 ! -name 'skplayer_app' ! -name '.git' ! -name '.github' ! -name '.' -exec cp -r {} skplayer_app/www/ \;
-          
           cd skplayer_app
+          
+          rm -rf www/*
+          cp -r ../* www/ 2>/dev/null || true
           
           # Foreground Service + Permissions Config
           cat << 'EOF' > config.xml
@@ -128,8 +123,8 @@ jobs:
       - name: Create Automatic GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v1.0.5-${{ github.run_number }}"
-          name: "SKPlayer v1.0.5 (Build ${{ github.run_number }})"
+          tag_name: "v1.0.5"
+          name: "SKPlayer v1.0.5"
           body: "Release with full background audio engine, wake lock permissions, and microphone runtime fix."
           files: skplayer_app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
         env:
