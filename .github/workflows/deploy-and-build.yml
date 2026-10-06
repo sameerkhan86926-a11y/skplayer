@@ -23,12 +23,15 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
+
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
@@ -54,17 +57,21 @@ jobs:
         run: |
           npm install -g cordova
           cordova create skplayer_app com.skplayer.app SKPlayer
+          
+          # Clean default files
+          rm -rf skplayer_app/www/*
+          
+          # Copy source files safely (excluding skplayer_app directory)
+          rsync -av --exclude='skplayer_app' --exclude='.git' --exclude='.github' ./ skplayer_app/www/ || cp index.html skplayer_app/www/
+          
           cd skplayer_app
           
-          rm -rf www/*
-          cp -r ../* www/ 2>/dev/null || true
-          
-          # Foreground Service + Permissions Config
+          # Foreground Service, PiP + Permissions Config
           cat << 'EOF' > config.xml
           <?xml version='1.0' encoding='utf-8'?>
           <widget id="com.skplayer.app" version="1.0.5" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
               <name>SKPlayer</name>
-              <description>SKPlayer Ad-Free Video App with True Background Play</description>
+              <description>SKPlayer Ad-Free Video App with PiP & Background Play</description>
               <author email="dev@skplayer.app">Sameer</author>
               <content src="index.html" />
               <access origin="*" />
@@ -76,6 +83,13 @@ jobs:
               <preference name="MediaPlaybackRequiresUserAction" value="false" />
               
               <platform name="android">
+                  <!-- Native Android PiP Enablement -->
+                  <edit-config file="app/src/main/AndroidManifest.xml" target="/manifest/application/activity[@android:name='MainActivity']" mode="merge">
+                      <activity 
+                          android:supportsPictureInPicture="true"
+                          android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
+                  </edit-config>
+
                   <config-file target="AndroidManifest.xml" parent="/*">
                       <uses-permission android:name="android.permission.RECORD_AUDIO" />
                       <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
@@ -84,6 +98,7 @@ jobs:
                       <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
                       <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
                   </config-file>
+
                   <icon src="www/android-chrome-512x512.png" />
                   <icon density="ldpi" src="www/favicon-32x32.png" />
                   <icon density="mdpi" src="www/favicon-32x32.png" />
@@ -97,11 +112,11 @@ jobs:
           
           cordova platform add android
           
-          # Plugins installation
+          # Plugins
           cordova plugin add cordova-plugin-android-permissions || true
           cordova plugin add cordova-plugin-background-mode || true
           
-          # Overwrite mipmap icons with custom brand icons
+          # Custom Branding App Icons
           mkdir -p platforms/android/app/src/main/res/mipmap-hdpi
           mkdir -p platforms/android/app/src/main/res/mipmap-xhdpi
           mkdir -p platforms/android/app/src/main/res/mipmap-xxhdpi
@@ -123,9 +138,9 @@ jobs:
       - name: Create Automatic GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v1.0.5"
-          name: "SKPlayer v1.0.5"
-          body: "Release with full background audio engine, wake lock permissions, and microphone runtime fix."
+          tag_name: "v1.0.5-build-${{ github.run_number }}"
+          name: "SKPlayer v1.0.5 (Build ${{ github.run_number }})"
+          body: "Auto build with Native PiP support, background media playback, and custom branding."
           files: skplayer_app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
