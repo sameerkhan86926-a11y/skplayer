@@ -42,36 +42,46 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 17
 
-      - name: Build Android APK via Cordova
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android Build Tools
+        run: |
+          sdkmanager --install "build-tools;34.0.0" "platforms;android-34"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build Android APK
         run: |
           npm install -g cordova
+          
+          # Clean working directory
+          rm -rf skplayer_app
           cordova create skplayer_app com.skplayer.app SKPlayer
           
-          # Clean default files
+          # Clean default template
           rm -rf skplayer_app/www/*
           
-          # Copy source files safely (excluding skplayer_app directory)
-          rsync -av --exclude='skplayer_app' --exclude='.git' --exclude='.github' ./ skplayer_app/www/ || cp index.html skplayer_app/www/
+          # Copy web assets safely
+          rsync -av --exclude='skplayer_app' --exclude='.git' --exclude='.github' ./ skplayer_app/www/
           
           cd skplayer_app
           
-          # Foreground Service, PiP + Permissions Config
+          # Safe Configuration File
           cat << 'EOF' > config.xml
           <?xml version='1.0' encoding='utf-8'?>
           <widget id="com.skplayer.app" version="1.0.5" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
               <name>SKPlayer</name>
-              <description>SKPlayer Ad-Free Video App with PiP & Background Play</description>
+              <description>SKPlayer Ad-Free Video App</description>
               <author email="dev@skplayer.app">Sameer</author>
               <content src="index.html" />
               <access origin="*" />
@@ -83,64 +93,65 @@ jobs:
               <preference name="MediaPlaybackRequiresUserAction" value="false" />
               
               <platform name="android">
-                  <!-- Native Android PiP Enablement -->
-                  <edit-config file="app/src/main/AndroidManifest.xml" target="/manifest/application/activity[@android:name='MainActivity']" mode="merge">
-                      <activity 
-                          android:supportsPictureInPicture="true"
-                          android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
-                  </edit-config>
-
                   <config-file target="AndroidManifest.xml" parent="/*">
+                      <uses-permission android:name="android.permission.INTERNET" />
                       <uses-permission android:name="android.permission.RECORD_AUDIO" />
                       <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-                      <uses-permission android:name="android.permission.INTERNET" />
                       <uses-permission android:name="android.permission.WAKE_LOCK" />
                       <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
                       <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
                   </config-file>
-
-                  <icon src="www/android-chrome-512x512.png" />
-                  <icon density="ldpi" src="www/favicon-32x32.png" />
-                  <icon density="mdpi" src="www/favicon-32x32.png" />
-                  <icon density="hdpi" src="www/android-chrome-192x192.png" />
-                  <icon density="xhdpi" src="www/android-chrome-192x192.png" />
-                  <icon density="xxhdpi" src="www/android-chrome-512x512.png" />
-                  <icon density="xxxhdpi" src="www/android-chrome-512x512.png" />
               </platform>
           </widget>
           EOF
-          
-          cordova platform add android
-          
-          # Plugins
-          cordova plugin add cordova-plugin-android-permissions || true
-          cordova plugin add cordova-plugin-background-mode || true
-          
-          # Custom Branding App Icons
+
+          # Add Android platform
+          cordova platform add android@12.0.1
+          cordova prepare android
+
+          # Inject PiP flags directly into Manifest without edit-config crash
+          MANIFEST_FILE="platforms/android/app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST_FILE" ]; then
+            sed -i 's/<activity /<activity android:supportsPictureInPicture="true" android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" /g' "$MANIFEST_FILE"
+          fi
+
+          # Copy Icons if available
           mkdir -p platforms/android/app/src/main/res/mipmap-hdpi
           mkdir -p platforms/android/app/src/main/res/mipmap-xhdpi
           mkdir -p platforms/android/app/src/main/res/mipmap-xxhdpi
           mkdir -p platforms/android/app/src/main/res/mipmap-xxxhdpi
           
-          cp ../android-chrome-192x192.png platforms/android/app/src/main/res/mipmap-hdpi/ic_launcher.png 2>/dev/null || true
-          cp ../android-chrome-192x192.png platforms/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png 2>/dev/null || true
-          cp ../android-chrome-512x512.png platforms/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png 2>/dev/null || true
-          cp ../android-chrome-512x512.png platforms/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png 2>/dev/null || true
-          
-          cordova build android --debug
+          [ -f "../android-chrome-192x192.png" ] && cp ../android-chrome-192x192.png platforms/android/app/src/main/res/mipmap-hdpi/ic_launcher.png || true
+          [ -f "../android-chrome-192x192.png" ] && cp ../android-chrome-192x192.png platforms/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png || true
+          [ -f "../android-chrome-512x512.png" ] && cp ../android-chrome-512x512.png platforms/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png || true
+          [ -f "../android-chrome-512x512.png" ] && cp ../android-chrome-512x512.png platforms/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png || true
+
+          # Build APK
+          cordova build android --debug -- --gradleArg=-PcdvMinSdkVersion=24
+
+      - name: Locate Generated APK
+        id: find_apk
+        run: |
+          APK_PATH=$(find skplayer_app/platforms/android/app/build/outputs/apk -name "*.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "ERROR: APK not generated!"
+            exit 1
+          fi
+          echo "Found APK at: $APK_PATH"
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: SKPlayer-Release-APK
-          path: skplayer_app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ steps.find_apk.outputs.apk_path }}
 
       - name: Create Automatic GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "v1.0.5-build-${{ github.run_number }}"
           name: "SKPlayer v1.0.5 (Build ${{ github.run_number }})"
-          body: "Auto build with Native PiP support, background media playback, and custom branding."
-          files: skplayer_app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          body: "Auto build with Native PiP support, background audio playback, and ad-free player."
+          files: ${{ steps.find_apk.outputs.apk_path }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
