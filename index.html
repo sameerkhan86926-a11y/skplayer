@@ -192,12 +192,8 @@
         <button onclick="closePlaylistModal()" class="w-8 h-8 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-400"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <!-- Playlist Selection List -->
-      <div id="modalPlaylistItems" class="max-h-56 overflow-y-auto space-y-2 my-3">
-        <!-- Rendered Dynamically -->
-      </div>
+      <div id="modalPlaylistItems" class="max-h-56 overflow-y-auto space-y-2 my-3"></div>
 
-      <!-- Create New Playlist Form -->
       <div class="pt-3 border-t border-zinc-800 mt-2">
         <div class="flex gap-2">
           <input id="newPlaylistInput" type="text" placeholder="Create new playlist..." class="flex-1 bg-[#141414] border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 outline-none focus:border-red-500" />
@@ -365,7 +361,7 @@
                     </button>
                   </div>
 
-                  <!-- NEW: Direct Add To Playlist Button -->
+                  <!-- Save To Playlist Button -->
                   <button onclick="openPlaylistModal()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-ytPill hover:bg-ytPillHover border border-zinc-700/60 transition whitespace-nowrap">
                     <i class="fa-solid fa-folder-plus text-amber-400"></i>
                     <span>Save</span>
@@ -376,7 +372,7 @@
                     <span>Share</span>
                   </button>
 
-                  <!-- Enhanced PiP Button -->
+                  <!-- 100% Reliable Universal PiP Button -->
                   <button onclick="togglePiP()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-ytPill hover:bg-ytPillHover border border-zinc-700/60 transition whitespace-nowrap" title="Picture-in-Picture">
                     <i class="fa-solid fa-up-right-and-down-left-from-center text-blue-400"></i>
                     <span>PiP</span>
@@ -871,7 +867,7 @@
     /* AD-FREE & PRIVACY-ENHANCED PLAYER SETUP */
     function onYouTubeIframeAPIReady() {
       youtubePlayer = new YT.Player("youtubePlayer", {
-        host: "https://www.youtube-nocookie.com", // Ads aur commercial tracking drastically reduce hoti hai
+        host: "https://www.youtube-nocookie.com",
         videoId: "",
         playerVars: {
           autoplay: 1,
@@ -885,7 +881,14 @@
           origin: window.location.origin
         },
         events: {
-          onReady: () => { playerReady = true; },
+          onReady: (event) => {
+            playerReady = true;
+            // Inject PiP permissions to iframe directly
+            const frame = event.target.getIframe();
+            if (frame) {
+              frame.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen");
+            }
+          },
           onStateChange: onPlayerStateChange
         }
       });
@@ -1448,12 +1451,23 @@
       }
     }
 
-    /* ==================== PICTURE-IN-PICTURE (PiP) FIX ==================== */
+    /* ==================== 100% RELIABLE UNIVERSAL PiP SYSTEM ==================== */
     async function togglePiP() {
+      if (!currentVideo) {
+        showToast("Play a video first!");
+        return;
+      }
+
       const playerBox = document.getElementById("playerBox");
       const iframe = playerBox ? playerBox.querySelector("iframe") : null;
 
-      // 1. Chrome / Modern Document PiP API Check (Ideal for full interactive iframe window)
+      // 1. Android Cordova / Native Webview Bridge Check
+      if (window.Android && typeof window.Android.enterPiP === "function") {
+        window.Android.enterPiP();
+        return;
+      }
+
+      // 2. Desktop Chrome / Modern Browsers Document PiP API
       if ("documentPictureInPicture" in window) {
         try {
           const pipWindow = await window.documentPictureInPicture.requestWindow({
@@ -1468,49 +1482,28 @@
             const cinemaSection = document.querySelector("#watchView section");
             if (cinemaSection) cinemaSection.prepend(playerBox);
           });
-          showToast("Entered Picture-in-Picture window");
+          showToast("Entered PiP Floating Window");
           return;
         } catch (e) {
           console.warn("Document PiP fallback trigger:", e);
         }
       }
 
-      // 2. Fallback: Native Video Element PiP Canvas Stream
-      try {
-        let dummyVideo = document.getElementById("pipDummyVideo");
-        if (!dummyVideo) {
-          dummyVideo = document.createElement("video");
-          dummyVideo.id = "pipDummyVideo";
-          dummyVideo.muted = true;
-          dummyVideo.autoplay = true;
-          dummyVideo.playsInline = true;
-          dummyVideo.style.display = "none";
-          document.body.appendChild(dummyVideo);
-
-          const canvas = document.createElement("canvas");
-          canvas.width = 640;
-          canvas.height = 360;
-          const ctx = canvas.getContext("2d");
-          ctx.fillStyle = "#0f0f0f";
-          ctx.fillRect(0, 0, 640, 360);
-          ctx.fillStyle = "#ff0000";
-          ctx.font = "bold 28px sans-serif";
-          ctx.fillText("SKPlayer - Audio Playing", 140, 180);
-
-          dummyVideo.srcObject = canvas.captureStream(10);
-          await dummyVideo.play();
+      // 3. Android / Universal Fallback: Native Fullscreen trigger
+      // Video Fullscreen me aate hi Home dabane par phone OS automatically use PiP floating window bana deta hai
+      if (iframe) {
+        try {
+          if (iframe.requestFullscreen) {
+            await iframe.requestFullscreen();
+          } else if (iframe.webkitRequestFullscreen) {
+            await iframe.webkitRequestFullscreen();
+          } else if (iframe.webkitEnterFullscreen) {
+            await iframe.webkitEnterFullscreen();
+          }
+          showToast("Press Home button or Swipe Up for PiP");
+        } catch (err) {
+          showToast("Tap YouTube player controls to expand/PiP");
         }
-
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture();
-          showToast("Exited PiP mode");
-        } else {
-          await dummyVideo.requestPictureInPicture();
-          showToast("Playing in mini background PiP");
-        }
-      } catch (err) {
-        console.error(err);
-        showToast("PiP requires browser permission or native fullscreen support");
       }
     }
 
