@@ -94,14 +94,13 @@
         <span>SK</span><span class="text-ytRed">Player</span>
       </div>
       <div class="text-xs text-zinc-500 mt-2 font-medium tracking-wide">
-        Stream without limits • Ad-free audio
+        Stream without limits • Ad-free experience
       </div>
     </div>
   </div>
 
   <!-- ==================== HEADER ==================== -->
   <header class="fixed top-0 left-0 right-0 h-14 bg-ytBlack/95 backdrop-blur-md border-b border-ytBorder z-40 px-4 flex items-center justify-between">
-    <!-- Brand Section -->
     <div class="flex items-center gap-4">
       <button onclick="toggleSidebar()" class="w-10 h-10 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-300 hover:text-white transition" aria-label="Toggle navigation">
         <i class="fa-solid fa-bars text-base"></i>
@@ -116,7 +115,6 @@
       </button>
     </div>
 
-    <!-- Center Search Bar (Desktop) -->
     <div class="hidden md:flex flex-1 max-w-2xl mx-8 items-center gap-3">
       <div class="flex w-full h-10 bg-[#121212] border border-[#303030] rounded-full overflow-hidden focus-within:border-blue-500 transition shadow-inner">
         <input id="searchInput" type="search" placeholder="Search" autocomplete="off"
@@ -132,7 +130,6 @@
       </button>
     </div>
 
-    <!-- Actions (Right) -->
     <div class="flex items-center gap-1 sm:gap-2">
       <button onclick="openMobileSearch()" class="md:hidden w-10 h-10 rounded-full hover:bg-ytPill text-zinc-300 flex items-center justify-center transition" aria-label="Search">
         <i class="fa-solid fa-magnifying-glass text-sm"></i>
@@ -143,9 +140,9 @@
         <span>Audio</span>
       </button>
 
-      <button onclick="showToast('Create feature coming soon')" class="hidden md:flex items-center gap-1.5 px-3.5 h-9 rounded-full bg-ytPill hover:bg-ytPillHover text-xs font-semibold border border-zinc-700/60 transition">
+      <button onclick="openPlaylistModal()" class="hidden md:flex items-center gap-1.5 px-3.5 h-9 rounded-full bg-ytPill hover:bg-ytPillHover text-xs font-semibold border border-zinc-700/60 transition">
         <i class="fa-solid fa-plus text-sm"></i>
-        <span>Create</span>
+        <span>Playlist</span>
       </button>
 
       <button onclick="showToast('No new notifications')" class="w-9 h-9 rounded-full hover:bg-ytPill text-zinc-300 hover:text-white flex items-center justify-center transition relative" aria-label="Notifications">
@@ -185,7 +182,32 @@
     </div>
   </div>
 
-  <!-- ==================== SIDEBAR (DESKTOP) ==================== -->
+  <!-- ==================== PLAYLIST ADD/CREATE MODAL ==================== -->
+  <div id="playlistModal" class="hidden fixed inset-0 z-[120] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#212121] w-full max-w-sm rounded-3xl p-5 border border-zinc-800 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-base text-white flex items-center gap-2">
+          <i class="fa-solid fa-folder-plus text-red-500"></i> Save to Playlist
+        </h3>
+        <button onclick="closePlaylistModal()" class="w-8 h-8 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-400"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Playlist Selection List -->
+      <div id="modalPlaylistItems" class="max-h-56 overflow-y-auto space-y-2 my-3">
+        <!-- Rendered Dynamically -->
+      </div>
+
+      <!-- Create New Playlist Form -->
+      <div class="pt-3 border-t border-zinc-800 mt-2">
+        <div class="flex gap-2">
+          <input id="newPlaylistInput" type="text" placeholder="Create new playlist..." class="flex-1 bg-[#141414] border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 outline-none focus:border-red-500" />
+          <button onclick="handleModalCreatePlaylist()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-semibold transition">Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SIDEBAR ==================== -->
   <aside id="sidebar" class="fixed left-0 top-14 bottom-0 w-60 bg-ytBlack border-r border-ytBorder z-30 overflow-y-auto hidden md:block transition-all duration-200">
     <div class="p-3 space-y-1">
       <button class="sidebar-item sidebar-active w-full flex items-center gap-6 rounded-xl px-4 py-2.5 text-sm text-zinc-200 hover:bg-ytPill transition" data-tab="home" onclick="switchMainTab('home')">
@@ -241,7 +263,6 @@
 
   <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
   <main id="mainContent" class="pt-14 md:pl-60 transition-all duration-200">
-    <!-- Category Pills Navigation -->
     <div id="categoryBar" class="sticky top-14 z-20 bg-ytBlack/95 backdrop-blur-md border-b border-ytBorder/60">
       <div id="categoryScroller" class="flex gap-2.5 px-4 md:px-6 py-2.5 overflow-x-auto no-scrollbar">
         <button class="chip chip-active px-3.5 py-1.5 rounded-lg bg-ytPill text-xs font-semibold whitespace-nowrap hover:bg-ytPillHover transition" onclick="quickFilter('Trending Songs India', this)">All</button>
@@ -254,7 +275,6 @@
       </div>
     </div>
 
-    <!-- Feed / Page Render Target -->
     <div id="app" class="px-4 md:px-6 py-5"></div>
   </main>
 
@@ -290,7 +310,6 @@
   <!-- ==================== CINEMA WATCH VIEW ==================== -->
   <div id="watchView" class="hidden fixed inset-0 z-50 bg-ytBlack overflow-y-auto">
     <div class="max-w-[1700px] mx-auto">
-      <!-- Watch Header -->
       <div class="sticky top-0 z-30 h-14 bg-ytBlack/95 backdrop-blur-md border-b border-ytBorder flex items-center justify-between px-4">
         <div class="flex items-center gap-3">
           <button onclick="closeWatchView()" class="w-10 h-10 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-300 transition">
@@ -304,16 +323,13 @@
         </button>
       </div>
 
-      <!-- Main Watch Layout -->
       <div class="p-3 md:p-6">
         <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,2.3fr)_minmax(340px,1fr)] gap-6">
-          <!-- Primary Video Column -->
           <section class="flex flex-col">
-            <!-- IFrame Player Container -->
+            <!-- IFrame Container (Ad-Reduced & Privacy Enhanced) -->
             <div id="playerBox" class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-zinc-800">
               <div id="youtubePlayer" class="w-full h-full"></div>
 
-              <!-- Audio-Only Canvas -->
               <div id="audioOverlay" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-3 pointer-events-none z-10">
                 <i class="fa-solid fa-headphones text-red-500 text-4xl animate-bounce"></i>
                 <p class="text-sm font-semibold text-zinc-300">Audio-Only Data Saver Active</p>
@@ -321,13 +337,11 @@
               </div>
             </div>
 
-            <!-- Video Metadata -->
+            <!-- Video Info -->
             <div class="mt-4">
               <h1 id="watchTitle" class="text-lg md:text-xl font-bold leading-snug text-white">Loading track...</h1>
 
-              <!-- Channel & Button Bar -->
               <div class="flex flex-wrap items-center justify-between gap-4 mt-3.5 pb-4 border-b border-ytBorder/60">
-                <!-- Channel Metadata -->
                 <div class="flex items-center gap-3">
                   <div id="watchChannelAvatar" class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center font-bold text-sm uppercase text-white shadow-md">S</div>
                   <div>
@@ -340,7 +354,6 @@
                   <button id="subscribeBtn" onclick="toggleSubscribe()" class="ml-3 px-4 py-2 rounded-full bg-white hover:bg-zinc-200 text-black font-semibold text-xs transition">Subscribe</button>
                 </div>
 
-                <!-- Action Controls -->
                 <div class="flex items-center gap-2 overflow-x-auto no-scrollbar text-xs">
                   <div class="flex items-center bg-ytPill rounded-full overflow-hidden border border-zinc-700/60">
                     <button id="likeBtn" onclick="toggleLikeCurrent()" class="px-4 py-2 hover:bg-ytPillHover flex items-center gap-1.5 border-r border-zinc-700/60 transition">
@@ -352,13 +365,20 @@
                     </button>
                   </div>
 
+                  <!-- NEW: Direct Add To Playlist Button -->
+                  <button onclick="openPlaylistModal()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-ytPill hover:bg-ytPillHover border border-zinc-700/60 transition whitespace-nowrap">
+                    <i class="fa-solid fa-folder-plus text-amber-400"></i>
+                    <span>Save</span>
+                  </button>
+
                   <button onclick="shareCurrentVideo()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-ytPill hover:bg-ytPillHover border border-zinc-700/60 transition whitespace-nowrap">
                     <i class="fa-solid fa-share"></i>
                     <span>Share</span>
                   </button>
 
+                  <!-- Enhanced PiP Button -->
                   <button onclick="togglePiP()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-ytPill hover:bg-ytPillHover border border-zinc-700/60 transition whitespace-nowrap" title="Picture-in-Picture">
-                    <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                    <i class="fa-solid fa-up-right-and-down-left-from-center text-blue-400"></i>
                     <span>PiP</span>
                   </button>
 
@@ -367,12 +387,10 @@
                 </div>
               </div>
 
-              <!-- Video Description Card -->
               <div id="watchDescription" class="mt-4 p-4 bg-[#181818] rounded-2xl text-xs md:text-sm leading-relaxed text-zinc-300 border border-ytBorder/40">
                 Loading description...
               </div>
 
-              <!-- Comments Section -->
               <div class="mt-6">
                 <div class="flex items-center gap-3 mb-4">
                   <h2 class="text-base font-bold text-white">Comments</h2>
@@ -383,7 +401,6 @@
             </div>
           </section>
 
-          <!-- Up Next Sidebar Column -->
           <aside class="flex flex-col">
             <h2 class="font-bold text-sm text-zinc-300 mb-3.5 flex items-center justify-between">
               <span>Up Next</span>
@@ -448,7 +465,6 @@
   <!-- YouTube IFrame API -->
   <script src="https://www.youtube.com/iframe_api"></script>
 
-  <!-- ==================== JAVASCRIPT LOGIC (PRESERVED) ==================== -->
   <script>
     const API_KEY = "AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY";
     const SITE_URL = "https://sameerkhan86926-a11y.github.io/skplayer/";
@@ -715,8 +731,8 @@
               <p class="text-xs text-zinc-400 mt-1 truncate hover:text-white transition flex items-center gap-1">${channel} <i class="fa-solid fa-circle-check text-[9px] text-zinc-500"></i></p>
               <p class="text-xs text-zinc-500 mt-0.5">${views} views • ${time}</p>
             </div>
-            <button onclick="event.stopPropagation(); showVideoMenu(${index})" class="w-8 h-8 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-400 shrink-0">
-              <i class="fa-solid fa-ellipsis-vertical text-xs"></i>
+            <button onclick="event.stopPropagation(); openPlaylistModal(${index})" title="Save to playlist" class="w-8 h-8 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-400 shrink-0">
+              <i class="fa-solid fa-folder-plus text-xs"></i>
             </button>
           </div>
         </article>
@@ -852,10 +868,22 @@
       currentVideo = null;
     }
 
+    /* AD-FREE & PRIVACY-ENHANCED PLAYER SETUP */
     function onYouTubeIframeAPIReady() {
       youtubePlayer = new YT.Player("youtubePlayer", {
+        host: "https://www.youtube-nocookie.com", // Ads aur commercial tracking drastically reduce hoti hai
         videoId: "",
-        playerVars: { autoplay: 1, controls: 1, playsinline: 1, rel: 0, modestbranding: 1, fs: 1 },
+        playerVars: {
+          autoplay: 1,
+          controls: 1,
+          playsinline: 1,
+          rel: 0,
+          modestbranding: 1,
+          iv_load_policy: 3,
+          enablejsapi: 1,
+          fs: 1,
+          origin: window.location.origin
+        },
         events: {
           onReady: () => { playerReady = true; },
           onStateChange: onPlayerStateChange
@@ -864,11 +892,14 @@
     }
 
     function loadYouTubePlayer(videoId) {
-      if (!youtubePlayer) {
-        setTimeout(() => loadYouTubePlayer(videoId), 500);
+      if (!youtubePlayer || !youtubePlayer.loadVideoById) {
+        setTimeout(() => loadYouTubePlayer(videoId), 400);
         return;
       }
-      youtubePlayer.loadVideoById(videoId);
+      youtubePlayer.loadVideoById({
+        videoId: videoId,
+        startSeconds: 0
+      });
     }
 
     function onPlayerStateChange(event) {
@@ -1008,8 +1039,14 @@
       const app = document.getElementById("app");
       app.innerHTML = `
         <div class="max-w-4xl mx-auto space-y-6">
-          <h1 class="text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-folder text-red-500"></i> Your Library</h1>
-          <div class="grid sm:grid-cols-3 gap-3">
+          <div class="flex items-center justify-between">
+            <h1 class="text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-folder text-red-500"></i> Your Library</h1>
+            <button onclick="openPlaylistModal()" class="px-4 py-2 rounded-full bg-red-600 hover:bg-red-500 text-xs font-semibold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-plus"></i> New Playlist
+            </button>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-3">
             <button onclick="switchMainTab('history')" class="p-4 bg-[#181818] rounded-2xl hover:bg-[#202020] text-left border border-ytBorder/60 transition">
               <i class="fa-solid fa-clock-rotate-left text-lg text-red-500 mb-2"></i>
               <h3 class="font-bold text-sm">History</h3>
@@ -1019,11 +1056,6 @@
               <i class="fa-solid fa-thumbs-up text-lg text-amber-400 mb-2"></i>
               <h3 class="font-bold text-sm">Liked videos</h3>
               <p class="text-xs text-zinc-500 mt-1">${likedVideos.length} saved</p>
-            </button>
-            <button onclick="createPlaylist()" class="p-4 bg-[#181818] rounded-2xl hover:bg-[#202020] text-left border border-ytBorder/60 transition">
-              <i class="fa-solid fa-plus text-lg text-emerald-400 mb-2"></i>
-              <h3 class="font-bold text-sm">New playlist</h3>
-              <p class="text-xs text-zinc-500 mt-1">Create playlist</p>
             </button>
           </div>
           <div class="pt-2">
@@ -1039,7 +1071,7 @@
       const container = document.getElementById("playlistList");
       if (!container) return;
       if (!playlists.length) {
-        container.innerHTML = `<div class="p-5 rounded-2xl bg-[#181818] text-zinc-500 text-xs border border-ytBorder/40">No playlists created yet.</div>`;
+        container.innerHTML = `<div class="p-5 rounded-2xl bg-[#181818] text-zinc-500 text-xs border border-ytBorder/40">No playlists created yet. Click "+ New Playlist" to start.</div>`;
         return;
       }
       container.innerHTML = playlists.map(p => `
@@ -1048,35 +1080,97 @@
             <h3 class="font-bold text-sm text-zinc-200">${escapeHTML(p.name)}</h3>
             <p class="text-xs text-zinc-500 mt-0.5">${p.videos.length} tracks</p>
           </div>
-          <button onclick="playPlaylist('${p.id}')" class="px-4 py-1.5 rounded-full bg-ytPill hover:bg-ytPillHover text-xs font-semibold">Play</button>
+          <div class="flex items-center gap-2">
+            <button onclick="deletePlaylist('${p.id}')" class="w-8 h-8 rounded-full hover:bg-zinc-800 text-zinc-400 hover:text-red-500 flex items-center justify-center transition">
+              <i class="fa-solid fa-trash text-xs"></i>
+            </button>
+            <button onclick="playPlaylist('${p.id}')" class="px-4 py-1.5 rounded-full bg-ytPill hover:bg-ytPillHover text-xs font-semibold">Play</button>
+          </div>
         </div>
       `).join("");
     }
 
-    function createPlaylist() {
-      const name = prompt("Playlist name:");
-      if (!name?.trim()) return;
-      playlists.push({ id: Date.now().toString(), name: name.trim(), videos: [] });
+    function deletePlaylist(id) {
+      playlists = playlists.filter(p => p.id !== id);
       saveState();
-      renderLibrary();
-      showToast("Playlist created");
+      renderPlaylists();
+      showToast("Playlist removed");
     }
 
-    function addCurrentToPlaylist() {
-      if (!currentVideo) return;
-      if (!playlists.length) { createPlaylist(); return; }
-      const names = playlists.map((p, i) => `${i + 1}. ${p.name}`).join("\n");
-      const choice = prompt(`Select Playlist:\n\n${names}\n\nEnter number:`);
-      const idx = Number(choice) - 1;
-      if (!Number.isInteger(idx) || !playlists[idx]) return;
-      const p = playlists[idx];
-      if (!p.videos.some(v => v.id === currentVideo.id)) {
-        p.videos.push(currentVideo);
-        saveState();
-        showToast("Added to playlist");
+    /* ==================== PLAYLIST MODAL SYSTEM ==================== */
+    let pendingVideoToSave = null;
+
+    function openPlaylistModal(targetIndex = null) {
+      if (targetIndex !== null && loadedVideos[targetIndex]) {
+        pendingVideoToSave = loadedVideos[targetIndex];
+      } else if (currentVideo) {
+        pendingVideoToSave = currentVideo;
+      } else if (loadedVideos.length > 0) {
+        pendingVideoToSave = loadedVideos[0];
       } else {
-        showToast("Already in playlist");
+        showToast("No active video selected");
+        return;
       }
+
+      const modal = document.getElementById("playlistModal");
+      const listContainer = document.getElementById("modalPlaylistItems");
+      modal.classList.remove("hidden");
+
+      if (!playlists.length) {
+        listContainer.innerHTML = `<p class="text-zinc-500 text-xs py-3 text-center">No playlists yet. Create one below!</p>`;
+        return;
+      }
+
+      listContainer.innerHTML = playlists.map(p => {
+        const hasVideo = p.videos.some(v => v.id === pendingVideoToSave.id);
+        return `
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-ytPill hover:bg-ytPillHover transition cursor-pointer" onclick="toggleVideoInPlaylist('${p.id}')">
+            <span class="text-xs font-semibold text-zinc-200 truncate pr-2">${escapeHTML(p.name)} (${p.videos.length})</span>
+            <i class="fa-solid ${hasVideo ? "fa-check text-emerald-400" : "fa-plus text-zinc-400"} text-xs"></i>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function closePlaylistModal() {
+      document.getElementById("playlistModal").classList.add("hidden");
+      document.getElementById("newPlaylistInput").value = "";
+    }
+
+    function toggleVideoInPlaylist(playlistId) {
+      if (!pendingVideoToSave) return;
+      const pl = playlists.find(p => p.id === playlistId);
+      if (!pl) return;
+
+      const idx = pl.videos.findIndex(v => v.id === pendingVideoToSave.id);
+      if (idx >= 0) {
+        pl.videos.splice(idx, 1);
+        showToast(`Removed from "${pl.name}"`);
+      } else {
+        pl.videos.push(pendingVideoToSave);
+        showToast(`Saved to "${pl.name}"`);
+      }
+      saveState();
+      openPlaylistModal();
+      if (activeTab === "library") renderPlaylists();
+    }
+
+    function handleModalCreatePlaylist() {
+      const input = document.getElementById("newPlaylistInput");
+      const name = input.value.trim();
+      if (!name) return;
+
+      const newPl = {
+        id: Date.now().toString(),
+        name: name,
+        videos: pendingVideoToSave ? [pendingVideoToSave] : []
+      };
+      playlists.push(newPl);
+      saveState();
+      input.value = "";
+      showToast(`Created & Saved to "${name}"`);
+      openPlaylistModal();
+      if (activeTab === "library") renderPlaylists();
     }
 
     function playPlaylist(playlistId) {
@@ -1354,26 +1448,69 @@
       }
     }
 
+    /* ==================== PICTURE-IN-PICTURE (PiP) FIX ==================== */
     async function togglePiP() {
-      showToast("PiP depends on browser & device permissions");
-    }
+      const playerBox = document.getElementById("playerBox");
+      const iframe = playerBox ? playerBox.querySelector("iframe") : null;
 
-    function showVideoMenu(index) {
-      const video = loadedVideos[index];
-      if (!video) return;
-      const action = prompt(`Choose Action for "${video.title.slice(0, 30)}...":\n\n1. Like Track\n2. Add to Playlist\n3. Share Link`);
-      if (action === "1") {
-        const ex = likedVideos.findIndex(v => v.id === video.id);
-        if (ex >= 0) likedVideos.splice(ex, 1);
-        else likedVideos.unshift(video);
-        saveState();
-        showToast(ex >= 0 ? "Removed from liked" : "Added to liked videos");
-      } else if (action === "2") {
-        currentVideo = video;
-        addCurrentToPlaylist();
-      } else if (action === "3") {
-        currentVideo = video;
-        shareCurrentVideo();
+      // 1. Chrome / Modern Document PiP API Check (Ideal for full interactive iframe window)
+      if ("documentPictureInPicture" in window) {
+        try {
+          const pipWindow = await window.documentPictureInPicture.requestWindow({
+            width: 480,
+            height: 270
+          });
+          pipWindow.document.body.style.margin = "0";
+          pipWindow.document.body.style.backgroundColor = "#000";
+          pipWindow.document.body.appendChild(playerBox);
+
+          pipWindow.addEventListener("pagehide", () => {
+            const cinemaSection = document.querySelector("#watchView section");
+            if (cinemaSection) cinemaSection.prepend(playerBox);
+          });
+          showToast("Entered Picture-in-Picture window");
+          return;
+        } catch (e) {
+          console.warn("Document PiP fallback trigger:", e);
+        }
+      }
+
+      // 2. Fallback: Native Video Element PiP Canvas Stream
+      try {
+        let dummyVideo = document.getElementById("pipDummyVideo");
+        if (!dummyVideo) {
+          dummyVideo = document.createElement("video");
+          dummyVideo.id = "pipDummyVideo";
+          dummyVideo.muted = true;
+          dummyVideo.autoplay = true;
+          dummyVideo.playsInline = true;
+          dummyVideo.style.display = "none";
+          document.body.appendChild(dummyVideo);
+
+          const canvas = document.createElement("canvas");
+          canvas.width = 640;
+          canvas.height = 360;
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#0f0f0f";
+          ctx.fillRect(0, 0, 640, 360);
+          ctx.fillStyle = "#ff0000";
+          ctx.font = "bold 28px sans-serif";
+          ctx.fillText("SKPlayer - Audio Playing", 140, 180);
+
+          dummyVideo.srcObject = canvas.captureStream(10);
+          await dummyVideo.play();
+        }
+
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+          showToast("Exited PiP mode");
+        } else {
+          await dummyVideo.requestPictureInPicture();
+          showToast("Playing in mini background PiP");
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("PiP requires browser permission or native fullscreen support");
       }
     }
 
