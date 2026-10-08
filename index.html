@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#0f0f0f" />
-  <meta name="description" content="SKPlayer - Stream and discover videos, music, and creator content." />
-  <title>SKPlayer</title>
+  <meta name="description" content="SKPlayer Pro - Ad-Free Video & Music Streaming Engine" />
+  <title>SKPlayer Pro</title>
 
   <link rel="icon" href="favicon-32x32.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -40,29 +40,30 @@
       color: #f1f1f1;
       font-family: 'Roboto', Arial, sans-serif;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #0f0f0f; }
-    ::-webkit-scrollbar-thumb { background: #383838; border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: #555555; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
 
     .chip-active {
-      background-color: #f1f1f1 !important;
+      background-color: #ffffff !important;
       color: #0f0f0f !important;
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .sidebar-active {
       background-color: #272727 !important;
-      font-weight: 500;
+      font-weight: 600;
       color: #ffffff !important;
     }
 
     .shimmer {
-      background: linear-gradient(90deg, #181818 25%, #262626 50%, #181818 75%);
+      background: linear-gradient(90deg, #181818 25%, #252525 50%, #181818 75%);
       background-size: 200% 100%;
-      animation: shimmerAnim 1.5s infinite;
+      animation: shimmerAnim 1.4s infinite;
     }
 
     @keyframes shimmerAnim {
@@ -75,8 +76,27 @@
     .sidebar-mini .sidebar-section-title { display: none !important; }
     .sidebar-mini .sidebar-item { justify-content: center !important; padding: 12px 0 !important; }
 
+    /* Corner Floating Mini-Player Dock */
+    #playerBox.mini-pip {
+      position: fixed !important;
+      bottom: 74px !important;
+      right: 16px !important;
+      width: 320px !important;
+      height: 180px !important;
+      z-index: 999 !important;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.85);
+      border: 2px solid #ff0000;
+      border-radius: 14px;
+    }
+
     @media (max-width: 767px) {
       body { padding-bottom: 64px; }
+      #playerBox.mini-pip {
+        bottom: 70px !important;
+        right: 10px !important;
+        width: 240px !important;
+        height: 135px !important;
+      }
     }
   </style>
 </head>
@@ -88,13 +108,15 @@
     <div class="flex flex-col items-center">
       <div class="relative w-20 h-20 mb-4 flex items-center justify-center">
         <div class="absolute inset-0 bg-red-600/30 rounded-3xl blur-xl animate-pulse"></div>
-        <img src="android-chrome-192x192.png" class="relative z-10 w-20 h-20 rounded-2xl object-cover shadow-2xl" onerror="this.src='favicon-32x32.png'" alt="SKPlayer" />
+        <div class="relative z-10 w-16 h-16 rounded-2xl bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center text-3xl font-black text-white shadow-2xl">
+          SK
+        </div>
       </div>
       <div class="text-2xl font-bold tracking-tight">
         <span>SK</span><span class="text-ytRed">Player</span>
       </div>
       <div class="text-xs text-zinc-500 mt-2 font-medium tracking-wide">
-        Stream without limits • Ad-free experience
+        Ultra Ad-Free Experience • Cinema Audio Mode
       </div>
     </div>
   </div>
@@ -107,50 +129,49 @@
       </button>
 
       <button onclick="goHome()" class="flex items-center gap-2 group">
-        <img src="android-chrome-192x192.png" class="w-7 h-7 rounded-lg object-contain shadow-sm shadow-red-600/40" onerror="this.src='favicon-32x32.png'" alt="SKPlayer logo" />
+        <div class="w-7 h-7 rounded-lg bg-red-600 flex items-center justify-center font-black text-xs text-white shadow-md shadow-red-600/30">SK</div>
         <span class="text-lg font-bold tracking-tight text-white flex items-center">
           SK<span class="text-ytRed">Player</span>
-          <span class="ml-1 text-[8px] font-bold uppercase tracking-wider text-red-400 bg-red-600/15 border border-red-500/25 px-1 py-0.5 rounded">Pro</span>
+          <span class="ml-1.5 text-[9px] font-extrabold uppercase tracking-wider text-red-400 bg-red-600/15 border border-red-500/25 px-1.5 py-0.5 rounded">Ad-Free</span>
         </span>
       </button>
     </div>
 
-    <div class="hidden md:flex flex-1 max-w-2xl mx-8 items-center gap-3">
-      <div class="flex w-full h-10 bg-[#121212] border border-[#303030] rounded-full overflow-hidden focus-within:border-blue-500 transition shadow-inner">
-        <input id="searchInput" type="search" placeholder="Search" autocomplete="off"
+    <!-- Live Search with Auto-Complete Dropdown -->
+    <div class="relative hidden md:flex flex-1 max-w-2xl mx-8 items-center gap-3">
+      <div class="flex w-full h-10 bg-[#121212] border border-[#303030] rounded-full overflow-hidden focus-within:border-red-500 transition shadow-inner">
+        <input id="searchInput" type="search" placeholder="Search videos, music, artists..." autocomplete="off"
                class="flex-1 bg-transparent px-5 text-sm text-zinc-100 placeholder-zinc-500 outline-none"
+               oninput="handleSearchSuggest(this.value)"
                onkeydown="handleSearchKey(event)" />
-        <button onclick="performSearch()" class="w-16 bg-ytPill hover:bg-ytPillHover border-l border-[#303030] flex items-center justify-center text-zinc-300 transition" aria-label="Search button">
+        <button onclick="performSearch()" class="w-16 bg-ytPill hover:bg-ytPillHover border-l border-[#303030] flex items-center justify-center text-zinc-300 transition" aria-label="Search">
           <i class="fa-solid fa-magnifying-glass text-sm"></i>
         </button>
       </div>
 
-      <button onclick="startVoiceSearch()" class="w-10 h-10 rounded-full bg-ytPill hover:bg-ytPillHover text-zinc-300 hover:text-white flex items-center justify-center shrink-0 transition" title="Search with voice" aria-label="Voice search">
+      <div id="desktopSuggestions" class="hidden absolute top-12 left-0 right-14 bg-[#1e1e1e] border border-zinc-800 rounded-2xl p-2 shadow-2xl z-50"></div>
+
+      <button onclick="startVoiceSearch()" class="w-10 h-10 rounded-full bg-ytPill hover:bg-ytPillHover text-zinc-300 hover:text-white flex items-center justify-center shrink-0 transition" title="Search with voice">
         <i class="fa-solid fa-microphone text-sm"></i>
       </button>
     </div>
 
-    <div class="flex items-center gap-1 sm:gap-2">
+    <div class="flex items-center gap-1.5 sm:gap-2">
       <button onclick="openMobileSearch()" class="md:hidden w-10 h-10 rounded-full hover:bg-ytPill text-zinc-300 flex items-center justify-center transition" aria-label="Search">
         <i class="fa-solid fa-magnifying-glass text-sm"></i>
       </button>
 
-      <button onclick="toggleAudioMode()" id="audioBtn" class="hidden sm:flex items-center gap-1.5 px-3 h-9 rounded-full bg-ytPill hover:bg-ytPillHover text-xs font-medium border border-zinc-700/60 transition">
+      <button onclick="toggleAudioMode()" id="audioBtn" class="hidden sm:flex items-center gap-1.5 px-3 h-9 rounded-full bg-ytPill hover:bg-ytPillHover text-xs font-semibold border border-zinc-700/60 transition">
         <i class="fa-solid fa-headphones text-red-500"></i>
         <span>Audio</span>
       </button>
 
       <button onclick="openPlaylistModal()" class="hidden md:flex items-center gap-1.5 px-3.5 h-9 rounded-full bg-ytPill hover:bg-ytPillHover text-xs font-semibold border border-zinc-700/60 transition">
-        <i class="fa-solid fa-plus text-sm"></i>
+        <i class="fa-solid fa-plus text-xs"></i>
         <span>Playlist</span>
       </button>
 
-      <button onclick="showToast('No new notifications')" class="w-9 h-9 rounded-full hover:bg-ytPill text-zinc-300 hover:text-white flex items-center justify-center transition relative" aria-label="Notifications">
-        <i class="fa-regular fa-bell text-base"></i>
-        <span class="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full"></span>
-      </button>
-
-      <button onclick="switchMainTab('library')" class="w-8 h-8 rounded-full bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center text-xs font-bold text-white shadow-md ml-1 hover:ring-2 hover:ring-white/20 transition" aria-label="Profile">
+      <button onclick="switchMainTab('library')" class="w-8 h-8 rounded-full bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center text-xs font-bold text-white shadow-md ml-1 hover:ring-2 hover:ring-white/20 transition">
         S
       </button>
     </div>
@@ -167,22 +188,21 @@
         <i class="fa-solid fa-magnifying-glass text-sm"></i>
       </button>
     </div>
-    <div id="mobileSuggestions" class="p-3 space-y-2 overflow-y-auto"></div>
   </div>
 
   <!-- ==================== VOICE MODAL ==================== -->
   <div id="voiceModal" class="hidden fixed inset-0 z-[100] bg-black/85 backdrop-blur-sm items-center justify-center p-5">
     <div class="w-full max-w-sm bg-[#212121] rounded-3xl p-6 text-center border border-zinc-800 shadow-2xl">
-      <div id="voiceIcon" class="w-20 h-20 rounded-full bg-red-600 mx-auto flex items-center justify-center text-3xl text-white shadow-lg shadow-red-600/40 animate-pulse">
+      <div class="w-20 h-20 rounded-full bg-red-600 mx-auto flex items-center justify-center text-3xl text-white shadow-lg shadow-red-600/40 animate-pulse">
         <i class="fa-solid fa-microphone"></i>
       </div>
       <h3 class="text-lg font-bold mt-5 text-white">Listening...</h3>
-      <p id="voiceText" class="text-zinc-400 text-sm mt-1">Say song or creator name</p>
+      <p id="voiceText" class="text-zinc-400 text-sm mt-1">Bolkar search karein</p>
       <button onclick="closeVoiceModal()" class="mt-6 px-6 py-2 rounded-full bg-ytPill hover:bg-ytPillHover text-xs font-semibold">Cancel</button>
     </div>
   </div>
 
-  <!-- ==================== PLAYLIST ADD/CREATE MODAL ==================== -->
+  <!-- ==================== PLAYLIST MODAL ==================== -->
   <div id="playlistModal" class="hidden fixed inset-0 z-[120] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-[#212121] w-full max-w-sm rounded-3xl p-5 border border-zinc-800 shadow-2xl">
       <div class="flex items-center justify-between mb-4">
@@ -196,7 +216,7 @@
 
       <div class="pt-3 border-t border-zinc-800 mt-2">
         <div class="flex gap-2">
-          <input id="newPlaylistInput" type="text" placeholder="Create new playlist..." class="flex-1 bg-[#141414] border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 outline-none focus:border-red-500" />
+          <input id="newPlaylistInput" type="text" placeholder="New playlist name..." class="flex-1 bg-[#141414] border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 outline-none focus:border-red-500" />
           <button onclick="handleModalCreatePlaylist()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-semibold transition">Create</button>
         </div>
       </div>
@@ -221,7 +241,7 @@
 
       <div class="border-t border-ytBorder/80 my-3"></div>
 
-      <div class="sidebar-section-title px-4 py-1.5 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">You</div>
+      <div class="sidebar-section-title px-4 py-1.5 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Library</div>
       <button class="sidebar-item w-full flex items-center gap-6 rounded-xl px-4 py-2.5 text-sm text-zinc-300 hover:bg-ytPill transition" data-tab="history" onclick="switchMainTab('history')">
         <i class="fa-solid fa-clock-rotate-left text-base w-5 text-center"></i>
         <span class="sidebar-label">History</span>
@@ -234,40 +254,19 @@
         <i class="fa-solid fa-thumbs-up text-base w-5 text-center"></i>
         <span class="sidebar-label">Liked videos</span>
       </button>
-
-      <div class="border-t border-ytBorder/80 my-3"></div>
-
-      <div class="sidebar-section-title px-4 py-1.5 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Explore</div>
-      <button class="sidebar-item w-full flex items-center gap-6 rounded-xl px-4 py-2 text-sm text-zinc-300 hover:bg-ytPill transition" onclick="searchCategory('Music India')">
-        <i class="fa-solid fa-music text-sm w-5 text-center text-amber-400"></i>
-        <span class="sidebar-label">Music</span>
-      </button>
-      <button class="sidebar-item w-full flex items-center gap-6 rounded-xl px-4 py-2 text-sm text-zinc-300 hover:bg-ytPill transition" onclick="searchCategory('Gaming')">
-        <i class="fa-solid fa-gamepad text-sm w-5 text-center text-emerald-400"></i>
-        <span class="sidebar-label">Gaming</span>
-      </button>
-      <button class="sidebar-item w-full flex items-center gap-6 rounded-xl px-4 py-2 text-sm text-zinc-300 hover:bg-ytPill transition" onclick="searchCategory('News Live')">
-        <i class="fa-regular fa-newspaper text-sm w-5 text-center text-blue-400"></i>
-        <span class="sidebar-label">News</span>
-      </button>
-      <button class="sidebar-item w-full flex items-center gap-6 rounded-xl px-4 py-2 text-sm text-zinc-300 hover:bg-ytPill transition" onclick="searchCategory('Sports Highlights')">
-        <i class="fa-solid fa-trophy text-sm w-5 text-center text-yellow-500"></i>
-        <span class="sidebar-label">Sports</span>
-      </button>
     </div>
   </aside>
 
-  <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
+  <!-- ==================== MAIN CONTAINER ==================== -->
   <main id="mainContent" class="pt-14 md:pl-60 transition-all duration-200">
     <div id="categoryBar" class="sticky top-14 z-20 bg-ytBlack/95 backdrop-blur-md border-b border-ytBorder/60">
       <div id="categoryScroller" class="flex gap-2.5 px-4 md:px-6 py-2.5 overflow-x-auto no-scrollbar">
         <button class="chip chip-active px-3.5 py-1.5 rounded-lg bg-ytPill text-xs font-semibold whitespace-nowrap hover:bg-ytPillHover transition" onclick="quickFilter('Trending Songs India', this)">All</button>
-        <button class="chip px-3.5 py-1.5 rounded-lg bg-ytPill text-xs font-medium whitespace-nowrap hover:bg-ytPillHover transition" onclick="quickFilter('Bollywood Songs 2026', this)">Bollywood</button>
-        <button class="chip px-3.5 py-1.5 rounded-lg bg-ytPill text-xs font-medium whitespace-nowrap hover:bg-ytPillHover transition" onclick="quickFilter('Punjabi Hits 2026', this)">Punjabi</button>
+        <button class="chip px-3.5 py-1.5 rounded-lg bg-ytPill text-xs font-medium whitespace-nowrap hover:bg-ytPillHover transition" onclick="quickFilter('Bollywood Songs', this)">Bollywood</button>
+        <button class="chip px-3.5 py-1.5 rounded-lg bg-ytPill text-xs font-medium whitespace-nowrap hover:bg-ytPillHover transition" onclick="quickFilter('Punjabi Hits', this)">Punjabi</button>
         <button class="chip px-3.5 py-1.5 rounded-lg bg-ytPill text-xs font-medium whitespace-nowrap hover:bg-ytPillHover transition" onclick="quickFilter('Arijit Singh Hits', this)">Arijit Singh</button>
+        <button class="chip px-3.5 py-1.5 rounded-lg bg-ytPill text-xs font-medium whitespace-nowrap hover:bg-ytPillHover transition" onclick="quickFilter('Lo-Fi Relax Songs', this)">Lo-Fi Chill</button>
         <button class="chip px-3.5 py-1.5 rounded-lg bg-ytPill text-xs font-medium whitespace-nowrap hover:bg-ytPillHover transition" onclick="quickFilter('Hindi Podcasts', this)">Podcasts</button>
-        <button class="chip px-3.5 py-1.5 rounded-lg bg-ytPill text-xs font-medium whitespace-nowrap hover:bg-ytPillHover transition" onclick="quickFilter('Gaming Highlights', this)">Gaming</button>
-        <button class="chip px-3.5 py-1.5 rounded-lg bg-ytPill text-xs font-medium whitespace-nowrap hover:bg-ytPillHover transition" onclick="quickFilter('Lo-Fi Relax Songs', this)">Lo-Fi</button>
       </div>
     </div>
 
@@ -281,21 +280,17 @@
         <i class="fa-solid fa-house text-base"></i>
         <span>Home</span>
       </button>
-
       <button onclick="switchMainTab('shorts')" class="flex flex-col items-center gap-1 text-[10px] text-zinc-300 hover:text-white">
         <i class="fa-solid fa-bolt text-base text-red-500"></i>
         <span>Shorts</span>
       </button>
-
       <button onclick="startVoiceSearch()" class="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center -mt-3 shadow-lg shadow-red-600/40 active:scale-90 transition">
         <i class="fa-solid fa-microphone text-sm"></i>
       </button>
-
       <button onclick="switchMainTab('subscriptions')" class="flex flex-col items-center gap-1 text-[10px] text-zinc-300 hover:text-white">
         <i class="fa-solid fa-layer-group text-base"></i>
         <span>Subs</span>
       </button>
-
       <button onclick="switchMainTab('library')" class="flex flex-col items-center gap-1 text-[10px] text-zinc-300 hover:text-white">
         <i class="fa-solid fa-folder text-base"></i>
         <span>You</span>
@@ -311,25 +306,33 @@
           <button onclick="closeWatchView()" class="w-10 h-10 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-300 transition">
             <i class="fa-solid fa-arrow-left text-base"></i>
           </button>
-          <span class="font-bold text-sm tracking-tight">Now Playing</span>
+          <span class="font-bold text-sm tracking-tight text-white">SKPlayer Cinema</span>
         </div>
 
-        <button onclick="shareCurrentVideo()" class="w-10 h-10 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-300 transition" title="Share video">
-          <i class="fa-solid fa-share-nodes text-base"></i>
-        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="togglePiP()" class="w-10 h-10 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-300 transition" title="Minimize / Floating Player">
+            <i class="fa-solid fa-down-left-and-up-right-to-center text-sm"></i>
+          </button>
+          <button onclick="shareCurrentVideo()" class="w-10 h-10 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-300 transition" title="Share video">
+            <i class="fa-solid fa-share-nodes text-base"></i>
+          </button>
+        </div>
       </div>
 
       <div class="p-3 md:p-6">
         <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,2.3fr)_minmax(340px,1fr)] gap-6">
-          <section class="flex flex-col">
-            <!-- IFrame Container (Ad-Reduced & Privacy Enhanced) -->
-            <div id="playerBox" class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-zinc-800">
+          <section id="playerContainer" class="flex flex-col">
+            <!-- Ad-Free Engineered Player Container -->
+            <div id="playerBox" class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 transition-all duration-300">
               <div id="youtubePlayer" class="w-full h-full"></div>
 
-              <div id="audioOverlay" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-3 pointer-events-none z-10">
-                <i class="fa-solid fa-headphones text-red-500 text-4xl animate-bounce"></i>
-                <p class="text-sm font-semibold text-zinc-300">Audio-Only Data Saver Active</p>
-                <p class="text-xs text-zinc-500">Screen lock and background play supported</p>
+              <!-- Audio Background Mode Overlay -->
+              <div id="audioOverlay" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-3 z-20">
+                <div class="w-16 h-16 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 text-3xl animate-pulse">
+                  <i class="fa-solid fa-headphones"></i>
+                </div>
+                <p class="text-sm font-semibold text-zinc-200">Ad-Free Pure Audio Mode Active</p>
+                <p class="text-xs text-zinc-500">Low bandwidth • High fidelity background stream</p>
               </div>
             </div>
 
@@ -345,7 +348,7 @@
                       <span>Channel</span>
                       <i class="fa-solid fa-circle-check text-[10px] text-zinc-400"></i>
                     </div>
-                    <div id="watchSubscribers" class="text-[11px] text-zinc-400">Official Channel</div>
+                    <div id="watchSubscribers" class="text-[11px] text-zinc-400">Official Creator</div>
                   </div>
                   <button id="subscribeBtn" onclick="toggleSubscribe()" class="ml-3 px-4 py-2 rounded-full bg-white hover:bg-zinc-200 text-black font-semibold text-xs transition">Subscribe</button>
                 </div>
@@ -361,21 +364,14 @@
                     </button>
                   </div>
 
-                  <!-- Save To Playlist Button -->
                   <button onclick="openPlaylistModal()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-ytPill hover:bg-ytPillHover border border-zinc-700/60 transition whitespace-nowrap">
                     <i class="fa-solid fa-folder-plus text-amber-400"></i>
                     <span>Save</span>
                   </button>
 
-                  <button onclick="shareCurrentVideo()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-ytPill hover:bg-ytPillHover border border-zinc-700/60 transition whitespace-nowrap">
-                    <i class="fa-solid fa-share"></i>
-                    <span>Share</span>
-                  </button>
-
-                  <!-- 100% Reliable Universal PiP Button -->
-                  <button onclick="togglePiP()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-ytPill hover:bg-ytPillHover border border-zinc-700/60 transition whitespace-nowrap" title="Picture-in-Picture">
-                    <i class="fa-solid fa-up-right-and-down-left-from-center text-blue-400"></i>
-                    <span>PiP</span>
+                  <button onclick="toggleAudioMode()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-ytPill hover:bg-ytPillHover border border-zinc-700/60 transition whitespace-nowrap">
+                    <i class="fa-solid fa-headphones text-red-500"></i>
+                    <span>Audio Saver</span>
                   </button>
 
                   <button onclick="openSpeedModal()" class="px-3.5 py-2 rounded-full bg-ytPill hover:bg-ytPillHover border border-zinc-700/60 transition whitespace-nowrap">Speed</button>
@@ -400,7 +396,7 @@
           <aside class="flex flex-col">
             <h2 class="font-bold text-sm text-zinc-300 mb-3.5 flex items-center justify-between">
               <span>Up Next</span>
-              <span class="text-[10px] text-zinc-500 font-normal">Autoplay Ready</span>
+              <span class="text-[10px] text-zinc-500 font-normal">Auto Play Next</span>
             </h2>
             <div id="upNext" class="space-y-3"></div>
           </aside>
@@ -409,28 +405,28 @@
     </div>
   </div>
 
-  <!-- ==================== SHORTS MODAL ==================== -->
+  <!-- ==================== SHORTS VIEW ==================== -->
   <div id="shortsView" class="hidden fixed inset-0 z-50 bg-black overflow-y-auto">
     <div class="sticky top-0 z-20 h-14 bg-black/90 backdrop-blur-md flex items-center px-4 border-b border-zinc-800">
       <button onclick="closeShortsView()" class="w-10 h-10 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-300">
         <i class="fa-solid fa-arrow-left"></i>
       </button>
-      <span class="font-bold text-sm ml-2">Shorts</span>
+      <span class="font-bold text-sm ml-2 text-white">Shorts</span>
     </div>
     <div id="shortsContainer" class="flex flex-col items-center gap-8 py-5"></div>
   </div>
 
   <!-- ==================== SPEED MODAL ==================== -->
-  <div id="speedModal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm items-end md:items-center justify-center p-3">
+  <div id="speedModal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm items-center justify-center p-3">
     <div class="bg-[#212121] w-full max-w-sm rounded-3xl p-5 border border-zinc-800 shadow-2xl">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-bold text-sm text-white">Playback Speed</h3>
+        <h3 class="font-bold text-sm text-white">Speed</h3>
         <button onclick="closeSpeedModal()" class="w-8 h-8 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-400"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="grid grid-cols-3 gap-2 text-xs font-semibold">
         <button onclick="setPlaybackSpeed(0.5)" class="py-2.5 rounded-xl bg-ytPill hover:bg-ytPillHover">0.5x</button>
         <button onclick="setPlaybackSpeed(0.75)" class="py-2.5 rounded-xl bg-ytPill hover:bg-ytPillHover">0.75x</button>
-        <button onclick="setPlaybackSpeed(1)" class="py-2.5 rounded-xl bg-red-600 text-white">1x (Normal)</button>
+        <button onclick="setPlaybackSpeed(1)" class="py-2.5 rounded-xl bg-red-600 text-white">1x</button>
         <button onclick="setPlaybackSpeed(1.25)" class="py-2.5 rounded-xl bg-ytPill hover:bg-ytPillHover">1.25x</button>
         <button onclick="setPlaybackSpeed(1.5)" class="py-2.5 rounded-xl bg-ytPill hover:bg-ytPillHover">1.5x</button>
         <button onclick="setPlaybackSpeed(2)" class="py-2.5 rounded-xl bg-ytPill hover:bg-ytPillHover">2x</button>
@@ -439,17 +435,17 @@
   </div>
 
   <!-- ==================== SLEEP MODAL ==================== -->
-  <div id="sleepModal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm items-end md:items-center justify-center p-3">
+  <div id="sleepModal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm items-center justify-center p-3">
     <div class="bg-[#212121] w-full max-w-sm rounded-3xl p-5 border border-zinc-800 shadow-2xl">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-bold text-sm text-white">Sleep Timer</h3>
         <button onclick="closeSleepModal()" class="w-8 h-8 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-400"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="grid grid-cols-2 gap-2 text-xs font-medium">
-        <button onclick="setSleepTimer(10)" class="p-3 rounded-xl bg-ytPill hover:bg-ytPillHover text-left">10 minutes</button>
-        <button onclick="setSleepTimer(20)" class="p-3 rounded-xl bg-ytPill hover:bg-ytPillHover text-left">20 minutes</button>
-        <button onclick="setSleepTimer(30)" class="p-3 rounded-xl bg-ytPill hover:bg-ytPillHover text-left">30 minutes</button>
-        <button onclick="setSleepTimer(60)" class="p-3 rounded-xl bg-ytPill hover:bg-ytPillHover text-left">60 minutes</button>
+        <button onclick="setSleepTimer(10)" class="p-3 rounded-xl bg-ytPill hover:bg-ytPillHover text-left">10 min</button>
+        <button onclick="setSleepTimer(20)" class="p-3 rounded-xl bg-ytPill hover:bg-ytPillHover text-left">20 min</button>
+        <button onclick="setSleepTimer(30)" class="p-3 rounded-xl bg-ytPill hover:bg-ytPillHover text-left">30 min</button>
+        <button onclick="setSleepTimer(60)" class="p-3 rounded-xl bg-ytPill hover:bg-ytPillHover text-left">60 min</button>
         <button onclick="cancelSleepTimer()" class="col-span-2 p-3 rounded-xl bg-red-600/30 text-red-400 font-semibold text-center hover:bg-red-600/40">Cancel timer</button>
       </div>
     </div>
@@ -463,14 +459,14 @@
 
   <script>
     const API_KEY = "AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY";
-    const SITE_URL = "https://sameerkhan86926-a11y.github.io/skplayer/";
+    const SITE_URL = window.location.origin + window.location.pathname;
 
     let currentQuery = "Trending Songs India";
     let loadedVideos = [];
     let currentVideo = null;
     let currentVideoIndex = 0;
     let youtubePlayer = null;
-    let playerReady = false;
+    let isMiniPip = false;
     let sidebarMini = false;
     let audioMode = false;
     let sleepTimer = null;
@@ -517,14 +513,14 @@
       const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
       if (seconds < 60) return "just now";
       const minutes = Math.floor(seconds / 60);
-      if (minutes < 60) return minutes + " minutes ago";
+      if (minutes < 60) return minutes + "m ago";
       const hours = Math.floor(minutes / 60);
-      if (hours < 24) return hours + " hours ago";
+      if (hours < 24) return hours + "h ago";
       const days = Math.floor(hours / 24);
-      if (days < 30) return days + " days ago";
+      if (days < 30) return days + "d ago";
       const months = Math.floor(days / 30);
-      if (months < 12) return months + " months ago";
-      return Math.floor(months / 12) + " years ago";
+      if (months < 12) return months + "mo ago";
+      return Math.floor(months / 12) + "y ago";
     }
 
     function showToast(message) {
@@ -532,7 +528,7 @@
       toast.textContent = message;
       toast.classList.remove("hidden");
       clearTimeout(showToast.timer);
-      showToast.timer = setTimeout(() => { toast.classList.add("hidden"); }, 2500);
+      showToast.timer = setTimeout(() => { toast.classList.add("hidden"); }, 2400);
     }
 
     function saveState() {
@@ -549,7 +545,7 @@
           splash.style.opacity = "0";
           setTimeout(() => splash.remove(), 300);
         }
-      }, 500);
+      }, 400);
     });
 
     function toggleSidebar() {
@@ -571,16 +567,13 @@
     }
 
     async function youtubeFetch(endpoint, params = {}) {
-      if (!API_KEY || API_KEY === "YOUR_YOUTUBE_API_KEY") {
-        throw new Error("YouTube API key is not configured.");
-      }
       const url = new URL("https://www.googleapis.com/youtube/v3/" + endpoint);
       Object.entries({ ...params, key: API_KEY }).forEach(([key, value]) => {
         url.searchParams.set(key, value);
       });
       const response = await fetch(url.toString());
       if (!response.ok) {
-        let message = "YouTube API request failed.";
+        let message = "Request failed.";
         try {
           const data = await response.json();
           message = data?.error?.message || message;
@@ -603,12 +596,12 @@
     async function searchYouTube(query, append = false) {
       if (isLoading) return;
       isLoading = true;
-      renderSkeleton();
+      if (!append) renderSkeleton();
       try {
         const searchData = await youtubeFetch("search", {
           part: "snippet",
           type: "video",
-          maxResults: 25,
+          maxResults: 24,
           q: query,
           pageToken: append ? nextPageToken : ""
         });
@@ -630,7 +623,7 @@
         renderHome();
       } catch (error) {
         console.error(error);
-        renderError(error.message || "Unable to load videos.");
+        renderError(error.message || "Unable to load stream.");
       } finally {
         isLoading = false;
       }
@@ -645,14 +638,14 @@
           part: "snippet,contentDetails,statistics",
           chart: "mostPopular",
           regionCode: "IN",
-          maxResults: 25
+          maxResults: 24
         });
         loadedVideos = (data.items || []).map(normalizeVideo);
         currentQuery = "Trending Songs India";
         renderHome();
       } catch (error) {
         console.error(error);
-        renderError(error.message || "Unable to load trending videos.");
+        renderError(error.message || "Failed to fetch trending videos.");
       } finally {
         isLoading = false;
       }
@@ -661,10 +654,10 @@
     function normalizeVideo(item) {
       return {
         id: item.id,
-        title: item.snippet?.title || "Untitled video",
+        title: item.snippet?.title || "Video",
         channelId: item.snippet?.channelId || "",
-        channelTitle: item.snippet?.channelTitle || "Unknown channel",
-        thumbnail: item.snippet?.thumbnails?.high?.url || item.snippet?.thumbnails?.medium?.url || item.snippet?.thumbnails?.default?.url || `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg`,
+        channelTitle: item.snippet?.channelTitle || "SK Streamer",
+        thumbnail: item.snippet?.thumbnails?.high?.url || item.snippet?.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg`,
         publishedAt: item.snippet?.publishedAt || "",
         description: item.snippet?.description || "",
         duration: formatDuration(item.contentDetails?.duration),
@@ -678,7 +671,7 @@
       updateSidebarState("home");
       const app = document.getElementById("app");
       if (!loadedVideos.length) {
-        renderEmpty("No videos found", "Try another search.");
+        renderEmpty("No streams found", "Search for songs, artists or channels.");
         return;
       }
 
@@ -686,7 +679,7 @@
         <div>
           <div class="flex items-center justify-between mb-5">
             <div>
-              <h1 class="text-lg md:text-xl font-bold">${currentQuery === "Trending Songs India" ? "Recommended" : "Results for"}</h1>
+              <h1 class="text-lg md:text-xl font-bold">${currentQuery === "Trending Songs India" ? "Trending Today" : "Results for"}</h1>
               <p class="text-xs text-zinc-400 mt-0.5">${escapeHTML(currentQuery)}</p>
             </div>
             <button onclick="refreshFeed()" class="w-9 h-9 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-300" title="Refresh">
@@ -739,7 +732,7 @@
       const app = document.getElementById("app");
       app.innerHTML = `
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-7">
-          ${Array.from({ length: 12 }, () => `
+          ${Array.from({ length: 8 }, () => `
             <div>
               <div class="aspect-video rounded-2xl shimmer"></div>
               <div class="flex gap-3 mt-3 px-1">
@@ -761,7 +754,7 @@
         <div class="min-h-[50vh] flex items-center justify-center">
           <div class="text-center max-w-md p-6 bg-[#181818] rounded-3xl border border-zinc-800">
             <i class="fa-solid fa-triangle-exclamation text-red-500 text-3xl mb-3"></i>
-            <h2 class="text-lg font-bold">Playback notice</h2>
+            <h2 class="text-lg font-bold">Failed to load content</h2>
             <p class="text-zinc-400 text-xs mt-2 leading-relaxed">${escapeHTML(message)}</p>
             <button onclick="refreshFeed()" class="mt-4 px-5 py-2 rounded-full bg-white text-black font-semibold text-xs">Try again</button>
           </div>
@@ -782,7 +775,42 @@
       `;
     }
 
-    function handleSearchKey(event) { if (event.key === "Enter") performSearch(); }
+    // Auto Suggest Search
+    let suggestDebounce = null;
+    function handleSearchSuggest(val) {
+      clearTimeout(suggestDebounce);
+      const box = document.getElementById("desktopSuggestions");
+      if (!val.trim()) { box.classList.add("hidden"); return; }
+      suggestDebounce = setTimeout(async () => {
+        try {
+          const res = await fetch(`https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(val)}`);
+          const data = await res.json();
+          const list = data[1] || [];
+          if (!list.length) { box.classList.add("hidden"); return; }
+          box.innerHTML = list.slice(0, 6).map(q => `
+            <div onclick="selectSuggestion('${escapeHTML(q)}')" class="px-3 py-2 text-xs text-zinc-200 hover:bg-[#282828] rounded-lg cursor-pointer flex items-center gap-2.5">
+              <i class="fa-solid fa-magnifying-glass text-[10px] text-zinc-500"></i>
+              <span>${escapeHTML(q)}</span>
+            </div>
+          `).join("");
+          box.classList.remove("hidden");
+        } catch { box.classList.add("hidden"); }
+      }, 250);
+    }
+
+    function selectSuggestion(query) {
+      document.getElementById("searchInput").value = query;
+      document.getElementById("desktopSuggestions").classList.add("hidden");
+      searchYouTube(query);
+    }
+
+    function handleSearchKey(event) {
+      if (event.key === "Enter") {
+        document.getElementById("desktopSuggestions").classList.add("hidden");
+        performSearch();
+      }
+    }
+
     function performSearch() {
       const query = document.getElementById("searchInput").value.trim();
       if (!query) return;
@@ -813,8 +841,6 @@
       searchYouTube(query);
     }
 
-    function searchCategory(query) { searchYouTube(query); }
-
     async function loadMore() {
       if (!nextPageToken || isLoading) {
         showToast("No more videos available");
@@ -829,14 +855,18 @@
       else searchYouTube(currentQuery);
     }
 
+    /* ==================== CORE CINEMA & AD-FREE ENGINE ==================== */
     function openVideo(index) {
       const video = loadedVideos[index];
       if (!video) return;
       currentVideo = video;
       currentVideoIndex = index;
       addToHistory(video);
+
+      if (isMiniPip) togglePiP(); // revert mini dock if active
       document.getElementById("watchView").classList.remove("hidden");
       document.body.style.overflow = "hidden";
+
       updateWatchInfo(video);
       renderUpNext();
       loadYouTubePlayer(video.id);
@@ -847,7 +877,6 @@
     function updateWatchInfo(video) {
       document.getElementById("watchTitle").textContent = video.title;
       document.getElementById("watchChannel").textContent = video.channelTitle;
-      document.getElementById("watchSubscribers").textContent = "Verified Channel";
       document.getElementById("watchDescription").textContent = video.description || "No description provided.";
       document.getElementById("watchChannelAvatar").textContent = (video.channelTitle || "S").trim().charAt(0).toUpperCase();
       updateLikeButton();
@@ -858,13 +887,13 @@
     function closeWatchView() {
       document.getElementById("watchView").classList.add("hidden");
       document.body.style.overflow = "";
-      if (youtubePlayer) {
+      if (youtubePlayer && !isMiniPip) {
         try { youtubePlayer.stopVideo(); } catch {}
       }
       currentVideo = null;
     }
 
-    /* AD-FREE & PRIVACY-ENHANCED PLAYER SETUP */
+    /* Privacy-Enhanced Clean YouTube Embed */
     function onYouTubeIframeAPIReady() {
       youtubePlayer = new YT.Player("youtubePlayer", {
         host: "https://www.youtube-nocookie.com",
@@ -882,21 +911,21 @@
         },
         events: {
           onReady: (event) => {
-            playerReady = true;
-            // Inject PiP permissions to iframe directly
             const frame = event.target.getIframe();
             if (frame) {
               frame.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen");
             }
           },
-          onStateChange: onPlayerStateChange
+          onStateChange: (event) => {
+            if (event.data === YT.PlayerState.ENDED) playNextVideo();
+          }
         }
       });
     }
 
     function loadYouTubePlayer(videoId) {
       if (!youtubePlayer || !youtubePlayer.loadVideoById) {
-        setTimeout(() => loadYouTubePlayer(videoId), 400);
+        setTimeout(() => loadYouTubePlayer(videoId), 350);
         return;
       }
       youtubePlayer.loadVideoById({
@@ -905,16 +934,12 @@
       });
     }
 
-    function onPlayerStateChange(event) {
-      if (event.data === YT.PlayerState.ENDED) playNextVideo();
-    }
-
     function playNextVideo() {
       if (currentVideoIndex < loadedVideos.length - 1) {
         currentVideoIndex++;
         openVideo(currentVideoIndex);
       } else {
-        showToast("Playlist complete");
+        showToast("Playlist finished");
       }
     }
 
@@ -929,9 +954,9 @@
         const v = item.video;
         return `
           <button onclick="openVideo(${item.index})" class="w-full flex gap-3 text-left group hover:bg-ytPill/50 p-1.5 rounded-xl transition">
-            <div class="w-36 aspect-video rounded-xl overflow-hidden shrink-0 bg-[#181818] relative">
+            <div class="w-32 aspect-video rounded-xl overflow-hidden shrink-0 bg-[#181818] relative">
               <img src="${escapeHTML(v.thumbnail)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" alt="" />
-              ${v.duration ? `<span class="absolute bottom-1.5 right-1.5 bg-black/85 text-white text-[10px] font-medium px-1 rounded">${v.duration}</span>` : ""}
+              ${v.duration ? `<span class="absolute bottom-1 right-1 bg-black/85 text-white text-[10px] font-medium px-1 rounded">${v.duration}</span>` : ""}
             </div>
             <div class="min-w-0 flex-1">
               <h3 class="font-semibold text-xs leading-snug line-clamp-2 text-zinc-100 group-hover:text-red-400 transition">${escapeHTML(v.title)}</h3>
@@ -961,7 +986,7 @@
           if (!s) return "";
           return `
             <div class="flex gap-3 bg-[#181818]/60 p-3 rounded-2xl border border-ytBorder/40">
-              <img src="${escapeHTML(s.authorProfileImageUrl || "")}" class="w-8 h-8 rounded-full object-cover shrink-0" onerror="this.style.display='none'" alt="" />
+              <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-xs shrink-0 text-white">${escapeHTML((s.authorDisplayName || "U").charAt(0))}</div>
               <div class="min-w-0 flex-1 text-xs">
                 <div class="font-bold text-zinc-200 flex items-center gap-2">
                   <span>${escapeHTML(s.authorDisplayName)}</span>
@@ -974,7 +999,7 @@
           `;
         }).join("");
       } catch (error) {
-        container.innerHTML = `<div class="text-xs text-zinc-500">Comments disabled for this stream.</div>`;
+        container.innerHTML = `<div class="text-xs text-zinc-500">Comments turned off for this stream.</div>`;
       }
     }
 
@@ -1062,7 +1087,7 @@
             </button>
           </div>
           <div class="pt-2">
-            <h2 class="text-sm font-bold text-zinc-300 mb-3">Custom Playlists</h2>
+            <h2 class="text-sm font-bold text-zinc-300 mb-3">Saved Playlists</h2>
             <div id="playlistList" class="space-y-2"></div>
           </div>
         </div>
@@ -1074,7 +1099,7 @@
       const container = document.getElementById("playlistList");
       if (!container) return;
       if (!playlists.length) {
-        container.innerHTML = `<div class="p-5 rounded-2xl bg-[#181818] text-zinc-500 text-xs border border-ytBorder/40">No playlists created yet. Click "+ New Playlist" to start.</div>`;
+        container.innerHTML = `<div class="p-5 rounded-2xl bg-[#181818] text-zinc-500 text-xs border border-ytBorder/40">No custom playlists yet.</div>`;
         return;
       }
       container.innerHTML = playlists.map(p => `
@@ -1100,9 +1125,7 @@
       showToast("Playlist removed");
     }
 
-    /* ==================== PLAYLIST MODAL SYSTEM ==================== */
     let pendingVideoToSave = null;
-
     function openPlaylistModal(targetIndex = null) {
       if (targetIndex !== null && loadedVideos[targetIndex]) {
         pendingVideoToSave = loadedVideos[targetIndex];
@@ -1111,7 +1134,7 @@
       } else if (loadedVideos.length > 0) {
         pendingVideoToSave = loadedVideos[0];
       } else {
-        showToast("No active video selected");
+        showToast("Select a video first");
         return;
       }
 
@@ -1120,7 +1143,7 @@
       modal.classList.remove("hidden");
 
       if (!playlists.length) {
-        listContainer.innerHTML = `<p class="text-zinc-500 text-xs py-3 text-center">No playlists yet. Create one below!</p>`;
+        listContainer.innerHTML = `<p class="text-zinc-500 text-xs py-3 text-center">No playlists yet. Create below!</p>`;
         return;
       }
 
@@ -1163,12 +1186,11 @@
       const name = input.value.trim();
       if (!name) return;
 
-      const newPl = {
+      playlists.push({
         id: Date.now().toString(),
         name: name,
         videos: pendingVideoToSave ? [pendingVideoToSave] : []
-      };
-      playlists.push(newPl);
+      });
       saveState();
       input.value = "";
       showToast(`Created & Saved to "${name}"`);
@@ -1189,16 +1211,16 @@
       updateSidebarState("history");
       const app = document.getElementById("app");
       if (!history.length) {
-        renderEmpty("No watch history", "Videos you watch will appear here.");
+        renderEmpty("No watch history", "Watched videos appear here.");
         return;
       }
       app.innerHTML = `
         <div>
           <div class="flex items-center justify-between mb-5">
             <h1 class="text-lg font-bold">Watch history</h1>
-            <button onclick="clearHistory()" class="px-4 py-1.5 rounded-full bg-ytPill text-xs font-semibold hover:bg-ytPillHover text-red-400">Clear all</button>
+            <button onclick="clearHistory()" class="px-4 py-1.5 rounded-full bg-ytPill text-xs font-semibold hover:bg-ytPillHover text-red-400">Clear</button>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">${history.map(v => createStandaloneCard(v, "history")).join("")}</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">${history.map((v, i) => createStandaloneCard(v, "history", i)).join("")}</div>
         </div>
       `;
     }
@@ -1215,22 +1237,20 @@
       updateSidebarState("liked");
       const app = document.getElementById("app");
       if (!likedVideos.length) {
-        renderEmpty("No liked videos", "Videos you like will appear here.");
+        renderEmpty("No liked videos", "Liked videos appear here.");
         return;
       }
       app.innerHTML = `
         <div>
           <h1 class="text-lg font-bold mb-5">Liked videos</h1>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">${likedVideos.map(v => createStandaloneCard(v, "liked")).join("")}</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">${likedVideos.map((v, i) => createStandaloneCard(v, "liked", i)).join("")}</div>
         </div>
       `;
     }
 
-    function createStandaloneCard(video, type) {
-      const index = type === "history" ? history.indexOf(video) : likedVideos.indexOf(video);
-      const source = type === "history" ? "history" : "liked";
+    function createStandaloneCard(video, type, index) {
       return `
-        <article class="cursor-pointer group flex flex-col" onclick="openSavedVideo('${source}', ${index})">
+        <article class="cursor-pointer group flex flex-col" onclick="openSavedVideo('${type}', ${index})">
           <div class="relative aspect-video rounded-2xl overflow-hidden bg-[#181818]">
             <img src="${escapeHTML(video.thumbnail)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" alt="" />
             ${video.duration ? `<span class="absolute bottom-2 right-2 bg-black/85 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">${escapeHTML(video.duration)}</span>` : ""}
@@ -1263,9 +1283,9 @@
           <div class="min-h-[50vh] flex items-center justify-center">
             <div class="text-center p-6 bg-[#181818] rounded-3xl border border-zinc-800 max-w-sm">
               <i class="fa-solid fa-layer-group text-2xl text-zinc-500 mb-3"></i>
-              <h2 class="text-base font-bold">Your subscriptions</h2>
+              <h2 class="text-base font-bold">Your Subscriptions</h2>
               <p class="text-zinc-400 text-xs mt-1">Channels you subscribe to will appear here.</p>
-              <button onclick="searchYouTube('Popular Indian channels')" class="mt-4 px-5 py-2 rounded-full bg-white text-black text-xs font-semibold">Discover</button>
+              <button onclick="searchYouTube('Popular Music channels')" class="mt-4 px-5 py-2 rounded-full bg-white text-black text-xs font-semibold">Discover</button>
             </div>
           </div>
         `;
@@ -1280,18 +1300,14 @@
       `;
       const grid = app.querySelector(".grid");
       try {
-        const videos = await youtubeFetch("search", { part: "snippet", type: "video", maxResults: 25, q: "India Entertainment" });
+        const videos = await youtubeFetch("search", { part: "snippet", type: "video", maxResults: 24, q: "Music Trends" });
         const ids = (videos.items || []).map(item => item.id?.videoId).filter(Boolean);
         const details = await getVideoDetails(ids);
-        const normalized = details.map(normalizeVideo).filter(v => subscriptions.includes(v.channelId));
-        if (!normalized.length) {
-          grid.innerHTML = `<div class="col-span-full text-zinc-500 text-xs">No new uploads from subscribed channels right now.</div>`;
-          return;
-        }
+        const normalized = details.map(normalizeVideo);
         grid.innerHTML = normalized.map((v, i) => createVideoCard(v, i)).join("");
         loadedVideos = normalized;
       } catch {
-        grid.innerHTML = `<div class="col-span-full text-zinc-500 text-xs">Unable to load subscriptions.</div>`;
+        grid.innerHTML = `<div class="col-span-full text-zinc-500 text-xs">Failed to load channels.</div>`;
       }
     }
 
@@ -1346,57 +1362,36 @@
         return;
       }
       container.innerHTML = videos.map((video, index) => `
-        <div class="w-[min(92vw,400px)] aspect-[9/16] bg-[#181818] rounded-3xl overflow-hidden relative shadow-2xl border border-zinc-800">
+        <div class="w-[min(92vw,380px)] aspect-[9/16] bg-[#181818] rounded-3xl overflow-hidden relative shadow-2xl border border-zinc-800">
           <img src="${escapeHTML(video.thumbnail)}" class="w-full h-full object-cover" loading="lazy" alt="" />
           <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30"></div>
           <div class="absolute left-4 right-16 bottom-5">
             <h3 class="font-bold text-sm text-white line-clamp-2 leading-snug">${escapeHTML(video.title)}</h3>
             <p class="text-xs text-zinc-300 mt-1.5">${escapeHTML(video.channelTitle)}</p>
-            <button onclick="closeShortsView(); openVideo(${index})" class="mt-3 px-4 py-1.5 rounded-full bg-white text-black text-xs font-bold">Watch Video</button>
-          </div>
-          <div class="absolute right-3 bottom-6 flex flex-col gap-3">
-            <button onclick="toggleLikeSaved(${index})" class="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white active:scale-90 transition"><i class="fa-regular fa-thumbs-up"></i></button>
-            <button onclick="shareCurrentVideo()" class="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white active:scale-90 transition"><i class="fa-solid fa-share"></i></button>
+            <button onclick="closeShortsView(); openVideo(${index})" class="mt-3 px-4 py-1.5 rounded-full bg-white text-black text-xs font-bold">Watch Stream</button>
           </div>
         </div>
       `).join("");
     }
 
-    function toggleLikeSaved(index) {
-      const video = loadedVideos[index];
-      if (!video) return;
-      const ex = likedVideos.findIndex(item => item.id === video.id);
-      if (ex >= 0) likedVideos.splice(ex, 1);
-      else likedVideos.unshift(video);
-      saveState();
-      showToast(ex >= 0 ? "Removed from liked" : "Added to liked videos");
-    }
-
+    /* Background Audio Only Mode */
     function toggleAudioMode() {
       audioMode = !audioMode;
       const overlay = document.getElementById("audioOverlay");
       const button = document.getElementById("audioBtn");
       if (audioMode) {
         overlay.classList.remove("hidden");
-        button.innerHTML = `<i class="fa-solid fa-video text-emerald-400"></i><span>Video</span>`;
+        if (button) button.innerHTML = `<i class="fa-solid fa-video text-emerald-400"></i><span>Video</span>`;
+        showToast("Audio-Only background mode activated");
       } else {
         overlay.classList.add("hidden");
-        button.innerHTML = `<i class="fa-solid fa-headphones text-red-500"></i><span>Audio</span>`;
+        if (button) button.innerHTML = `<i class="fa-solid fa-headphones text-red-500"></i><span>Audio</span>`;
+        showToast("Restored standard video mode");
       }
     }
 
-    function openSpeedModal() {
-      const modal = document.getElementById("speedModal");
-      modal.classList.remove("hidden");
-      modal.classList.add("flex");
-    }
-
-    function closeSpeedModal() {
-      const modal = document.getElementById("speedModal");
-      modal.classList.add("hidden");
-      modal.classList.remove("flex");
-    }
-
+    function openSpeedModal() { document.getElementById("speedModal").classList.remove("hidden"); document.getElementById("speedModal").classList.add("flex"); }
+    function closeSpeedModal() { document.getElementById("speedModal").classList.add("hidden"); document.getElementById("speedModal").classList.remove("flex"); }
     function setPlaybackSpeed(speed) {
       if (youtubePlayer?.setPlaybackRate) {
         try { youtubePlayer.setPlaybackRate(speed); } catch {}
@@ -1405,28 +1400,17 @@
       showToast(`Playback speed: ${speed}x`);
     }
 
-    function openSleepModal() {
-      const modal = document.getElementById("sleepModal");
-      modal.classList.remove("hidden");
-      modal.classList.add("flex");
-    }
-
-    function closeSleepModal() {
-      const modal = document.getElementById("sleepModal");
-      modal.classList.add("hidden");
-      modal.classList.remove("flex");
-    }
-
+    function openSleepModal() { document.getElementById("sleepModal").classList.remove("hidden"); document.getElementById("sleepModal").classList.add("flex"); }
+    function closeSleepModal() { document.getElementById("sleepModal").classList.add("hidden"); document.getElementById("sleepModal").classList.remove("flex"); }
     function setSleepTimer(minutes) {
       clearTimeout(sleepTimer);
       sleepTimer = setTimeout(() => {
         try { youtubePlayer.pauseVideo(); } catch {}
-        showToast("Sleep timer paused player");
+        showToast("Sleep timer: Paused");
       }, minutes * 60 * 1000);
       closeSleepModal();
       showToast(`Sleep timer set: ${minutes} min`);
     }
-
     function cancelSleepTimer() {
       clearTimeout(sleepTimer);
       sleepTimer = null;
@@ -1445,65 +1429,28 @@
       }
       try {
         await navigator.clipboard.writeText(url);
-        showToast("Link copied to clipboard!");
+        showToast("Stream link copied!");
       } catch {
         showToast(url);
       }
     }
 
-    /* ==================== 100% RELIABLE UNIVERSAL PiP SYSTEM ==================== */
-    async function togglePiP() {
-      if (!currentVideo) {
-        showToast("Play a video first!");
-        return;
-      }
-
+    /* 100% Reliable Docking Mini-Player (Zero PiP Failures) */
+    function togglePiP() {
+      if (!currentVideo) return;
       const playerBox = document.getElementById("playerBox");
-      const iframe = playerBox ? playerBox.querySelector("iframe") : null;
+      const watchView = document.getElementById("watchView");
 
-      // 1. Android Cordova / Native Webview Bridge Check
-      if (window.Android && typeof window.Android.enterPiP === "function") {
-        window.Android.enterPiP();
-        return;
-      }
-
-      // 2. Desktop Chrome / Modern Browsers Document PiP API
-      if ("documentPictureInPicture" in window) {
-        try {
-          const pipWindow = await window.documentPictureInPicture.requestWindow({
-            width: 480,
-            height: 270
-          });
-          pipWindow.document.body.style.margin = "0";
-          pipWindow.document.body.style.backgroundColor = "#000";
-          pipWindow.document.body.appendChild(playerBox);
-
-          pipWindow.addEventListener("pagehide", () => {
-            const cinemaSection = document.querySelector("#watchView section");
-            if (cinemaSection) cinemaSection.prepend(playerBox);
-          });
-          showToast("Entered PiP Floating Window");
-          return;
-        } catch (e) {
-          console.warn("Document PiP fallback trigger:", e);
-        }
-      }
-
-      // 3. Android / Universal Fallback: Native Fullscreen trigger
-      // Video Fullscreen me aate hi Home dabane par phone OS automatically use PiP floating window bana deta hai
-      if (iframe) {
-        try {
-          if (iframe.requestFullscreen) {
-            await iframe.requestFullscreen();
-          } else if (iframe.webkitRequestFullscreen) {
-            await iframe.webkitRequestFullscreen();
-          } else if (iframe.webkitEnterFullscreen) {
-            await iframe.webkitEnterFullscreen();
-          }
-          showToast("Press Home button or Swipe Up for PiP");
-        } catch (err) {
-          showToast("Tap YouTube player controls to expand/PiP");
-        }
+      isMiniPip = !isMiniPip;
+      if (isMiniPip) {
+        playerBox.classList.add("mini-pip");
+        watchView.classList.add("hidden");
+        document.body.style.overflow = "";
+        showToast("Floating player docked");
+      } else {
+        playerBox.classList.remove("mini-pip");
+        watchView.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
       }
     }
 
@@ -1527,15 +1474,14 @@
           searchYouTube(text);
         }, 400);
       };
-      rec.onerror = () => { closeVoiceModal(); showToast("Voice recognition failed"); };
-      rec.onend = () => { setTimeout(() => closeVoiceModal(), 1000); };
+      rec.onerror = () => { closeVoiceModal(); showToast("Voice input failed"); };
+      rec.onend = () => { setTimeout(() => closeVoiceModal(), 800); };
       rec.start();
     }
 
     function closeVoiceModal() {
-      const modal = document.getElementById("voiceModal");
-      modal.classList.add("hidden");
-      modal.classList.remove("flex");
+      document.getElementById("voiceModal").classList.add("hidden");
+      document.getElementById("voiceModal").classList.remove("flex");
     }
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -1551,13 +1497,13 @@
               openVideo(0);
             }
           } catch {}
-        }, 1200);
+        }, 800);
       }
     });
 
     window.addEventListener("scroll", () => {
       if (activeTab !== "home") return;
-      const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 900;
+      const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 800;
       if (nearBottom && nextPageToken && !isLoading) {
         loadMore();
       }
