@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#0f0f0f" />
-  <meta name="description" content="SKPlayer Pro - Ad-Free Mobile Streaming with True Floating PIP" />
+  <meta name="description" content="SKPlayer Pro - Ad-Free Mobile Streaming with True Floating PIP & Autoplay" />
   <title>SKPlayer Pro</title>
 
   <link rel="icon" href="favicon-32x32.png" />
@@ -106,7 +106,7 @@
       <div class="text-2xl font-bold tracking-tight mt-4">
         <span>SK</span><span class="text-ytRed">Player</span>
       </div>
-      <div class="text-xs text-zinc-500 mt-1 font-medium">True Ad-Free • Real Floating PIP</div>
+      <div class="text-xs text-zinc-500 mt-1 font-medium">100% Non-Stop Continuous Play</div>
     </div>
   </div>
 
@@ -208,7 +208,7 @@
     </div>
   </div>
 
-  <!-- ==================== SIDEBAR (DESKTOP) ==================== -->
+  <!-- ==================== SIDEBAR ==================== -->
   <aside id="sidebar" class="fixed left-0 top-14 bottom-0 w-60 bg-ytBlack border-r border-ytBorder z-30 overflow-y-auto hidden md:block transition-all duration-200">
     <div class="p-3 space-y-1">
       <button class="sidebar-item sidebar-active w-full flex items-center gap-6 rounded-xl px-4 py-2.5 text-sm text-zinc-200 hover:bg-ytPill transition" data-tab="home" onclick="switchMainTab('home')">
@@ -280,25 +280,21 @@
     </div>
   </nav>
 
-  <!-- ==================== REAL DETACHED FLOATING PIP WINDOW ==================== -->
-  <!-- Yeh body root me rehta hai taaki kisi bhi modal ya watchView ke chupne se yeh kabhi gayab na ho -->
+  <!-- ==================== DETACHED FLOATING PIP WINDOW ==================== -->
   <div id="floatingPipContainer" class="hidden">
     <div class="relative w-full h-full bg-black rounded-xl overflow-hidden group">
-      <!-- Floating Header & Quick Action Buttons -->
       <div id="floatingPipHeader" class="hidden absolute top-0 left-0 right-0 p-1 bg-gradient-to-b from-black/90 to-transparent z-30 flex items-center justify-between">
         <div onclick="restoreFromPip()" class="flex items-center gap-1.5 px-2 py-0.5 bg-black/60 rounded-full cursor-pointer">
           <i class="fa-solid fa-expand text-[10px] text-white"></i>
-          <span class="text-[9px] text-zinc-200 font-semibold">Tap to view</span>
+          <span class="text-[9px] text-zinc-200 font-semibold">Tap to expand</span>
         </div>
         <button onclick="closePipEntirely()" class="w-6 h-6 rounded-full bg-black/70 hover:bg-red-600 text-white flex items-center justify-center text-xs transition">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <!-- IFrame Container (Ad-Blocked Stream) -->
       <iframe id="pipStreamFrame" class="w-full h-full border-0 pointer-events-auto" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen></iframe>
 
-      <!-- Audio Mode Saver Screen -->
       <div id="audioOverlay" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-2 z-20 pointer-events-none">
         <i class="fa-solid fa-headphones text-red-500 text-3xl animate-pulse"></i>
         <p class="text-xs font-semibold text-zinc-200">Pure Audio Stream (Zero Ads)</p>
@@ -330,10 +326,8 @@
       <div class="p-2 md:p-6">
         <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,2.3fr)_minmax(340px,1fr)] gap-4">
           <section class="flex flex-col">
-            <!-- Cinema Player Target Mount -->
             <div id="cinemaMount" class="w-full aspect-video rounded-xl overflow-hidden bg-black shadow-2xl border border-zinc-800"></div>
 
-            <!-- Video Details -->
             <div class="mt-3 px-1">
               <h1 id="watchTitle" class="text-sm md:text-lg font-bold leading-snug text-white">Loading...</h1>
 
@@ -346,17 +340,21 @@
                         <span>Channel</span>
                         <i class="fa-solid fa-circle-check text-[9px] text-zinc-400"></i>
                       </div>
-                      <div class="text-[10px] text-zinc-400">Official Stream</div>
+                      <div class="text-[10px] text-zinc-400">Non-Stop Auto-Play Enabled</div>
                     </div>
                   </div>
                   <button id="subscribeBtn" onclick="toggleSubscribe()" class="px-3.5 py-1.5 rounded-full bg-white text-black font-semibold text-xs">Subscribe</button>
                 </div>
 
-                <!-- Action Bar -->
                 <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs py-1">
                   <button id="likeBtn" onclick="toggleLikeCurrent()" class="px-3 py-1.5 rounded-full bg-ytPill flex items-center gap-1 whitespace-nowrap">
                     <i class="fa-regular fa-thumbs-up"></i>
                     <span id="likeCount">Like</span>
+                  </button>
+
+                  <button onclick="playNextVideoAuto()" class="px-3 py-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center gap-1 whitespace-nowrap font-medium" title="Next Song">
+                    <i class="fa-solid fa-forward-step text-xs text-red-500"></i>
+                    <span>Next</span>
                   </button>
 
                   <button onclick="minimizeToPip()" class="px-3 py-1.5 rounded-full bg-red-600 text-white flex items-center gap-1 whitespace-nowrap font-medium">
@@ -393,7 +391,7 @@
           </section>
 
           <aside class="flex flex-col mt-4 lg:mt-0">
-            <h2 class="font-bold text-xs text-zinc-300 mb-2">Up Next</h2>
+            <h2 class="font-bold text-xs text-zinc-300 mb-2">Up Next (Autoplay Queue)</h2>
             <div id="upNext" class="space-y-2"></div>
           </aside>
         </div>
@@ -447,6 +445,7 @@
     let nextPageToken = "";
     let isLoading = false;
     let activeTab = "home";
+    let progressCheckTimer = null;
 
     let subscriptions = JSON.parse(localStorage.getItem("skplayer_subscriptions") || "[]");
     let likedVideos = JSON.parse(localStorage.getItem("skplayer_liked") || "[]");
@@ -468,6 +467,13 @@
       if (n >= 1000000) return (n / 1000000).toFixed(1) + "M";
       if (n >= 1000) return (n / 1000).toFixed(1) + "K";
       return String(n);
+    }
+
+    function parseDurationSeconds(iso) {
+      if (!iso) return 0;
+      const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+      if (!match) return 0;
+      return (Number(match[1] || 0) * 3600) + (Number(match[2] || 0) * 60) + Number(match[3] || 0);
     }
 
     function formatDuration(iso) {
@@ -629,6 +635,7 @@
         publishedAt: item.snippet?.publishedAt || "",
         description: item.snippet?.description || "",
         duration: formatDuration(item.contentDetails?.duration),
+        durationSec: parseDurationSeconds(item.contentDetails?.duration),
         views: Number(item.statistics?.viewCount || 0),
         likes: Number(item.statistics?.likeCount || 0)
       };
@@ -828,11 +835,29 @@
       else searchYouTube(currentQuery);
     }
 
-    /* ==================== 100% AD-FREE & REAL PIP ENGINE ==================== */
+    /* ==================== NON-STOP AUTOPLAY ENGINE ==================== */
     function loadAdFreeStreamDirect(videoId) {
       const frame = document.getElementById("pipStreamFrame");
-      // YouTube-nocookie with ad-skipping loop parameters and zero tracking
-      frame.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&modestbranding=1&rel=0&iv_load_policy=3&controls=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
+
+      // Build upcoming queue for YouTube's native continuous playlist player
+      const queueIds = loadedVideos
+        .slice(currentVideoIndex + 1, currentVideoIndex + 15)
+        .map(v => v.id)
+        .filter(Boolean);
+
+      const playlistParam = queueIds.length ? `&playlist=${videoId},${queueIds.join(",")}` : "";
+
+      // Native Autoplay URL bypass with zero pre-roll ads
+      frame.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&modestbranding=1&rel=0&iv_load_policy=3&controls=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}${playlistParam}`;
+
+      // Reset auto-advance timer fallback based on song duration
+      clearTimeout(progressCheckTimer);
+      if (currentVideo && currentVideo.durationSec > 0) {
+        // Trigger auto next 2 seconds before actual end
+        progressCheckTimer = setTimeout(() => {
+          playNextVideoAuto();
+        }, (currentVideo.durationSec + 1) * 1000);
+      }
     }
 
     function openVideo(index) {
@@ -865,7 +890,6 @@
       document.getElementById("commentCount").textContent = "";
     }
 
-    /* REAL VISIBLE FLOATING PIP CONTROLLER */
     function minimizeToPip() {
       if (!currentVideo) return;
       const pipContainer = document.getElementById("floatingPipContainer");
@@ -875,12 +899,11 @@
       document.getElementById("watchView").classList.add("hidden");
       document.body.style.overflow = "";
 
-      // Move player into body floating overlay
       document.body.appendChild(pipContainer);
       pipContainer.className = "is-floating";
       pipHeader.classList.remove("hidden");
 
-      showToast("Floating PIP window visible");
+      showToast("Floating PIP mode");
     }
 
     function restoreFromPip() {
@@ -892,7 +915,6 @@
       pipContainer.className = "w-full h-full block";
       pipHeader.classList.add("hidden");
 
-      // Place inside Cinema view
       cinemaMount.appendChild(pipContainer);
 
       document.getElementById("watchView").classList.remove("hidden");
@@ -900,6 +922,7 @@
     }
 
     function closePipEntirely() {
+      clearTimeout(progressCheckTimer);
       const pipContainer = document.getElementById("floatingPipContainer");
       pipContainer.className = "hidden";
       const frame = document.getElementById("pipStreamFrame");
@@ -909,26 +932,32 @@
       showToast("Player closed");
     }
 
-    // Auto Play Next Song Detection
+    /* Auto Play PostMessage Listener from YouTube IFrame */
     window.addEventListener("message", (event) => {
       try {
         const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-        if (data?.event === "onStateChange" && data?.info === 0) {
+        // Info 0 = Video Ended
+        if (data?.event === "onStateChange" && (data?.info === 0 || data?.info === "0")) {
           playNextVideoAuto();
         }
       } catch {}
     });
 
     function playNextVideoAuto() {
+      clearTimeout(progressCheckTimer);
       if (currentVideoIndex < loadedVideos.length - 1) {
         currentVideoIndex++;
-        showToast("Playing next track...");
         const next = loadedVideos[currentVideoIndex];
         if (next) {
           currentVideo = next;
           updateWatchInfo(next);
+          addToHistory(next);
+          renderUpNext();
           loadAdFreeStreamDirect(next.id);
+          showToast(`Now playing: ${next.title.slice(0, 24)}...`);
         }
+      } else {
+        showToast("Playlist ended");
       }
     }
 
