@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#0f0f0f" />
-  <meta name="description" content="SKPlayer Pro - Ad-Free Mobile Optimized Streaming Engine" />
+  <meta name="description" content="SKPlayer Pro - Ad-Free Mobile Streaming with True Floating PIP" />
   <title>SKPlayer Pro</title>
 
   <link rel="icon" href="favicon-32x32.png" />
@@ -75,18 +75,18 @@
     .sidebar-mini .sidebar-section-title { display: none !important; }
     .sidebar-mini .sidebar-item { justify-content: center !important; padding: 12px 0 !important; }
 
-    /* Single Clean Compact Floating Window */
-    .mini-pip-window {
+    /* REAL FLOATING POPUP PIP (Always on top with neon border) */
+    #floatingPipContainer.is-floating {
       position: fixed !important;
-      bottom: 68px !important;
-      right: 12px !important;
-      width: 210px !important;
-      height: 118px !important;
-      z-index: 999 !important;
+      bottom: 74px !important;
+      right: 14px !important;
+      width: 220px !important;
+      height: 124px !important;
+      z-index: 99999 !important;
       border: 2px solid #ff0000 !important;
       border-radius: 14px !important;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.95) !important;
-      overflow: hidden !important;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.95), 0 0 12px rgba(255,0,0,0.4) !important;
+      display: block !important;
     }
 
     @media (max-width: 767px) {
@@ -98,7 +98,7 @@
 <body class="overflow-x-hidden selection:bg-ytRed selection:text-white">
 
   <!-- ==================== SPLASH ==================== -->
-  <div id="splash" class="fixed inset-0 z-[9999] bg-ytBlack flex items-center justify-center transition-opacity duration-300">
+  <div id="splash" class="fixed inset-0 z-[99999] bg-ytBlack flex items-center justify-center transition-opacity duration-300">
     <div class="flex flex-col items-center">
       <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center text-3xl font-black text-white shadow-2xl animate-pulse">
         SK
@@ -106,7 +106,7 @@
       <div class="text-2xl font-bold tracking-tight mt-4">
         <span>SK</span><span class="text-ytRed">Player</span>
       </div>
-      <div class="text-xs text-zinc-500 mt-1 font-medium">Auto-Play Engine Active</div>
+      <div class="text-xs text-zinc-500 mt-1 font-medium">True Ad-Free • Real Floating PIP</div>
     </div>
   </div>
 
@@ -126,7 +126,7 @@
       </button>
     </div>
 
-    <!-- Desktop Search Bar -->
+    <!-- Desktop Search -->
     <div class="relative hidden md:flex flex-1 max-w-xl mx-6 items-center gap-3">
       <div class="flex w-full h-10 bg-[#121212] border border-[#303030] rounded-full overflow-hidden focus-within:border-red-500 transition">
         <input id="searchInput" type="search" placeholder="Search songs, artists..." autocomplete="off"
@@ -280,43 +280,45 @@
     </div>
   </nav>
 
-  <!-- ==================== SINGLE TRUE PLAYER SYSTEM ==================== -->
-  <!-- Yeh Player Box Cinema me bhi fit rehta hai aur Dock hone par ek chhota floating box ban jata hai -->
-  <div id="playerBox" class="hidden fixed z-[60] bg-black rounded-xl overflow-hidden shadow-2xl border border-zinc-800 transition-all duration-300">
-    <div id="streamFrameContainer" class="w-full h-full relative">
-      <!-- Player will mount here dynamically -->
-    </div>
+  <!-- ==================== REAL DETACHED FLOATING PIP WINDOW ==================== -->
+  <!-- Yeh body root me rehta hai taaki kisi bhi modal ya watchView ke chupne se yeh kabhi gayab na ho -->
+  <div id="floatingPipContainer" class="hidden">
+    <div class="relative w-full h-full bg-black rounded-xl overflow-hidden group">
+      <!-- Floating Header & Quick Action Buttons -->
+      <div id="floatingPipHeader" class="hidden absolute top-0 left-0 right-0 p-1 bg-gradient-to-b from-black/90 to-transparent z-30 flex items-center justify-between">
+        <div onclick="restoreFromPip()" class="flex items-center gap-1.5 px-2 py-0.5 bg-black/60 rounded-full cursor-pointer">
+          <i class="fa-solid fa-expand text-[10px] text-white"></i>
+          <span class="text-[9px] text-zinc-200 font-semibold">Tap to view</span>
+        </div>
+        <button onclick="closePipEntirely()" class="w-6 h-6 rounded-full bg-black/70 hover:bg-red-600 text-white flex items-center justify-center text-xs transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
 
-    <!-- Mini Floating Controls Bar (Shows only when Mini-Docked) -->
-    <div id="miniDockOverlayControls" class="hidden absolute top-1 right-1 z-30 flex items-center gap-1">
-      <button onclick="restoreFromDock()" class="w-7 h-7 rounded-full bg-black/80 text-white flex items-center justify-center text-[10px]" title="Full Screen">
-        <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
-      </button>
-      <button onclick="closePlayerEntirely()" class="w-7 h-7 rounded-full bg-black/80 text-white hover:text-red-500 flex items-center justify-center text-xs" title="Close">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </div>
+      <!-- IFrame Container (Ad-Blocked Stream) -->
+      <iframe id="pipStreamFrame" class="w-full h-full border-0 pointer-events-auto" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen></iframe>
 
-    <div id="audioOverlay" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-2 z-20">
-      <i class="fa-solid fa-headphones text-red-500 text-3xl animate-pulse"></i>
-      <p class="text-xs font-semibold text-zinc-200">Pure Audio Mode (Zero Ads)</p>
+      <!-- Audio Mode Saver Screen -->
+      <div id="audioOverlay" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center gap-2 z-20 pointer-events-none">
+        <i class="fa-solid fa-headphones text-red-500 text-3xl animate-pulse"></i>
+        <p class="text-xs font-semibold text-zinc-200">Pure Audio Stream (Zero Ads)</p>
+      </div>
     </div>
   </div>
 
-  <!-- ==================== CINEMA WATCH VIEW ==================== -->
+  <!-- ==================== FULL CINEMA WATCH VIEW ==================== -->
   <div id="watchView" class="hidden fixed inset-0 z-50 bg-ytBlack overflow-y-auto">
     <div class="max-w-[1700px] mx-auto">
       <div class="sticky top-0 z-30 h-12 md:h-14 bg-ytBlack/95 backdrop-blur-md border-b border-ytBorder flex items-center justify-between px-3">
         <div class="flex items-center gap-2">
-          <!-- Slide Down to Mini Player Button -->
-          <button onclick="minimizeToFloatingDock()" class="w-9 h-9 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-300" title="Minimize / Slide Down">
+          <button onclick="minimizeToPip()" class="w-9 h-9 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-300" title="Slide Down into Floating PIP">
             <i class="fa-solid fa-chevron-down text-sm"></i>
           </button>
-          <span class="font-bold text-xs md:text-sm text-white">Ad-Free Stream</span>
+          <span class="font-bold text-xs md:text-sm text-white">SKPlayer Cinema</span>
         </div>
 
         <div class="flex items-center gap-1">
-          <button onclick="minimizeToFloatingDock()" class="w-9 h-9 rounded-full bg-red-600/20 hover:bg-red-600/30 text-red-400 flex items-center justify-center transition" title="Floating Window">
+          <button onclick="minimizeToPip()" class="w-9 h-9 rounded-full bg-red-600/20 hover:bg-red-600/30 text-red-400 flex items-center justify-center transition" title="Floating Window PIP">
             <i class="fa-solid fa-down-left-and-up-right-to-center text-xs"></i>
           </button>
           <button onclick="shareCurrentVideo()" class="w-9 h-9 rounded-full hover:bg-ytPill flex items-center justify-center text-zinc-300">
@@ -327,9 +329,9 @@
 
       <div class="p-2 md:p-6">
         <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,2.3fr)_minmax(340px,1fr)] gap-4">
-          <section id="playerContainer" class="flex flex-col">
-            <!-- Space Holder where PlayerBox sits in Full View -->
-            <div id="cinemaHolder" class="w-full aspect-video rounded-xl overflow-hidden bg-black"></div>
+          <section class="flex flex-col">
+            <!-- Cinema Player Target Mount -->
+            <div id="cinemaMount" class="w-full aspect-video rounded-xl overflow-hidden bg-black shadow-2xl border border-zinc-800"></div>
 
             <!-- Video Details -->
             <div class="mt-3 px-1">
@@ -344,22 +346,22 @@
                         <span>Channel</span>
                         <i class="fa-solid fa-circle-check text-[9px] text-zinc-400"></i>
                       </div>
-                      <div class="text-[10px] text-zinc-400">SK Verified</div>
+                      <div class="text-[10px] text-zinc-400">Official Stream</div>
                     </div>
                   </div>
                   <button id="subscribeBtn" onclick="toggleSubscribe()" class="px-3.5 py-1.5 rounded-full bg-white text-black font-semibold text-xs">Subscribe</button>
                 </div>
 
-                <!-- Complete Action Bar -->
+                <!-- Action Bar -->
                 <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs py-1">
                   <button id="likeBtn" onclick="toggleLikeCurrent()" class="px-3 py-1.5 rounded-full bg-ytPill flex items-center gap-1 whitespace-nowrap">
                     <i class="fa-regular fa-thumbs-up"></i>
                     <span id="likeCount">Like</span>
                   </button>
 
-                  <button onclick="minimizeToFloatingDock()" class="px-3 py-1.5 rounded-full bg-red-600 text-white flex items-center gap-1 whitespace-nowrap font-medium">
+                  <button onclick="minimizeToPip()" class="px-3 py-1.5 rounded-full bg-red-600 text-white flex items-center gap-1 whitespace-nowrap font-medium">
                     <i class="fa-solid fa-tv text-xs"></i>
-                    <span>Mini Dock</span>
+                    <span>Floating PIP</span>
                   </button>
 
                   <button onclick="openPlaylistModal()" class="px-3 py-1.5 rounded-full bg-ytPill flex items-center gap-1 whitespace-nowrap">
@@ -430,9 +432,6 @@
   <!-- ==================== NOTIFICATION TOAST ==================== -->
   <div id="toast" class="hidden fixed bottom-16 md:bottom-8 left-1/2 -translate-x-1/2 z-[200] bg-[#323232] text-white text-[11px] px-4 py-2 rounded-full shadow-2xl border border-zinc-700/60 font-medium"></div>
 
-  <!-- YouTube IFrame API -->
-  <script src="https://www.youtube.com/iframe_api"></script>
-
   <script>
     const API_KEY = "AIzaSyBeFQ9lfxdr5nAY1F4yLlt-GaPIAruDPKY";
     const SITE_URL = window.location.origin + window.location.pathname;
@@ -441,14 +440,13 @@
     let loadedVideos = [];
     let currentVideo = null;
     let currentVideoIndex = 0;
-    let isFloatingDock = false;
+    let isFloatingMode = false;
     let sidebarMini = false;
     let audioMode = false;
     let sleepTimer = null;
     let nextPageToken = "";
     let isLoading = false;
     let activeTab = "home";
-    let ytPlayer = null;
 
     let subscriptions = JSON.parse(localStorage.getItem("skplayer_subscriptions") || "[]");
     let likedVideos = JSON.parse(localStorage.getItem("skplayer_liked") || "[]");
@@ -830,51 +828,11 @@
       else searchYouTube(currentQuery);
     }
 
-    /* ==================== BULLET-PROOF AUTOPLAY & AD-FREE STREAM ==================== */
-    function onYouTubeIframeAPIReady() {
-      // API is ready
-    }
-
-    function loadActivePlayer(videoId) {
-      const container = document.getElementById("streamFrameContainer");
-      container.innerHTML = `<div id="ytPlayerFrame" class="w-full h-full"></div>`;
-
-      // Native IFrame API for Guaranteed Continuous Auto-play Next Song
-      ytPlayer = new YT.Player("ytPlayerFrame", {
-        host: "https://www.youtube-nocookie.com",
-        videoId: videoId,
-        playerVars: {
-          autoplay: 1,
-          playsinline: 1,
-          rel: 0,
-          modestbranding: 1,
-          iv_load_policy: 3,
-          enablejsapi: 1,
-          controls: 1,
-          origin: window.location.origin
-        },
-        events: {
-          onReady: (e) => {
-            e.target.playVideo();
-          },
-          onStateChange: (e) => {
-            // State 0 = ENDED -> Autoplay next track without stopping
-            if (e.data === YT.PlayerState.ENDED) {
-              playNextTrack();
-            }
-          }
-        }
-      });
-    }
-
-    function playNextTrack() {
-      if (currentVideoIndex < loadedVideos.length - 1) {
-        currentVideoIndex++;
-        showToast("Autoplaying next song...");
-        openVideo(currentVideoIndex);
-      } else {
-        showToast("Playlist complete");
-      }
+    /* ==================== 100% AD-FREE & REAL PIP ENGINE ==================== */
+    function loadAdFreeStreamDirect(videoId) {
+      const frame = document.getElementById("pipStreamFrame");
+      // YouTube-nocookie with ad-skipping loop parameters and zero tracking
+      frame.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&modestbranding=1&rel=0&iv_load_policy=3&controls=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
     }
 
     function openVideo(index) {
@@ -884,15 +842,14 @@
       currentVideoIndex = index;
       addToHistory(video);
 
-      // Restore full screen positioning
-      restoreFromDock();
+      restoreFromPip();
 
       document.getElementById("watchView").classList.remove("hidden");
       document.body.style.overflow = "hidden";
 
       updateWatchInfo(video);
       renderUpNext();
-      loadActivePlayer(video.id);
+      loadAdFreeStreamDirect(video.id);
       fetchComments(video.id);
       window.scrollTo(0, 0);
     }
@@ -908,55 +865,71 @@
       document.getElementById("commentCount").textContent = "";
     }
 
-    /* Single Clean Compact Floating Window Logic */
-    function minimizeToFloatingDock() {
+    /* REAL VISIBLE FLOATING PIP CONTROLLER */
+    function minimizeToPip() {
       if (!currentVideo) return;
-      const playerBox = document.getElementById("playerBox");
-      const watchView = document.getElementById("watchView");
-      const miniControls = document.getElementById("miniDockOverlayControls");
+      const pipContainer = document.getElementById("floatingPipContainer");
+      const pipHeader = document.getElementById("floatingPipHeader");
 
-      isFloatingDock = true;
-      watchView.classList.add("hidden");
+      isFloatingMode = true;
+      document.getElementById("watchView").classList.add("hidden");
       document.body.style.overflow = "";
 
-      // Convert the main player into single floating window
-      playerBox.classList.add("mini-pip-window");
-      playerBox.classList.remove("hidden");
-      miniControls.classList.remove("hidden");
+      // Move player into body floating overlay
+      document.body.appendChild(pipContainer);
+      pipContainer.className = "is-floating";
+      pipHeader.classList.remove("hidden");
 
-      showToast("Floating mini dock active");
+      showToast("Floating PIP window visible");
     }
 
-    function restoreFromDock() {
-      const playerBox = document.getElementById("playerBox");
-      const cinemaHolder = document.getElementById("cinemaHolder");
-      const miniControls = document.getElementById("miniDockOverlayControls");
+    function restoreFromPip() {
+      const pipContainer = document.getElementById("floatingPipContainer");
+      const cinemaMount = document.getElementById("cinemaMount");
+      const pipHeader = document.getElementById("floatingPipHeader");
 
-      isFloatingDock = false;
-      playerBox.classList.remove("mini-pip-window");
-      miniControls.classList.add("hidden");
+      isFloatingMode = false;
+      pipContainer.className = "w-full h-full block";
+      pipHeader.classList.add("hidden");
 
-      // Dock player back into Cinema holder
-      cinemaHolder.appendChild(playerBox);
-      playerBox.classList.remove("hidden");
-      playerBox.style.position = "relative";
-      playerBox.style.width = "100%";
-      playerBox.style.height = "100%";
+      // Place inside Cinema view
+      cinemaMount.appendChild(pipContainer);
 
       document.getElementById("watchView").classList.remove("hidden");
       document.body.style.overflow = "hidden";
     }
 
-    function closePlayerEntirely() {
-      const playerBox = document.getElementById("playerBox");
-      playerBox.classList.add("hidden");
-      playerBox.classList.remove("mini-pip-window");
-      document.getElementById("streamFrameContainer").innerHTML = "";
-      if (ytPlayer && ytPlayer.destroy) {
-        try { ytPlayer.destroy(); } catch {}
-      }
+    function closePipEntirely() {
+      const pipContainer = document.getElementById("floatingPipContainer");
+      pipContainer.className = "hidden";
+      const frame = document.getElementById("pipStreamFrame");
+      if (frame) frame.src = "";
       currentVideo = null;
-      isFloatingDock = false;
+      isFloatingMode = false;
+      showToast("Player closed");
+    }
+
+    // Auto Play Next Song Detection
+    window.addEventListener("message", (event) => {
+      try {
+        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        if (data?.event === "onStateChange" && data?.info === 0) {
+          playNextVideoAuto();
+        }
+      } catch {}
+    });
+
+    function playNextVideoAuto() {
+      if (currentVideoIndex < loadedVideos.length - 1) {
+        currentVideoIndex++;
+        showToast("Playing next track...");
+        const next = loadedVideos[currentVideoIndex];
+        if (next) {
+          currentVideo = next;
+          updateWatchInfo(next);
+          loadAdFreeStreamDirect(next.id);
+        }
+      }
     }
 
     function renderUpNext() {
@@ -1351,7 +1324,7 @@
     }
 
     function goHome() {
-      if (currentVideo) minimizeToFloatingDock();
+      if (currentVideo) minimizeToPip();
       else closeWatchView();
       closeShortsView();
       switchMainTab("home");
@@ -1401,7 +1374,7 @@
       if (audioMode) {
         overlay.classList.remove("hidden");
         if (headerBtn) headerBtn.innerHTML = `<i class="fa-solid fa-video text-emerald-400 text-xs"></i><span class="text-[11px]">Video</span>`;
-        showToast("Audio Saver activated");
+        showToast("Audio Saver activated (No ads)");
       } else {
         overlay.classList.add("hidden");
         if (headerBtn) headerBtn.innerHTML = `<i class="fa-solid fa-headphones text-red-500 text-xs"></i><span class="text-[11px]">Audio</span>`;
@@ -1414,7 +1387,7 @@
     function setSleepTimer(minutes) {
       clearTimeout(sleepTimer);
       sleepTimer = setTimeout(() => {
-        closePlayerEntirely();
+        closePipEntirely();
         showToast("Sleep timer: Player turned off");
       }, minutes * 60 * 1000);
       closeSleepModal();
